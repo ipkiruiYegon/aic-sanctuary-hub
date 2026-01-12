@@ -32,14 +32,20 @@ AIC Sanctuary Hub is a modern web application built with FastAPI and Jinja templ
 --- 
 ## 📂 Project Structure
 
+```plaintext
 aic-sanctuary-hub/
 │── app/                # FastAPI routes, models, services
+│   ├── main.py          # FastAPI entry point
+│   ├── routes/          # API endpoints (events, notifications, auth)
+│   ├── services/        # Business logic (event handling, notifications)
+│   ├── models/
 │── templates/          # Jinja2 templates (events, notifications, auth)
 │── static/             # CSS, JS, images
 │── tests/              # Unit and integration tests
-│── requirements.txt     # Dependencies
-│── README.md            # Project overview
-
+│── requirements.txt    # Dependencies
+│── README.md           # Project overview
+│── config.py            # App configuration
+```
 
 ---
 
@@ -48,4 +54,3 @@ aic-sanctuary-hub/
 
 ---
 
-## 📂 Project Structure
