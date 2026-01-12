@@ -3,11 +3,11 @@ AIC Sanctuary Hub is a modern web application built with FastAPI and Jinja templ
 
 ---
 ## ✨ Purpose
-- **Create a digital sanctuary where church officials can gather virtually.
+- Create a digital sanctuary where church officials can gather virtually.
 
-- **Simplify event management and communication within the church community.
+- Simplify event management and communication within the church community.
 
-- **Encourage participation and connection by delivering updates directly to church officials.
+- Encourage participation and connection by delivering updates directly to church officials.
 
 ---
 
@@ -44,7 +44,7 @@ aic-sanctuary-hub/
 ---
 
 ## 🙏 Acknowledgements
-- **A.I.C Church community for inspiration
+- A.I.C Church community for inspiration
 
 ---
 
