@@ -1,17 +1,17 @@
 from fastapi import APIRouter, Depends
 import asyncpg
 
-router = APIRouter(prefix="/users", tags=["users"])
+user_router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.post("/")
+@user_router.post("/")
 async def create_user(db: asyncpg.Connection = Depends(lambda: None)):
     # Example raw query; adjust based on your schema
     await db.execute("INSERT INTO users (name) VALUES ($1)", "New User")
     return {"message": "User created"}
 
 
-@router.get("/")
+@user_router.get("/")
 # db will be injected via dependency in main.py
 async def get_users(db=Depends(lambda: None)):
     # Note: Adjust to use the actual db connection from main.py's get_db
@@ -19,7 +19,7 @@ async def get_users(db=Depends(lambda: None)):
     return {"users": ["user1", "user2"]}
 
 
-@router.get("/{user_id}")
+@user_router.get("/{user_id}")
 async def get_user(user_id: int, db: asyncpg.Connection = Depends(lambda: None)):
     # Example raw query; adjust based on your schema
     row = await db.fetchrow("SELECT id, name FROM users WHERE id = $1", user_id)
