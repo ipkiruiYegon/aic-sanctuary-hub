@@ -1,28 +1,41 @@
-from fastapi import APIRouter, Depends
-import asyncpg
+from fastapi import APIRouter, Depends, status
+from fastapi.exceptions import HTTPException
+from sqlmodel.ext.asyncio.session import AsyncSession
 
-user_router = APIRouter(prefix="/users", tags=["users"])
+from app.db.database import get_session
+from app.users.service import UserService  # Import your UserService here
+# Import your Pydantic schemas here
+from app.users.schemas import UserBaseModel, UserCreateModel, UserUpdateModel
+
+user_router = APIRouter()
+
+user_service = UserService()  # Instantiate your service
 
 
 @user_router.post("/")
-async def create_user(db: asyncpg.Connection = Depends(lambda: None)):
-    # Example raw query; adjust based on your schema
-    await db.execute("INSERT INTO users (name) VALUES ($1)", "New User")
-    return {"message": "User created"}
+async def create_user(user_data: UserCreateModel, session: AsyncSession = Depends(get_session)):
+    user_phone = user_data.phone_no
+    if await user_service.user_exists(user_phone, session):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="User with this phone number already exists")
+    user = await user_service.create_user(user_data, session)
+    return user
 
 
-@user_router.get("/")
+@user_router.get("/", response_model=list[UserBaseModel])
 # db will be injected via dependency in main.py
-async def get_users(db=Depends(lambda: None)):
+async def get_users(session: AsyncSession = Depends(get_session)):
     # Note: Adjust to use the actual db connection from main.py's get_db
     # For now, placeholder; in practice, pass db as param and query
-    return {"users": ["user1", "user2"]}
+    users = await user_service.get_all_users(session)
+    return users
 
 
-@user_router.get("/{user_id}")
-async def get_user(user_id: int, db: asyncpg.Connection = Depends(lambda: None)):
+@user_router.get("/{user_id}", response_model=UserBaseModel)
+async def get_user(user_id: str, session: AsyncSession = Depends(get_session)):
     # Example raw query; adjust based on your schema
-    row = await db.fetchrow("SELECT id, name FROM users WHERE id = $1", user_id)
-    if row:
-        return {"user_id": row["id"], "name": row["name"]}
-    return {"error": "User not found"}
+    user = await user_service.get_user_by_uid(user_id, session)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="User not found")
+    return user
