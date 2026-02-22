@@ -1,8 +1,46 @@
 import uuid
 import sqlalchemy.dialects.postgresql as pg
-from datetime import datetime, date
+from datetime import datetime
 from typing import Optional, List
-from sqlmodel import SQLModel, Field, Column
+from sqlmodel import SQLModel, Field, Column, Relationship
+
+
+class Region(SQLModel, table=True):
+    __tablename__ = "regions"
+
+    id: uuid.UUID = Field(
+        default_factory=uuid.uuid4,
+        primary_key=True,
+        index=True,
+        nullable=False
+    )
+    name: str
+
+    # Removed Mapped[]; SQLModel handles the List hint automatically
+    districts: List["District"] = Relationship(back_populates="region")
+
+
+class District(SQLModel, table=True):
+    __tablename__ = "districts"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str
+    region_id: uuid.UUID = Field(foreign_key="regions.id")
+
+    region: Optional["Region"] = Relationship(back_populates="districts")
+    churches: List["Church"] = Relationship(back_populates="district")
+
+
+class Church(SQLModel, table=True):
+    __tablename__ = "churches"
+
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    name: str
+    district_id: uuid.UUID = Field(foreign_key="districts.id")
+
+    district: Optional["District"] = Relationship(back_populates="churches")
+    # Ensure back_populates matches User model
+    users: List["User"] = Relationship(back_populates="local_church")
 
 
 class User(SQLModel, table=True):
@@ -36,3 +74,12 @@ class User(SQLModel, table=True):
         pg.TIMESTAMP, default=datetime.now, nullable=True))
     mobile_login: Optional[bool] = Field(default=False)
     last_login_mobile: Optional[datetime] = Field(default=None, nullable=True)
+    local_church_id: uuid.UUID = Field(foreign_key="churches.id")
+    district_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="districts.id")
+    region_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="regions.id")
+
+    local_church: Optional["Church"] = Relationship(back_populates="users")
+    district: Optional["District"] = Relationship()
+    region: Optional["Region"] = Relationship()
