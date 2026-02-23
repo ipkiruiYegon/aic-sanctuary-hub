@@ -52,10 +52,23 @@
 
 <!-- Create User Modal -->
 <div id="createUserModal" class="modal">
-    <div class="modal-content">
+    <div class="user-modal-content">
         <span class="closeBtn">&times;</span>
         <h3>Create New User</h3>
-        <form method="post" action="/users/create" class="form">
+        <form method="post" action="/users/create" class="form two-column-form">
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <select name="title" id="title" required>
+                    <option value="" disabled selected>-- Select Title --</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Miss">Miss</option>
+                    <option value="Dr">Dr</option>
+                    <option value="Pastor">Pastor</option>
+                    <option value="Reverend">Reverend</option>
+                    <option value="Bishop">Bishop</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label for="first_name">First Name:</label>
                 <input type="text" name="first_name" id="first_name" required>
@@ -65,19 +78,44 @@
                 <input type="text" name="last_name" id="last_name" required>
             </div>
             <div class="form-group">
-                <label for="email">Email:</label>
-                <input type="email" name="email" id="email" required>
+                <label for="phone_no">Phone Number:</label>
+                <input type="tel" name="phone_no" id="phone_no" required>
             </div>
             <div class="form-group">
                 <label for="role">Role:</label>
                 <select name="role" id="role" required>
-                    <option value="super_administrator">Super Administrator</option>
-                    <option value="co_ordinator">Co-ordinator</option>
-                    <option value="worker">Worker</option>
-                    <option value="leader">Leader</option>
+                    <option value="" disabled selected>-- Select Role --</option>
+                    {% for role in roles %}
+                    <option value="{{ role.id }}">{{ role.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="btn-primary">Save User</button>
+            <div class="form-group">
+                <label for="district_region">Region:</label>
+                <select name="region_id" id="district_region" required>
+                    <option value="" disabled selected>-- Select Region --</option>
+                    <option value="{{ region.id }}">{{ region.name }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="local_district">District:</label>
+                <select name="district_id" id="local_district" required hx-get="/council/get-churches"
+                    hx-target="#local_church" hx-trigger="change">
+                    <option value="" disabled selected>-- Select District --</option>
+                    {% for district in region.districts %}
+                    <option value="{{ district.id }}">{{ district.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="local_church">Church:</label>
+                <select name="church_id" id="local_church" required>
+                    <option value="" disabled selected>-- Select Church --</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Save User</button>
+            </div>
         </form>
     </div>
 </div>

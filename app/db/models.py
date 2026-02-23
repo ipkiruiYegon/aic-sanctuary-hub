@@ -47,6 +47,7 @@ class User(SQLModel, table=True):
     __tablename__ = "users"
     id: uuid.UUID = Field(sa_column=Column(
         pg.UUID, nullable=False, primary_key=True, default=uuid.uuid4))
+    title: str = Field(max_length=12)
     first_name: str = Field(max_length=12)
     last_name: str = Field(max_length=50)
     is_active: Optional[bool] = Field(default=False)
@@ -62,6 +63,9 @@ class User(SQLModel, table=True):
     token: Optional[str] = Field(default=None)
     reset_token: Optional[str] = Field(default=None)
     role: Optional[str] = Field(default=None)
+    rcc_role: Optional[str] = Field(default=None)
+    dcc_role: Optional[str] = Field(default=None)
+    lcc_role: Optional[str] = Field(default=None)
     created_at: Optional[datetime] = Field(
         sa_column=Column(pg.TIMESTAMP, default=datetime.now, nullable=False)
     )

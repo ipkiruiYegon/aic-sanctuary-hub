@@ -1,5 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, Form, Request
+from fastapi.responses import HTMLResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from app.db.database import get_session
 from app.council.service import CouncilService
@@ -10,6 +11,21 @@ from fastapi.templating import Jinja2Templates
 from app.core.templates import templates
 council_router = APIRouter()
 council_services = CouncilService()  # Instantiate the service
+
+
+@council_router.get("/get-churches", response_class=HTMLResponse)
+async def get_churches(request: Request, district_id: str, session: AsyncSession = Depends(get_session)):
+    # Find the specific district from your 'region' object
+    # (Assuming 'region' is available or fetched from DB)
+    selected_district = await council_services.get_churches_by_district(
+        uuid.UUID(district_id), session)
+
+    options = '<option value="" disabled selected>-- Select Church --</option>'
+    if selected_district:
+        for church in selected_district:
+            options += f'<option value="{church.id}">AIC {church.name} Local Church</option>'
+
+    return options
 
 
 @council_router.get("/")

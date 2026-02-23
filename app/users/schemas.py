@@ -6,15 +6,27 @@ from typing import Optional
 
 
 class UserCreateModel(BaseModel):
+    title: str
     first_name: str
     last_name: str
-    password: str
-    role: str
     phone_no: str
+    role: str
+    region_id: uuid.UUID = Field(..., description="Region UUID")
+    district_id: uuid.UUID = Field(..., description="District UUID")
+    church_id: uuid.UUID = Field(..., description="Church UUID")
+
+
+class UserEditSchema(BaseModel):
+    id: uuid.UUID = Field(..., description="User UUID")
+    first_name: Optional[str]
+    last_name: Optional[str]
+    email: Optional[str]
+    role: Optional[str]
 
 
 class UserBaseModel(BaseModel):
     id: uuid.UUID
+    title: str
     first_name: str
     last_name: str
     is_active: Optional[bool]
@@ -29,6 +41,9 @@ class UserBaseModel(BaseModel):
     token: Optional[str] = Field(default=None)
     reset_token: Optional[str] = Field(default=None)
     role: Optional[str] = Field(default=None)
+    rcc_role: Optional[str] = Field(default=None)
+    dcc_role: Optional[str] = Field(default=None)
+    lcc_role: Optional[str] = Field(default=None)
     phone_no: str
     avatar_image: Optional[str]
     linked: Optional[bool]

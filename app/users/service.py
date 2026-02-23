@@ -4,8 +4,7 @@ from sqlmodel import select
 
 from app.db.models import User  # Import your User model here
 # Import your Pydantic schemas here
-from app.users.schemas import UserCreateModel, UserUpdateModel
-# Import your password hashing utilities here
+from app.users.schemas import UserCreateModel
 from app.auth.utils import generate_password_hash
 
 
@@ -33,14 +32,16 @@ class UserService:
 
     async def create_user(self, user_data: UserCreateModel, session: AsyncSession):
         # Logic to create a new user in the database
-        user_data_dict = user_data.model_dump()
-        new_user = User(**user_data_dict)
-        new_user.first_name = user_data_dict['first_name'].title()
-        new_user.last_name = user_data_dict['last_name'].title()
-        new_user.role = user_data_dict['role'].title()
-        print(user_data_dict['password'])
+
+        new_user = User(**user_data)
+        new_user.title = user_data['title'].title()
+        new_user.first_name = user_data['first_name'].title()
+        new_user.last_name = user_data['last_name'].title()
+        new_user.role = user_data['role'].title()
+        new_user.lcc_role = user_data['role'].title()
+
         new_user.password_hash = generate_password_hash(
-            user_data_dict['password'])
+            "Test@1234")  # Set a default password or generate one as needed
         session.add(new_user)
         await session.commit()
         await session.refresh(new_user)

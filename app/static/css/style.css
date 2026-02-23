@@ -515,6 +515,78 @@ body {
     /* red highlight on hover */
 }
 
+/* Ensure modal content has a max width */
+.user-modal-content {
+    max-width: 600px;
+    /* adjust as needed */
+    margin: 8% auto;
+    padding: 20px;
+    border-radius: 10px;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* Two-column form layout */
+.two-column-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+/* Inputs and selects styling */
+.two-column-form input,
+.two-column-form select {
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    font-size: 14px;
+    max-width: 100%;
+    /* prevent overflow */
+    box-sizing: border-box;
+    /* include padding in width */
+}
+
+/* Handle long option text gracefully */
+.two-column-form select option {
+    white-space: nowrap;
+    /* keep text on one line */
+    overflow: hidden;
+    /* hide overflow */
+    text-overflow: ellipsis;
+    /* show ... if too long */
+}
+
+/* Button spans across both columns */
+.two-column-form .form-actions {
+    grid-column: span 2;
+    text-align: center;
+}
+
+.two-column-form .btn-primary {
+    width: 100%;
+    background: linear-gradient(135deg, #0078d7, #00b4db);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.two-column-form .btn-primary:hover {
+    background: linear-gradient(135deg, #00b4db, #0078d7);
+    transform: scale(1.05);
+}
+
+/* Responsive: collapse to one column on small screens */
+@media (max-width: 768px) {
+    .two-column-form {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Animation for modal */
 @keyframes slideDown {
     from {
