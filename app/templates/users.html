@@ -6,48 +6,11 @@
 <button id="openCreateModalBtn" class="btn-primary">➕ Add User</button>
 
 <!-- Users Table -->
-{% if users%}
+<div id="usersTableContainer">
+    {% include "users_table.html" %}
+</div>
 
-<div class="table-container">
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>First Name</th>
-                <th>Last Name</th>
-                <th>Status</th>
-                <th>Role</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td>{{ user.first_name }}</td>
-                <td>{{ user.last_name }}</td>
-                <td>{{ "Active" if user.is_active else "Dormant" }}</td>
-                <td>{{ user.role }}</td>
-                <td>
-                    <!-- Edit button triggers modal -->
-                    <button class="btn-secondary editBtn" data-id="{{ user.id }}" data-first="{{ user.first_name }}"
-                        data-last="{{ user.last_name }}" data-email="{{ user.email }}" data-role="{{ user.role }}">
-                        Edit
-                    </button>
-                    <!-- Delete button triggers modal -->
-                    <button class="btn-danger deleteBtn" data-id="{{ user.id }}"
-                        data-name="{{ user.first_name }} {{ user.last_name }}">
-                        Delete
-                    </button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
-{% else %}
-<div class="no-users">
-    <h2>No users found.</h2>
-</div>
-{% endif %}
+
 
 
 <!-- Create User Modal -->
@@ -56,6 +19,10 @@
         <span class="closeBtn">&times;</span>
         <h3>Create New User</h3>
         <form method="post" action="/users/create" class="form two-column-form">
+            <!-- Error box for displaying messages -->
+            <div id="formErrorBox" class="error-summary" style="display:none; color:red; margin-bottom:1em;"></div>
+
+
             <div class="form-group">
                 <label for="title">Title:</label>
                 <select name="title" id="title" required>
@@ -82,7 +49,7 @@
                 <input type="tel" name="phone_no" id="phone_no" required>
             </div>
             <div class="form-group">
-                <label for="role">Role:</label>
+                <label for="role">Church Role:</label>
                 <select name="role" id="role" required>
                     <option value="" disabled selected>-- Select Role --</option>
                     {% for role in roles %}
@@ -91,16 +58,16 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="district_region">Region:</label>
+                <label for="district_region">Region - RCC:</label>
                 <select name="region_id" id="district_region" required>
                     <option value="" disabled selected>-- Select Region --</option>
                     <option value="{{ region.id }}">{{ region.name }}</option>
                 </select>
             </div>
             <div class="form-group">
-                <label for="local_district">District:</label>
+                <label for="local_district">District - DCC:</label>
                 <select name="district_id" id="local_district" required hx-get="/council/get-churches"
-                    hx-target="#local_church" hx-trigger="change">
+                    hx-target="#local_church_id" hx-trigger="change">
                     <option value="" disabled selected>-- Select District --</option>
                     {% for district in region.districts %}
                     <option value="{{ district.id }}">{{ district.name }}</option>
@@ -108,8 +75,8 @@
                 </select>
             </div>
             <div class="form-group">
-                <label for="local_church">Church:</label>
-                <select name="church_id" id="local_church" required>
+                <label for="local_church_id">Church - LCC:</label>
+                <select name="local_church_id" id="local_church_id" required>
                     <option value="" disabled selected>-- Select Church --</option>
                 </select>
             </div>
@@ -122,33 +89,89 @@
 
 <!-- Edit User Modal -->
 <div id="editUserModal" class="modal">
-    <div class="modal-content">
+    <div class="user-modal-content">
         <span class="closeBtn">&times;</span>
         <h3>Edit User</h3>
-        <form method="post" action="/users/edit" class="user-form">
-            <input type="hidden" name="id" id="edit_id">
+        <form method="post" action="/users/update" class="form two-column-form">
+            <input type="hidden" name="edit_id" id="edit_id">
+            <div class="form-group">
+                <label for="edit_title">Title:</label>
+                <select name="update_title" id="edit_title" required>
+                    <option value="" disabled selected>-- Select Title --</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Miss">Miss</option>
+                    <option value="Dr">Dr</option>
+                    <option value="Pastor">Pastor</option>
+                    <option value="Reverend">Reverend</option>
+                    <option value="Bishop">Bishop</option>
+                </select>
+            </div>
             <div class="form-group">
                 <label for="edit_first_name">First Name:</label>
-                <input type="text" name="first_name" id="edit_first_name" required>
+                <input type="text" name="update_first_name" id="edit_first_name" required>
             </div>
             <div class="form-group">
                 <label for="edit_last_name">Last Name:</label>
-                <input type="text" name="last_name" id="edit_last_name" required>
+                <input type="text" name="update_last_name" id="edit_last_name" required>
             </div>
             <div class="form-group">
-                <label for="edit_email">Email:</label>
-                <input type="email" name="email" id="edit_email" required>
+                <label for="edit_phone_no">Phone Number:</label>
+                <input type="tel" name="update_phone_no" id="edit_phone_no" required>
             </div>
             <div class="form-group">
-                <label for="edit_role">Role:</label>
-                <select name="role" id="edit_role" required>
-                    <option value="super_administrator">Super Administrator</option>
-                    <option value="co_ordinator">Co-ordinator</option>
-                    <option value="worker">Worker</option>
-                    <option value="leader">Leader</option>
+                <label for="edit_lcc_role">Church Role:</label>
+                <select name="update_role" id="edit_lcc_role" required>
+                    <option value="" disabled selected>-- Select Role --</option>
+                    {% for role in roles %}
+                    <option value="{{ role.name }}">{{ role.name }}</option>
+                    {% endfor %}
                 </select>
             </div>
-            <button type="submit" class="btn-primary">Update User</button>
+            <div class="form-group">
+                <label for="edit_dcc_role">DCC Role:</label>
+                <select name="update_dcc_role" id="edit_dcc_role" required>
+                    <option value="" disabled selected>-- Select Role --</option>
+                    {% for dcc_role in dcc_roles %}
+                    <option value="{{ dcc_role.name }}">{{ dcc_role.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_rcc_role">RCC Role:</label>
+                <select name="update_rcc_role" id="edit_rcc_role" required>
+                    <option value="" disabled selected>-- Select Role --</option>
+                    {% for rcc_role in rcc_roles %}
+                    <option value="{{ rcc_role.name }}">{{ rcc_role.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_district_region">Region - RCC:</label>
+                <select name="update_region_id" id="edit_district_region" required>
+                    <option value="" disabled selected>-- Select Region --</option>
+                    <option value="{{ region.id }}">{{ region.name }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_local_district">District - DCC:</label>
+                <select name="district_id" id="edit_local_district" required hx-get="/council/get-churches"
+                    hx-target="#edit_local_church" hx-trigger="change">
+                    <option value="" disabled selected>-- Select District --</option>
+                    {% for district in region.districts %}
+                    <option value="{{ district.id }}">{{ district.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_local_church">Church - LCC:</label>
+                <select name="update_church_id" id="edit_local_church" required>
+                    <option value="" disabled selected>-- Select Church --</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Update User</button>
+            </div>
         </form>
     </div>
 </div>
@@ -166,4 +189,143 @@
         </form>
     </div>
 </div>
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector("#createUserModal form");
+        if (!form) {
+            console.error("Form not found!");
+            return;
+        }
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.json();
+                    showError(errorText.detail || "Submission failed.");
+                    return;
+                }
+
+                const result = await response.json();
+                //console.log("Form submission result:", result);
+                if (result.success) {
+                    alert("User created successfully!");
+                    // Refresh table fragment
+                    // fetch("/users/table")
+                    //     .then(res => res.text())
+                    //     .then(html => {
+                    //         document.getElementById("usersTableContainer").innerHTML = html;
+                    //     });
+
+                    form.reset();
+                    document.getElementById("createUserModal").style.display = "none";
+                    window.location.reload()
+                } else {
+                    showError(result.message.detail || "Unknown error occurred.");
+                }
+            } catch (err) {
+                console.log("Error submitting form:", err);
+                showError("Network error: " + err.message);
+            }
+        });
+
+        function showError(message) {
+            const errorBox = document.getElementById("formErrorBox");
+            errorBox.textContent = message;
+            errorBox.style.display = "block";
+        }
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Utility: open and close modals
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = "block";
+        }
+        function closeModal(modal) {
+            if (modal) modal.style.display = "none";
+        }
+
+        // Close buttons
+        document.querySelectorAll(".closeBtn").forEach(btn => {
+            btn.onclick = () => closeModal(btn.closest(".modal"));
+        });
+
+        // Close when clicking outside
+        window.onclick = (event) => {
+            if (event.target.classList.contains("modal")) {
+                closeModal(event.target);
+            }
+        };
+
+        // --- Create User Modal ---
+        const openCreateBtn = document.getElementById("openCreateModalBtn");
+        if (openCreateBtn) {
+            openCreateBtn.onclick = () => openModal("createUserModal");
+        }
+
+        // --- Edit User Modal ---
+        const editBtns = document.querySelectorAll(".editBtn");
+        editBtns.forEach(btn => {
+            btn.onclick = () => {
+                //console.log("Edit button clicked for user ID:", btn.dataset);
+                document.getElementById("edit_id").value = btn.dataset.id;
+
+                // Text inputs
+                document.getElementById("edit_first_name").value = btn.dataset.first;
+                document.getElementById("edit_last_name").value = btn.dataset.last;
+                document.getElementById("edit_phone_no").value = btn.dataset.phone;
+
+                // Dropdowns
+                document.getElementById("edit_title").value = btn.dataset.title || "";          // e.g. "Mr"
+                document.getElementById("edit_lcc_role").value = btn.dataset.lccrole || "";        // e.g. role_id
+                document.getElementById("edit_dcc_role").value = btn.dataset.dccrole || "";    // e.g. dcc_role_id
+                document.getElementById("edit_rcc_role").value = btn.dataset.rccrole || "";    // e.g. rcc_role_id
+                document.getElementById("edit_district_region").value = btn.dataset.region || "";
+
+                // Handle district → church dependency
+                const districtSelect = document.getElementById("edit_local_district");
+                districtSelect.value = btn.dataset.district || "";
+                districtSelect.dispatchEvent(new Event("change"));
+
+                // Listen for HTMX update to church dropdown
+                document.body.addEventListener("htmx:afterSwap", (evt) => {
+                    if (evt.target.id === "edit_local_church") {
+                        document.getElementById("edit_local_church").value = btn.dataset.church || "";
+                    }
+                }, { once: true }); // run only once per modal open
+
+                openModal("editUserModal");
+            };
+        });
+
+        // --- Delete User Modal ---
+        const deleteBtns = document.querySelectorAll(".deleteBtn");
+        const deleteMessage = document.getElementById("deleteMessage");
+        const deleteIdInput = document.getElementById("delete_id");
+        const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
+
+        deleteBtns.forEach(btn => {
+            btn.onclick = () => {
+                deleteMessage.textContent = `Are you sure you want to delete ${btn.dataset.name}?`;
+                deleteIdInput.value = btn.dataset.id;
+                openModal("deleteUserModal");
+            };
+        });
+
+        if (cancelDeleteBtn) {
+            cancelDeleteBtn.onclick = () => closeModal(document.getElementById("deleteUserModal"));
+        }
+    });
+</script>
 {% endblock %}

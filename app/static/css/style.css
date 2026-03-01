@@ -8,7 +8,7 @@ body {
     width: 220px;
     background: #1e2a38;
     color: #fff;
-    padding: 20px;
+    padding: 10px;
     height: 100vh;
     box-shadow: 2px 0 6px rgba(0, 0, 0, 0.2);
     display: flex;
@@ -161,7 +161,7 @@ body {
     overflow-x: auto;
 }
 
-.styled-table {
+.user-table {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
@@ -169,19 +169,19 @@ body {
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.styled-table th,
-.styled-table td {
+.user-table th,
+.user-table td {
     padding: 12px 15px;
     border: 1px solid #ddd;
     text-align: left;
 }
 
-.styled-table th {
+.user-table th {
     background: #2c3e50;
     color: white;
 }
 
-.styled-table tr:nth-child(even) {
+.user-table tr:nth-child(even) {
     background: #f2f2f2;
 }
 
@@ -519,7 +519,7 @@ body {
 .user-modal-content {
     max-width: 600px;
     /* adjust as needed */
-    margin: 8% auto;
+    margin: 2% auto;
     padding: 20px;
     border-radius: 10px;
     background: #fff;
@@ -560,6 +560,17 @@ body {
 .two-column-form .form-actions {
     grid-column: span 2;
     text-align: center;
+}
+
+/* Button spans across both columns */
+.two-column-form .error-summary {
+    grid-column: span 2;
+    text-align: center;
+    padding: 10px;
+    border-radius: 6px;
+    border-color: red;
+    border: 1px solid red;
+    margin-bottom: 1em;
 }
 
 .two-column-form .btn-primary {

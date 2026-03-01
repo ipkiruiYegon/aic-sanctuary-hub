@@ -1,0 +1,46 @@
+{% if users%}
+
+<div class="table-container">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Account Status</th>
+                <th>Status</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td>{{ user.title }} {{ user.first_name }} {{ user.last_name }}</td>
+                <td>{{ "Verified" if user.linked else "Unverified" }}</td>
+                <td>{{ "Active" if user.is_active else "Dormant" }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <!-- Edit button triggers modal -->
+                    <button class="btn-secondary editBtn" data-id="{{ user.id }}" data-first="{{ user.first_name }}"
+                        data-last="{{ user.last_name }}" data-lccrole="{{ user.lcc_role or '' }}"
+                        data-dccrole="{{ user.dcc_role or '' }}" data-rccrole="{{ user.rcc_role or '' }}"
+                        data-phone="{{ user.phone_no }}" data-title="{{ user.title or ''  }}"
+                        data-region="{{ user.region.id or '' }}" data-district="{{ user.district.id or '' }}"
+                        data-church="{{ user.local_church_id or '' }}">
+                        Edit
+                    </button>
+                    <!-- Delete button triggers modal -->
+                    <button class="btn-danger deleteBtn" data-id="{{ user.id }}"
+                        data-name="{{ user.first_name }} {{ user.last_name }}">
+                        Delete
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% else %}
+<div class="no-users">
+    <h2>No users found.</h2>
+</div>
+{% endif %}

@@ -1,8 +1,8 @@
-
 import uuid
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, validator
 from datetime import datetime
 from typing import Optional
+from fastapi import Form
 
 
 class UserCreateModel(BaseModel):
@@ -13,7 +13,39 @@ class UserCreateModel(BaseModel):
     role: str
     region_id: uuid.UUID = Field(..., description="Region UUID")
     district_id: uuid.UUID = Field(..., description="District UUID")
-    church_id: uuid.UUID = Field(..., description="Church UUID")
+    local_church_id: uuid.UUID = Field(..., description="Church UUID")
+
+    @validator("phone_no")
+    def validate_phone(cls, v):
+        if not v.isdigit():
+            raise ValueError("Phone number must contain only digits")
+        if len(v) != 10:
+            raise ValueError("Phone number must be exactly 10 digits")
+        if not v.startswith("0"):
+            raise ValueError("Phone number must begin with 0")
+        return v
+
+
+def as_form(
+    title: str = Form(...),
+    first_name: str = Form(...),
+    last_name: str = Form(...),
+    phone_no: str = Form(...),
+    role: str = Form(...),
+    region_id: str = Form(...),
+    district_id: str = Form(...),
+    local_church_id: str = Form(...),
+) -> UserCreateModel:
+    return UserCreateModel(
+        title=title,
+        first_name=first_name,
+        last_name=last_name,
+        phone_no=phone_no,
+        role=role,
+        region_id=region_id,
+        district_id=district_id,
+        local_church_id=local_church_id,
+    )
 
 
 class UserEditSchema(BaseModel):

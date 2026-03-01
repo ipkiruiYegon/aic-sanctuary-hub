@@ -107,5 +107,42 @@
     </div>
 </div>
 
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        // Utility functions
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            if (modal) modal.style.display = "block";
+        }
+        function closeModal(modal) {
+            if (modal) modal.style.display = "none";
+        }
 
+        // Close buttons
+        document.querySelectorAll(".closeBtn").forEach(btn => {
+            btn.onclick = () => closeModal(btn.closest(".modal"));
+        });
+
+        // Region Modal
+        const openRegionBtn = document.getElementById("openRegionModalBtn");
+        if (openRegionBtn) openRegionBtn.onclick = () => openModal("regionModal");
+
+        // District Modal
+        const openDistrictBtn = document.getElementById("openDistrictModalBtn");
+        if (openDistrictBtn) openDistrictBtn.onclick = () => openModal("districtModal");
+
+        // Local Church Modal
+        const openLocalBtn = document.getElementById("openLocalModalBtn");
+        if (openLocalBtn) openLocalBtn.onclick = () => openModal("localModal");
+
+        // Close when clicking outside
+        window.onclick = (event) => {
+            if (event.target.classList.contains("modal")) {
+                closeModal(event.target);
+            }
+        };
+    });
+</script>
 {% endblock %}

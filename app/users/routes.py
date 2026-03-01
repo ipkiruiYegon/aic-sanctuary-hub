@@ -1,6 +1,6 @@
 import uuid
 from fastapi import APIRouter, Depends, status, Request, Form
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi.exceptions import HTTPException
 from fastapi.responses import RedirectResponse
@@ -13,7 +13,8 @@ from app.council.service import CouncilService
 # Import the templates object from core/templates.py
 from app.core.templates import templates
 # Import your Pydantic schemas here
-from app.users.schemas import UserCreateModel, UserBaseModel
+from app.users.schemas import UserCreateModel, UserBaseModel, as_form
+
 
 user_router = APIRouter()
 
@@ -21,52 +22,75 @@ user_service = UserService()  # Instantiate your service
 # Instantiate the CouncilService for region data
 council_services = CouncilService()
 
-ROLE_OPTIONS = [
-    {"id": "chairman", "name": "Chairman"},
-    {"id": "treasurer", "name": "Treasurer"},
-    {"id": "secretary", "name": "Secretary"},
-    {"id": "vice_secretary", "name": "Vice Secretary"},
-    {"id": "ced_leader", "name": "CED Leader"},
-    {"id": "youth_leader", "name": "Youth Leader"},
-    {"id": "youth_secretary", "name": "Youth Secretary"},
-    {"id": "youth_vice_secretary", "name": "Youth Vice Secretary"},
-    {"id": "youth_treasurer", "name": "Youth Treasurer"},
-    {"id": "women_leader", "name": "Women Leader"},
-    {"id": "women_secretary", "name": "Women Secretary"},
-    {"id": "women_vice_secretary", "name": "Women Vice Secretary"},
-    {"id": "women_treasurer", "name": "Women Treasurer"},
-    {"id": "widows_leader", "name": "Widows Leader"},
-    {"id": "widows_secretary", "name": "Widows Secretary"},
-    {"id": "widows_vice_secretary", "name": "Widows Vice Secretary"},
-    {"id": "widows_treasurer", "name": "Widows Treasurer"},
+LCC_ROLE_OPTIONS = [
+    {"id": "Chairman", "name": "Chairman"},
+    {"id": "Treasurer", "name": "Treasurer"},
+    {"id": "Secretary", "name": "Secretary"},
+    {"id": "Vice Secretary", "name": "Vice Secretary"},
+    {"id": "CED leader", "name": "CED Leader"},
+    {"id": "Youth Leader", "name": "Youth Leader"},
+    {"id": "Youth Secretary", "name": "Youth Secretary"},
+    {"id": "Youth Vice Secretary", "name": "Youth Vice Secretary"},
+    {"id": "Youth Treasurer", "name": "Youth Treasurer"},
+    {"id": "Women Leader", "name": "Women Leader"},
+    {"id": "Women Secretary", "name": "Women Secretary"},
+    {"id": "Women Vice Secretary", "name": "Women Vice Secretary"},
+    {"id": "Women Treasurer", "name": "Women Treasurer"},
+    {"id": "Widows Leader", "name": "Widows Leader"},
+    {"id": "Widows Secretary", "name": "Widows Secretary"},
+    {"id": "Widows Vice Secretary", "name": "Widows Vice Secretary"},
+    {"id": "Widows Treasurer", "name": "Widows Treasurer"},
+]
+
+DCC_ROLE_OPTIONS = [
+    {"id": "Chairman", "name": "Chairman"},
+    {"id": "Treasurer", "name": "Treasurer"},
+    {"id": "Secretary", "name": "Secretary"},
+    {"id": "Vice Secretary", "name": "Vice Secretary"},
+    {"id": "CED Worker", "name": "CED Worker"},
+    {"id": "Youth Leader", "name": "Youth Leader"},
+    {"id": "Youth Secretary", "name": "Youth Secretary"},
+    {"id": "Youth Vice Secretary", "name": "Youth Vice Secretary"},
+    {"id": "Youth Treasurer", "name": "Youth Treasurer"},
+    {"id": "Women Leader", "name": "Women Leader"},
+    {"id": "Women Secretary", "name": "Women Secretary"},
+    {"id": "Women Vice Secretary", "name": "Women Vice Secretary"},
+    {"id": "Women Treasurer", "name": "Women Treasurer"},
+    {"id": "Widows Leader", "name": "Widows Leader"},
+    {"id": "Widows Secretary", "name": "Widows Secretary"},
+    {"id": "Widows Vice Secretary", "name": "Widows Vice Secretary"},
+    {"id": "Widows Treasurer", "name": "Widows Treasurer"},
+]
+
+RCC_ROLE_OPTIONS = [
+    {"id": "Chairman", "name": "Chairman"},
+    {"id": "Treasurer", "name": "Treasurer"},
+    {"id": "Secretary", "name": "Administrative Secretary"},
+    {"id": "Vice Secretary", "name": "Vice Secretary"},
+    {"id": "CED Coordinator", "name": "CED Coordinator"},
+    {"id": "Youth Leader", "name": "Youth Leader"},
+    {"id": "Youth Secretary", "name": "Youth Secretary"},
+    {"id": "Youth Vice Secretary", "name": "Youth Vice Secretary"},
+    {"id": "Youth Treasurer", "name": "Youth Treasurer"},
+    {"id": "Women Leader", "name": "Women Leader"},
+    {"id": "Women Secretary", "name": "Women Secretary"},
+    {"id": "Women Vice Secretary", "name": "Women Vice Secretary"},
+    {"id": "Women Treasurer", "name": "Women Treasurer"},
+    {"id": "Widows Leader", "name": "Widows Leader"},
+    {"id": "Widows Secretary", "name": "Widows Secretary"},
+    {"id": "Widows Vice Secretary", "name": "Widows Vice Secretary"},
+    {"id": "Widows Treasurer", "name": "Widows Treasurer"},
 ]
 
 
 @user_router.post("/create")
-async def create_user(title: str = Form(...),
-                      first_name: str = Form(...),
-                      last_name: str = Form(...),
-                      phone_no: str = Form(...),
-                      role: str = Form(...),
-                      region_id: uuid.UUID = Form(...),
-                      district_id: uuid.UUID = Form(...),
-                      church_id: uuid.UUID = Form(...), session: AsyncSession = Depends(get_session)):
-    user_data = {
-        "title": title,
-        "first_name": first_name,
-        "last_name": last_name,
-        "phone_no": phone_no,
-        "role": role,
-        "region_id": region_id,
-        "district_id": district_id,
-        "local_church_id": church_id,
-    }
-
-    if await user_service.user_exists(phone_no, session):
+async def create_user(user_data: UserCreateModel = Depends(as_form), session: AsyncSession = Depends(get_session)):
+    print(f"Received user data: {user_data}")
+    if await user_service.user_exists(user_data.phone_no, session):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="User with this phone number already exists")
     user = await user_service.create_user(user_data, session)
-    return RedirectResponse(url="/users", status_code=303)
+    return JSONResponse({"success": True, "user_id": str(user.id)})
 
 
 @user_router.get("/", response_class=HTMLResponse)
@@ -76,12 +100,24 @@ async def get_users(request: Request, session: AsyncSession = Depends(get_sessio
     region = await council_services.get_region_with_hierarchy(session)
     region_exists = region is not None
     # Render Jinja template instead of returning JSON
-    print(f"Region data for template: {region}")
     return templates.TemplateResponse(
         "users.html",
         {"request": request, "users": users,
-            "region": region, "region_exists": region_exists, "roles": ROLE_OPTIONS}
+            "region": region, "region_exists": region_exists, "roles": LCC_ROLE_OPTIONS, "dcc_roles": DCC_ROLE_OPTIONS, "rcc_roles": RCC_ROLE_OPTIONS}
     )
+
+
+@user_router.get("/table", response_class=HTMLResponse)
+async def users_table(request: Request, session: AsyncSession = Depends(get_session)):
+    users = await user_service.get_all_users(session)
+    region = await council_services.get_region_with_hierarchy(session)
+    region_exists = region is not None
+    return templates.TemplateResponse("users_table.html", {
+        "request": request,
+        "users": users,
+        "region": region,
+        "region_exists": region_exists
+    })
 
 
 @user_router.get("/{user_id}", response_model=UserBaseModel)

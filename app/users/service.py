@@ -5,7 +5,7 @@ from sqlmodel import select
 from app.db.models import User  # Import your User model here
 # Import your Pydantic schemas here
 from app.users.schemas import UserCreateModel
-from app.auth.utils import generate_password_hash
+from app.auth.utils import generate_password_hash, clean_and_title
 
 
 class UserService:
@@ -32,13 +32,17 @@ class UserService:
 
     async def create_user(self, user_data: UserCreateModel, session: AsyncSession):
         # Logic to create a new user in the database
+        print(f"Creating user with data: {user_data}")
+        new_user = User(**user_data.model_dump())
+        new_user.title = clean_and_title(user_data.title)
+        new_user.first_name = clean_and_title(user_data.first_name)
+        new_user.last_name = clean_and_title(user_data.last_name)
+        new_user.role = clean_and_title(user_data.role, acronyms=[
+                                        "CED", "LCC", "DCC", "RCC", "AIC"])
+        new_user.lcc_role = new_user.role
 
-        new_user = User(**user_data)
-        new_user.title = user_data['title'].title()
-        new_user.first_name = user_data['first_name'].title()
-        new_user.last_name = user_data['last_name'].title()
-        new_user.role = user_data['role'].title()
-        new_user.lcc_role = user_data['role'].title()
+        if new_user.title in ["Pastor", "Reverend", "Bishop"]:
+            new_user.is_staff = True
 
         new_user.password_hash = generate_password_hash(
             "Test@1234")  # Set a default password or generate one as needed
