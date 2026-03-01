@@ -14,7 +14,20 @@
         <tbody>
             {% for user in users %}
             <tr>
-                <td>{{ user.title }} {{ user.first_name }} {{ user.last_name }}</td>
+                <td class="firstname-cell">{% if user.avatar_image %}
+                    <img src="{{ user.avatar_image }}" alt="{{ user.first_name }} {{ user.last_name }}"
+                        class="user-photo">
+                    <span>{{ user.title }} {{ user.first_name }} {{ user.last_name }}</span>
+                    {% else %}
+                    <div class="user-initials">
+                        {{ user.first_name[0]|upper }}{{ user.last_name[0]|upper }}
+
+                    </div>
+                    <span>{{ user.title }} {{ user.first_name }} {{ user.last_name }}</span>
+                    {% endif %}
+
+
+                </td>
                 <td>{{ "Verified" if user.linked else "Unverified" }}</td>
                 <td>{{ "Active" if user.is_active else "Dormant" }}</td>
                 <td>{{ user.role }}</td>
@@ -37,6 +50,15 @@
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" id="tableFooter">
+                    Showing <span id="userCount">0</span> users | Page <span id="currentPage">1</span> of <span
+                        id="totalPages">1</span>
+                </td>
+            </tr>
+        </tfoot>
+
     </table>
 </div>
 {% else %}
