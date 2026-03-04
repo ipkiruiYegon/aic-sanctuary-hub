@@ -24,7 +24,7 @@ AIC Sanctuary Hub is a modern web application built with FastAPI and Jinja templ
 
 ## 🛠 Tech Stack
 - **Backend:** FastAPI  
-- **Frontend:** Jinja2 Templates, HTML, CSS, JavaScript  
+- **Frontend:** Jinja2 Templates, HTML, CSS, JavaScript, HTMX  
 - **Database:** PostgreSQL 
 - **Deployment:** Uvicorn   
 - **Version Control:** Git & GitHub
