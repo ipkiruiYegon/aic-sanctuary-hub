@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AIC Sanctuary Hub</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    <!-- Font Awesome CDN -->
+    <script src="https://kit.fontawesome.com/3113c7c9da.js" crossorigin="anonymous"></script>
+</head>
+
+<body>
+    <nav class=" sidebar">
+        <h2 class="sidebar-title">AIC Sanctuary Hub</h2>
+
+        <ul class="menu">
+            <li><a href="/"><i class="fas fa-home"></i> Dashboard</a></li>
+            <li><a href="/notifications"><i class="fas fa-bell"></i> Notifications</a></li>
+            <li><a href="/users"><i class="fas fa-users"></i> User Management</a></li>
+            <li><a href="/council"><i class="fas fa-church"></i> Council Management</a></li>
+            <li><a href="/events"><i class="fas fa-calendar-alt"></i> Events Management</a></li>
+        </ul>
+
+    </nav>
+    <main class="content">
+        <!-- Global app title -->
+        <h1 class="app-title">
+            <a href="/council/structure">AIC {{ region.name }} Region Sanctuary Hub</a>
+        </h1>
+
+
+        {% block content %}{% endblock %}
+        <!-- Toast container -->
+    </main>
+
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/js/script.js"></script>
+    {% block scripts %}{% endblock %}
+
+</body>
+
+</html>

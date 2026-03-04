@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="council-container">
+
+    <div class="council-tree">
+        <!-- Region centered -->
+        <div class="region-btn">AIC {{ region.name }} Region</div>
+
+        <!-- Connector line -->
+        <div class="connector"></div>
+
+        <!-- Districts row -->
+        <div class="districts-row">
+            {% for district in region.districts %}
+            <div class="district-block">
+                <div class="district-btn">AIC {{ district.name }} DCC</div>
+                <ul class="churches">
+                    {% for church in district.churches %}
+                    <li class="church">AIC {{ church.name }} Local Church</li>
+                    <span class="actions">
+                        <button onclick="openEditChurchModal('{{ church.id }}')">✏️</button>
+                        <button onclick="confirmDeleteChurch('{{ church.id }}')">🗑️</button>
+                    </span>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

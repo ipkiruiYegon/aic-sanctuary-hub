@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block content %}
+<h1 class="page-title">Admin Dashboard</h1>
+
+<!-- Summary Cards -->
+<div class="summary-cards">
+    <div class="card">
+        <h3>👤 Users</h3>
+        <p class="count">{{ users_count }}</p>
+        <a href="/users" class="btn-primary">Manage Users</a>
+    </div>
+    <div class="card">
+        <h3>📅 Events</h3>
+        <p class="count">{{ events_count }}</p>
+        <a href="/events" class="btn-primary">Manage Events</a>
+    </div>
+    <div class="card">
+        <h3>🔔 Notifications</h3>
+        <p class="count">{{ notifications_count }}</p>
+        <a href="/notifications" class="btn-primary">View Notifications</a>
+    </div>
+</div>
+
+
+{% endblock %}

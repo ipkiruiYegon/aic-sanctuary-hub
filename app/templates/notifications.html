@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">Manage Notifications</h2>
+
+<!-- Create Notification Form -->
+<div class="form-container">
+    <form method="post" action="/notifications/create" class="notification-form">
+        <div class="form-group">
+            <label for="message">Message:</label>
+            <input type="text" name="message" id="message" required>
+        </div>
+        <button type="submit" class="btn-primary">Send Notification</button>
+    </form>
+</div>
+
+<!-- Notifications List -->
+<div class="table-container">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Message</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for note in notifications %}
+            <tr>
+                <td>{{ note.id }}</td>
+                <td>{{ note.message }}</td>
+                <td>
+                    <a href="/notifications/delete/{{ note.id }}" class="btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

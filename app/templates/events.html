@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">Manage Events</h2>
+
+<!-- Create Event Form -->
+<div class="form-container">
+    <form method="post" action="/events/create" class="event-form">
+        <div class="form-group">
+            <label for="title">Event Title:</label>
+            <input type="text" name="title" id="title" required>
+        </div>
+        <div class="form-group">
+            <label for="date">Date:</label>
+            <input type="date" name="date" id="date" required>
+        </div>
+        <button type="submit" class="btn-primary">Add Event</button>
+    </form>
+</div>
+
+<!-- Events Table -->
+<div class="table-container">
+    <table class="styled-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Title</th>
+                <th>Date</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr>
+                <td>{{ event.id }}</td>
+                <td>{{ event.title }}</td>
+                <td>{{ event.date }}</td>
+                <td>
+                    <a href="/events/edit/{{ event.id }}" class="btn-secondary">Edit</a>
+                    <a href="/events/delete/{{ event.id }}" class="btn-danger">Delete</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

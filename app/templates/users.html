@@ -1,0 +1,531 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="page-title">Manage Users</h2>
+
+<!-- Button to open modal for creating user -->
+<button id="openCreateModalBtn" class="btn-primary">➕ Add User</button>
+
+<!-- Users Table -->
+<div id="usersTableContainer">
+    {% include "users_table.html" %}
+</div>
+
+
+
+
+<!-- Create User Modal -->
+<div id="createUserModal" class="modal">
+    <div class="user-modal-content">
+        <span class="closeBtn">&times;</span>
+        <h3>Create New User</h3>
+        <form method="post" action="/users/create" class="form two-column-form">
+            <!-- Error box for displaying messages -->
+            <div id="formErrorBox" class="error-summary" style="display:none; color:red; margin-bottom:1em;"></div>
+
+
+            <div class="form-group">
+                <label for="title">Title:</label>
+                <select name="title" id="title" required>
+                    <option value="" disabled selected>-- Select Title --</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Miss">Miss</option>
+                    <option value="Dr">Dr</option>
+                    <option value="Pastor">Pastor</option>
+                    <option value="Reverend">Reverend</option>
+                    <option value="Bishop">Bishop</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="first_name">First Name:</label>
+                <input type="text" name="first_name" id="first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="last_name">Last Name:</label>
+                <input type="text" name="last_name" id="last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="phone_no">Phone Number:</label>
+                <input type="tel" name="phone_no" id="phone_no" required>
+            </div>
+            <div class="form-group">
+                <label for="role">Church Role:</label>
+                <select name="role" id="role" required>
+                    <option value="" disabled selected>-- Select Role --</option>
+                    {% for role in roles %}
+                    <option value="{{ role.id }}">{{ role.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="district_region">Region - RCC:</label>
+                <select name="region_id" id="district_region" required>
+                    <option value="" disabled selected>-- Select Region --</option>
+                    <option value="{{ region.id }}">{{ region.name }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="local_district">District - DCC:</label>
+                <select name="district_id" id="local_district" required hx-get="/council/get-churches"
+                    hx-target="#local_church_id" hx-trigger="change">
+                    <option value="" disabled selected>-- Select District --</option>
+                    {% for district in region.districts %}
+                    <option value="{{ district.id }}">{{ district.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="local_church_id">Church - LCC:</label>
+                <select name="local_church_id" id="local_church_id" required>
+                    <option value="" disabled selected>-- Select Church --</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Save User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit User Modal -->
+<div id="editUserModal" class="modal">
+    <div class="user-modal-content">
+        <span class="closeBtn">&times;</span>
+        <h3>Edit User</h3>
+        <form method="post" action="/users/update" class="form two-column-form">
+            <input type="hidden" name="edit_id" id="edit_id">
+            <div class="form-group">
+                <label for="edit_title">Title:</label>
+                <select name="update_title" id="edit_title" required>
+                    <option value="" disabled selected>-- Select Title --</option>
+                    <option value="Mr">Mr</option>
+                    <option value="Mrs">Mrs</option>
+                    <option value="Miss">Miss</option>
+                    <option value="Dr">Dr</option>
+                    <option value="Pastor">Pastor</option>
+                    <option value="Reverend">Reverend</option>
+                    <option value="Bishop">Bishop</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_first_name">First Name:</label>
+                <input type="text" name="update_first_name" id="edit_first_name" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_last_name">Last Name:</label>
+                <input type="text" name="update_last_name" id="edit_last_name" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_phone_no">Phone Number:</label>
+                <input type="tel" name="update_phone_no" id="edit_phone_no" required>
+            </div>
+            <div class="form-group">
+                <label for="edit_lcc_role">Church Role:</label>
+                <select name="update_lcc_role" id="edit_lcc_role" required>
+                    <option value="" disabled selected>-- Select Role --</option>
+                    {% for role in roles %}
+                    <option value="{{ role.name }}">{{ role.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_dcc_role">DCC Role:</label>
+                <select name="update_dcc_role" id="edit_dcc_role">
+                    <option value="" disabled selected>-- Select Role --</option>
+                    {% for dcc_role in dcc_roles %}
+                    <option value="{{ dcc_role.name }}">{{ dcc_role.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_rcc_role">RCC Role:</label>
+                <select name="update_rcc_role" id="edit_rcc_role">
+                    <option value="" disabled selected>-- Select Role --</option>
+                    {% for rcc_role in rcc_roles %}
+                    <option value="{{ rcc_role.name }}">{{ rcc_role.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_district_region">Region - RCC:</label>
+                <select name="update_region_id" id="edit_district_region" required>
+                    <option value="" disabled selected>-- Select Region --</option>
+                    <option value="{{ region.id }}">{{ region.name }}</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_local_district">District - DCC:</label>
+                <select name="district_id" id="edit_local_district" required hx-get="/council/get-churches"
+                    hx-target="#edit_local_church" hx-trigger="change">
+                    <option value="" disabled selected>-- Select District --</option>
+                    {% for district in region.districts %}
+                    <option value="{{ district.id }}">{{ district.name }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="edit_local_church">Church - LCC:</label>
+                <select name="update_local_church_id" id="edit_local_church" required>
+                    <option value="" disabled selected>-- Select Church --</option>
+                </select>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn-primary">Update User</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Activate/Deactivate Confirmation Modal -->
+<div id="userStatusModal" class="modal status-modal">
+    <div class="modal-content">
+        <form id="statusForm" method="post" action="" class="status-form">
+            <h2 id="modalTitle" class="modal-title"></h2>
+            <p id="statusMessage" class="modal-message"></p>
+
+            <input type="hidden" id="userIdInput" name="user_id" />
+
+            <!-- Reason field (label changes dynamically) -->
+            <div id="reasonContainer" style="display:none;">
+                <label id="reasonLabel" for="statusReason" class="form-label"></label>
+                <textarea id="statusReason" name="reason" class="form-textarea"
+                    placeholder="Please provide a clear reason..." required></textarea>
+            </div>
+
+            <div class="modal-actions">
+                <button type="submit" id="statusSubmitBtn" class="btn"></button>
+                <button type="button" id="cancelStatusBtn" class="btn btn-secondary">Cancel</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+{% endblock %}
+{% block scripts %}
+<script>
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector("#createUserModal form");
+        if (!form) {
+            //console.error("Form not found!");
+            return;
+        }
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+            const title = form.querySelector("[name='title']").value;
+            const firstName = form.querySelector("[name='first_name']").value;
+            const lastName = form.querySelector("[name='last_name']").value;
+            const phoneNo = form.querySelector("[name='phone_no']").value;
+            const churchRole = form.querySelector("[name='role']").value;
+            const region = form.querySelector("[name='region_id']").value;
+            const district = form.querySelector("[name='district_id']").value;
+            const localChurch = form.querySelector("[name='local_church_id']").value;
+
+            // --- UUID regex ---
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+
+
+            // --- Firstname validation ---
+            const firstnameRegex = /^[A-Za-z]{3,}$/;
+
+            if (!firstnameRegex.test(firstName)) {
+                return showToast("First_name must be at least 3 letters, contain no spaces, and only one name.", "error");
+            }
+
+            // --- Phone validation ---
+            const phoneRegex = /^0\d{9}$/; // starts with 0 + 9 digits = 10 total
+            if (!phoneRegex.test(phoneNo)) {
+                return showToast("Phone number must be 10 digits, start with 0, and contain only numbers.", "error");
+            }
+
+            // --- UUID validation for church, region, dcc ---
+            if (!uuidRegex.test(region)) {
+                return showToast("Region must be a valid UUID.", "error");
+            }
+            if (!uuidRegex.test(district)) {
+                return showToast("District must be a valid UUID.", "error");
+            }
+            if (!uuidRegex.test(localChurch)) {
+                return showToast("Local Church must be a valid UUID.", "error");
+            }
+
+            const formData = new FormData(form);
+
+            try {
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.json();
+                    showToast(errorText.detail || "Submission failed.", "error");
+                    return;
+                }
+
+                const result = await response.json();
+                //console.log("Form submission result:", result);
+                if (result.success) {
+                    showToast("User created successfully!", "success");
+                    form.reset();
+                    document.getElementById("createUserModal").style.display = "none";
+                    window.location.reload()
+                } else {
+                    showToast(result.message.detail || "Unknown error occurred.", "error");
+                }
+            } catch (err) {
+                //console.log("Error submitting form:", err);
+                showToast("Network error: " + err.message, "error");
+            }
+        });
+
+
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Utility: open and close modals
+        function openModal(modalId) {
+            const modal = document.getElementById(modalId);
+            if (modal) modal.style.display = "block";
+        }
+        function closeModal(modal) {
+            if (modal) modal.style.display = "none";
+        }
+
+        // Close buttons
+        document.querySelectorAll(".closeBtn").forEach(btn => {
+            btn.onclick = () => closeModal(btn.closest(".modal"));
+        });
+
+        // Close when clicking outside
+        window.onclick = (event) => {
+            if (event.target.classList.contains("modal")) {
+                closeModal(event.target);
+            }
+        };
+
+        // --- Create User Modal ---
+        const openCreateBtn = document.getElementById("openCreateModalBtn");
+        if (openCreateBtn) {
+            openCreateBtn.onclick = () => openModal("createUserModal");
+        }
+
+        // --- Edit User Modal ---
+        const editBtns = document.querySelectorAll(".editBtn");
+        editBtns.forEach(btn => {
+            btn.onclick = () => {
+                //console.log("Edit button clicked for user ID:", btn.dataset);
+                document.getElementById("edit_id").value = btn.dataset.id;
+
+                // Text inputs
+                document.getElementById("edit_first_name").value = btn.dataset.first;
+                document.getElementById("edit_last_name").value = btn.dataset.last;
+                document.getElementById("edit_phone_no").value = btn.dataset.phone;
+
+                // Dropdowns
+                document.getElementById("edit_title").value = btn.dataset.title || "";          // e.g. "Mr"
+                document.getElementById("edit_lcc_role").value = btn.dataset.lccrole || "";        // e.g. role_id
+                document.getElementById("edit_dcc_role").value = btn.dataset.dccrole || "";    // e.g. dcc_role_id
+                document.getElementById("edit_rcc_role").value = btn.dataset.rccrole || "";    // e.g. rcc_role_id
+                document.getElementById("edit_district_region").value = btn.dataset.region || "";
+
+                // Handle district → church dependency
+                const districtSelect = document.getElementById("edit_local_district");
+                districtSelect.value = btn.dataset.district || "";
+                districtSelect.dispatchEvent(new Event("change"));
+
+                // Listen for HTMX update to church dropdown
+                document.body.addEventListener("htmx:afterSwap", (evt) => {
+                    if (evt.target.id === "edit_local_church") {
+                        document.getElementById("edit_local_church").value = btn.dataset.church || "";
+                    }
+                }, { once: true }); // run only once per modal open
+
+                openModal("editUserModal");
+            };
+        });
+
+        // --- User Status Modal ---
+        const statusBtns = document.querySelectorAll(".statusBtn");
+        const form = document.getElementById('statusForm');
+        const modalTitle = document.getElementById('modalTitle');
+        const statusMessage = document.getElementById('statusMessage');
+        const reasonContainer = document.getElementById('reasonContainer');
+        const reasonLabel = document.getElementById('reasonLabel');
+        const submitBtn = document.getElementById('statusSubmitBtn');
+        const userIdInput = document.getElementById('userIdInput');
+        const cancelStatusBtn = document.getElementById("cancelStatusBtn");
+
+        statusBtns.forEach(btn => {
+            btn.onclick = () => {
+                const userId = btn.dataset.id;
+                const userName = btn.dataset.name;
+                const userStatus = btn.dataset.status; // "active" or "inactive"
+                userIdInput.value = userId;
+
+                if (userStatus === 'Activate') {
+                    // Activate flow
+                    form.action = '/users/update/status';
+                    modalTitle.textContent = 'Activate User';
+                    modalTitle.style.color = 'green';
+                    statusMessage.textContent = `Are you sure you want to activate ${userName}?`;
+                    submitBtn.textContent = 'Activate';
+                    submitBtn.className = 'btn btn-success'; // green button
+                    reasonContainer.style.display = 'block';
+                    reasonLabel.textContent = 'Reason for Activation:';
+                } else {
+                    // Deactivate flow
+                    form.action = '/users/update/status';
+                    modalTitle.textContent = 'Deactivate User';
+                    modalTitle.style.color = ''; // default styling
+                    statusMessage.textContent = `Are you sure you want to deactivate ${userName}?`;
+                    submitBtn.textContent = 'Deactivate';
+                    submitBtn.className = 'btn btn-danger'; // red button
+                    reasonContainer.style.display = 'block';
+                    reasonLabel.textContent = 'Reason for Deactivation:';
+                }
+
+                openModal("userStatusModal");
+            };
+        });
+
+        if (cancelStatusBtn) {
+            cancelStatusBtn.onclick = () => closeModal(document.getElementById("userStatusModal"));
+        }
+
+        const statusForm = document.getElementById("statusForm");
+        statusForm.onsubmit = async (e) => {
+            e.preventDefault();
+
+            const userId = userIdInput.value;
+            const reason = document.getElementById("statusReason").value.trim();
+
+            if (!reason) {
+                showToast("Please provide a reason for deactivation.", "error");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/users/update/status`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: userId, reason })
+                });
+
+                if (!response.ok) {
+                    showToast("Failed to update user status.", "error");
+                    console.log("Failed to update user status. Response:", response);
+                    return
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message || "User status updated successfully.", "success");
+                    closeModal(document.getElementById("userStatusModal"));
+                    window.location.reload();
+                } else {
+                    showToast(result.detail || result.message || "Failed to update user status.", "error");
+                }
+
+            } catch (error) {
+                console.error("Error updating user status:", error);
+                showToast("Failed to update user status.", "error");
+            }
+        };
+
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const form = document.querySelector("#editUserModal form"); // target actual form
+        if (!form) {
+            //console.error("Edit User form not found!");
+            return;
+        } else {
+            //console.log("Edit User Form Found.")
+        }
+
+        form.addEventListener("submit", async function (event) {
+            event.preventDefault();
+
+            // Collect values safely
+            const user_id = form.querySelector("[name='edit_id']")?.value.trim() || "";
+            const title = form.querySelector("[name='update_title']")?.value.trim() || "";
+            const first_name = form.querySelector("[name='update_first_name']")?.value.trim() || "";
+            const last_name = form.querySelector("[name='update_last_name']")?.value.trim() || "";
+            const phone_no = form.querySelector("[name='update_phone_no']")?.value.trim() || "";
+            const rcc_role = form.querySelector("[name='update_rcc_role']")?.value.trim() || "";
+            const dcc_role = form.querySelector("[name='update_dcc_role']")?.value.trim() || "";
+            const lcc_role = form.querySelector("[name='update_lcc_role']")?.value.trim() || "";
+            const region_id = form.querySelector("[name='update_region_id']")?.value.trim() || "";
+            const district_id = form.querySelector("[name='district_id']")?.value.trim() || "";
+            const local_church_id = form.querySelector("[name='update_local_church_id']")?.value.trim() || "";
+
+            // Validation
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+            if (!uuidRegex.test(user_id)) return showToast("User ID must be a valid UUID.", "error");
+            if (first_name && !/^[A-Za-z]{3,}$/.test(first_name)) return showToast("First name must be at least 3 letters, no spaces.", "error");
+            if (last_name && !/^[A-Za-z]{2,}(?: [A-Za-z]{2,})?$/.test(last_name.trim())) {
+                return showToast("Last name must be one or two words, each at least 2 letters, with no extra spaces.", "error");
+            }
+            if (phone_no && !/^0\d{9}$/.test(phone_no)) return showToast("Phone number must be 10 digits, start with 0.", "error");
+            if (!uuidRegex.test(region_id)) return showToast("Region ID must be a valid UUID.", "error");
+            if (!uuidRegex.test(district_id)) return showToast("District ID must be a valid UUID.", "error");
+            if (!uuidRegex.test(local_church_id)) return showToast("Local Church ID must be a valid UUID.", "error");
+
+            // Payload
+            const payload = {
+                user_id,
+                title: title || null,
+                first_name: first_name || null,
+                last_name: last_name || null,
+                phone_no: phone_no || null,
+                rcc_role: rcc_role || null,
+                dcc_role: dcc_role || null,
+                lcc_role: lcc_role || null,
+                region_id,
+                district_id,
+                local_church_id
+            };
+
+
+            // Submit
+            try {
+
+                const response = await fetch(form.action, {
+                    method: form.method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.json();
+                    showToast(errorText.detail || "Submission failed.", "error");
+                    return;
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast("User updated successfully!", "success");
+                    // close modal and refresh table
+                    form.reset();
+                    document.getElementById("editUserModal").style.display = "none";
+                    window.location.reload();
+                } else {
+                    showToast(result.message || result.message?.detail || "Unknown error occurred.", "error");
+                }
+            } catch (err) {
+                //console.error("Error submitting form:", err);
+                showToast("Network error: " + err.message, "error");
+            }
+        });
+
+
+    });
+
+</script>
+{% endblock %}

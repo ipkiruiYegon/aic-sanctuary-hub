@@ -1,0 +1,71 @@
+{% if users%}
+
+<div class="table-container">
+    <table class="user-table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Account Status</th>
+                <th>Status</th>
+                <th>Role</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in users %}
+            <tr>
+                <td class="firstname-cell">{% if user.avatar_image %}
+                    <img src="{{ user.avatar_image }}" alt="{{ user.first_name }} {{ user.last_name }}"
+                        class="user-photo">
+                    <span>{{ user.title }} {{ user.first_name }} {{ user.last_name }}</span>
+                    {% else %}
+                    <div class="user-initials">
+                        {{ user.first_name[0]|upper }}{{ user.last_name[0]|upper }}
+
+                    </div>
+                    <span>{{ user.title }} {{ user.first_name }} {{ user.last_name }}</span>
+                    {% endif %}
+
+
+                </td>
+                <td>{{ "Verified" if user.linked else "Unverified" }}</td>
+                <td>{{ "Active" if user.is_active else "Dormant" }}</td>
+                <td>{{ user.role }}</td>
+                <td>
+                    <!-- Edit button triggers modal -->
+                    <button class="btn-secondary editBtn" data-id="{{ user.id }}" data-first="{{ user.first_name }}"
+                        data-last="{{ user.last_name }}" data-lccrole="{{ user.lcc_role or '' }}"
+                        data-dccrole="{{ user.dcc_role or '' }}" data-rccrole="{{ user.rcc_role or '' }}"
+                        data-phone="{{ user.phone_no }}" data-title="{{ user.title or ''  }}"
+                        data-region="{{ user.region.id or '' }}" data-district="{{ user.district.id or '' }}"
+                        data-church="{{ user.local_church_id or '' }}">
+                        Edit
+                    </button>
+                    <!-- Activate-Deactivate button triggers modal -->
+
+                    <button class="btn {{ 'btn-info' if not user.is_active else 'btn-danger' }} statusBtn"
+                        data-id="{{ user.id }}" data-name="{{ user.first_name }} {{ user.last_name }}"
+                        data-status="{{ 'Activate' if not user.is_active else 'Deactivate' }}">
+                        {{ 'Activate' if not user.is_active else 'Deactivate' }}
+                    </button>
+
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr>
+                <td colspan="4" id="tableFooter">
+                    Showing <span id="userCount">0</span> users | Page <span id="currentPage">1</span> of <span
+                        id="totalPages">1</span>
+                </td>
+            </tr>
+        </tfoot>
+
+    </table>
+</div>
+{% else %}
+<div class="no-users">
+    <h2>No users found.</h2>
+</div>
+{% endif %}
