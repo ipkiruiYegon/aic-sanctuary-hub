@@ -34,3 +34,20 @@ def clean_and_title(text: str, acronyms=None) -> str:
     words = [w.upper() if w.upper() in acronyms else w for w in words]
 
     return ' '.join(words)
+
+
+def resolve_role_from_audit(audit_trail: dict) -> str | None:
+    """
+    Decide the effective role based on audit trail changes.
+    Priority: RCC > DCC > None
+    """
+    has_rcc = "rcc_role" in audit_trail and audit_trail["rcc_role"]["new"]
+    has_dcc = "dcc_role" in audit_trail and audit_trail["dcc_role"]["new"]
+
+    if has_rcc and has_dcc:
+        return audit_trail["rcc_role"]["new"]  # highest role
+    elif has_rcc:
+        return audit_trail["rcc_role"]["new"]
+    elif has_dcc:
+        return audit_trail["dcc_role"]["new"]
+    return None

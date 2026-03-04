@@ -5,13 +5,20 @@ from sqlmodel import select
 from app.db.models import User  # Import your User model here
 # Import your Pydantic schemas here
 from app.users.schemas import UserCreateModel
-from app.auth.utils import generate_password_hash, clean_and_title
+from app.auth.utils import generate_password_hash, clean_and_title, resolve_role_from_audit
 
 
 class UserService:
-    async def user_exists(self, phone_number: str, session: AsyncSession):
+    async def user_phone_exists(self, phone_number: str, session: AsyncSession):
         # Logic to retrieve a user by ID from the database
         sql_query = select(User).where(User.phone_no == phone_number)
+        result = await session.exec(sql_query)
+        user = result.first()
+        return True if user is not None else False
+
+    async def user_exists(self, user_id: str, session: AsyncSession):
+        # Logic to retrieve a user by ID from the database
+        sql_query = select(User).where(User.id == user_id)
         result = await session.exec(sql_query)
         user = result.first()
         return True if user is not None else False
@@ -66,14 +73,32 @@ class UserService:
         print(user)
         return user
 
-    async def update_user(self, user: User, user_data: dict, session: AsyncSession):
+    async def update_user(self, user_data: dict, session: AsyncSession):
         # Logic to update an existing user in the database
-        for key, value in user_data.items():
-            setattr(user, key, value)
-        await session.add(user)
-        await session.commit()
-        await session.refresh(user)
-        return user
+        user = await self.get_user_by_uid(str(user_data["user_id"]), session)
+        if not user:
+            return None
+
+        audit_trail = {}
+        for field, new_value in user_data.items():
+            if not hasattr(user, field):
+                continue  # skip invalid fields
+
+            old_value = getattr(user, field)
+            if new_value != old_value:
+                setattr(user, field, new_value)
+                audit_trail[field] = {"old": old_value, "new": new_value}
+
+        if audit_trail:
+            effective_role = resolve_role_from_audit(audit_trail)
+            if effective_role:
+                user.role = effective_role   # set effective role field
+            session.add(user)
+            await session.commit()
+            await session.refresh(user)
+            return {"success": True, "message": "User updated successfully"}
+        else:
+            return {"success": False, "message": "No changes detected"}
 
     async def delete_user(self, user_id: str, session: AsyncSession):
         # Logic to delete a user from the database

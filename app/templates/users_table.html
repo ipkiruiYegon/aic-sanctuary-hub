@@ -41,11 +41,14 @@
                         data-church="{{ user.local_church_id or '' }}">
                         Edit
                     </button>
-                    <!-- Delete button triggers modal -->
-                    <button class="btn-danger deleteBtn" data-id="{{ user.id }}"
-                        data-name="{{ user.first_name }} {{ user.last_name }}">
-                        Delete
+                    <!-- Activate-Deactivate button triggers modal -->
+
+                    <button class="btn {{ 'btn-info' if not user.is_active else 'btn-danger' }} statusBtn"
+                        data-id="{{ user.id }}" data-name="{{ user.first_name }} {{ user.last_name }}"
+                        data-status="{{ 'Activate' if not user.is_active else 'Deactivate' }}">
+                        {{ 'Activate' if not user.is_active else 'Deactivate' }}
                     </button>
+
                 </td>
             </tr>
             {% endfor %}

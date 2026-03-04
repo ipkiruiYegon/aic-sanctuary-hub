@@ -85,8 +85,14 @@ class UserBaseModel(BaseModel):
 
 
 class UserUpdateModel(BaseModel):
-    first_name: Optional[str]
+    user_id: uuid.UUID
+    title: str
+    first_name: str
     last_name: Optional[str]
-    password: Optional[str]
-    role: Optional[str]
     phone_no: Optional[str]
+    rcc_role: Optional[str]
+    dcc_role: Optional[str]
+    lcc_role: Optional[str]
+    region_id: uuid.UUID
+    district_id: uuid.UUID
+    local_church_id: uuid.UUID
