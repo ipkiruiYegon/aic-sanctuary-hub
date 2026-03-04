@@ -58,14 +58,8 @@ class UserService:
         await session.refresh(new_user)
         return new_user
 
-    async def get_user_by_uid(self, user_id: str, session: AsyncSession):
+    async def get_user_by_uid(self, user_id: uuid.UUID, session: AsyncSession):
         # Logic to retrieve a user by ID from the database
-        try:
-            # Convert string to UUID
-            user_uuid = uuid.UUID(user_id)
-        except ValueError:
-            print(f"Invalid UUID string: {user_id}")
-            return None
 
         sql = select(User).where(User.id == user_id)
         result = await session.exec(sql)
@@ -100,15 +94,13 @@ class UserService:
         else:
             return {"success": False, "message": "No changes detected"}
 
-    async def delete_user(self, user_id: str, session: AsyncSession):
-        # Logic to delete a user from the database
-        sql = select(User).where(User.id == user_id)
-        result = await session.exec(sql)
-        user = result.first()
-        if user:
-            user.is_active = False  # Soft delete by marking the user as inactive
-            await session.add(user)
-            await session.commit()
-            await session.refresh(user)
-            return user
-        return None
+    async def update_user_status(self, user_id: str, reason: str, session: AsyncSession):
+        # Logic to update a user's status in the database
+        user = await self.get_user_by_uid(user_id, session)
+        if not user:
+            return None
+        user.is_active = not user.is_active  # Toggle the is_active status
+        # Optionally, you can log the reason for status change in an audit trail
+        await session.commit()
+        await session.refresh(user)
+        return user

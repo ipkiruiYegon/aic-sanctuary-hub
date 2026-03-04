@@ -1,5 +1,5 @@
 import uuid
-from fastapi import APIRouter, Depends, status, Request, Form
+from fastapi import APIRouter, Depends, status, Request, Form, Body
 from fastapi.responses import HTMLResponse, JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi.exceptions import HTTPException
@@ -13,7 +13,7 @@ from app.council.service import CouncilService
 # Import the templates object from core/templates.py
 from app.core.templates import templates
 # Import your Pydantic schemas here
-from app.users.schemas import UserCreateModel, UserBaseModel, as_form, UserUpdateModel
+from app.users.schemas import UserCreateModel, UserBaseModel, as_form, UserUpdateModel, UserStatusModel
 
 
 user_router = APIRouter()
@@ -23,24 +23,24 @@ user_service = UserService()  # Instantiate your service
 council_services = CouncilService()
 
 LCC_ROLE_OPTIONS = [
-    {"id": "Chairman", "name": "Chairman"},
-    {"id": "Vice Chairman", "name": "Vice Chairman"},
-    {"id": "Treasurer", "name": "Treasurer"},
-    {"id": "Secretary", "name": "Secretary"},
-    {"id": "Vice Secretary", "name": "Vice Secretary"},
+    {"id": "LCC Chairman", "name": "LCC Chairman"},
+    {"id": "LCC Vice Chairman", "name": "LCC Vice Chairman"},
+    {"id": "LCC Treasurer", "name": "LCC Treasurer"},
+    {"id": "LCC Secretary", "name": "LCC Secretary"},
+    {"id": "LCC Vice Secretary", "name": "LCC Vice Secretary"},
     {"id": "CED leader", "name": "CED Leader"},
-    {"id": "Youth Leader", "name": "Youth Leader"},
-    {"id": "Youth Secretary", "name": "Youth Secretary"},
-    {"id": "Youth Vice Secretary", "name": "Youth Vice Secretary"},
-    {"id": "Youth Treasurer", "name": "Youth Treasurer"},
-    {"id": "Women Leader", "name": "Women Leader"},
-    {"id": "Women Secretary", "name": "Women Secretary"},
-    {"id": "Women Vice Secretary", "name": "Women Vice Secretary"},
-    {"id": "Women Treasurer", "name": "Women Treasurer"},
-    {"id": "Widows Leader", "name": "Widows Leader"},
-    {"id": "Widows Secretary", "name": "Widows Secretary"},
-    {"id": "Widows Vice Secretary", "name": "Widows Vice Secretary"},
-    {"id": "Widows Treasurer", "name": "Widows Treasurer"},
+    {"id": "LCC Youth Leader", "name": "Youth Leader"},
+    {"id": "LCC Youth Secretary", "name": "LCC Youth Secretary"},
+    {"id": "LCC Youth Vice Secretary", "name": "LCC Youth Vice Secretary"},
+    {"id": "LCC Youth Treasurer", "name": "LCC Youth Treasurer"},
+    {"id": "LCC Women Leader", "name": "LCC Women Leader"},
+    {"id": "LCC Women Secretary", "name": "LCC Women Secretary"},
+    {"id": "LCC Women Vice Secretary", "name": "LCC Women Vice Secretary"},
+    {"id": "LCC Women Treasurer", "name": "LCC Women Treasurer"},
+    {"id": "LCC Widows Leader", "name": "LCC Widows Leader"},
+    {"id": "LCC Widows Secretary", "name": "LCC Widows Secretary"},
+    {"id": "LCC Widows Vice Secretary", "name": "LCC Widows Vice Secretary"},
+    {"id": "LCC Widows Treasurer", "name": "LCC Widows Treasurer"},
 ]
 
 DCC_ROLE_OPTIONS = [
@@ -124,7 +124,7 @@ async def users_table(request: Request, session: AsyncSession = Depends(get_sess
 
 
 @user_router.get("/{user_id}", response_model=UserBaseModel)
-async def get_user(user_id: str, session: AsyncSession = Depends(get_session)):
+async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
     # Example raw query; adjust based on your schema
     user = await user_service.get_user_by_uid(user_id, session)
     if not user:
@@ -146,11 +146,15 @@ async def update_user(user_data: UserUpdateModel, session: AsyncSession = Depend
 # delete user route that does not delete but sets is_active to false
 
 
-@user_router.delete("/update/status/{user_id}")
-async def delete_user(user_id: str, session: AsyncSession = Depends(get_session)):
+@user_router.post("/update/status")
+async def update_user_status(user_status_data: UserStatusModel, session: AsyncSession = Depends(get_session)):
+    user_id = user_status_data.user_id
     user = await user_service.get_user_by_uid(user_id, session)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
-    await user_service.delete_user(user_id, session)
-    return JSONResponse({"message": "User deactivated successfully"})
+    user_updated = await user_service.update_user_status(user_status_data.user_id, user_status_data.reason, session)
+    if not user_updated:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail="Failed to update user status")
+    return JSONResponse({"success": True, "message": "User status updated successfully"})

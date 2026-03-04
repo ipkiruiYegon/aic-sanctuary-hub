@@ -96,3 +96,8 @@ class UserUpdateModel(BaseModel):
     region_id: uuid.UUID
     district_id: uuid.UUID
     local_church_id: uuid.UUID
+
+
+class UserStatusModel(BaseModel):
+    user_id: uuid.UUID
+    reason: str
