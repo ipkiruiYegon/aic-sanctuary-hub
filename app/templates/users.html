@@ -179,7 +179,7 @@
 <!-- Activate/Deactivate Confirmation Modal -->
 <div id="userStatusModal" class="modal status-modal">
     <div class="modal-content">
-        <form id="statusForm" method="POST" action="" class="status-form">
+        <form id="statusForm" method="post" action="" class="status-form">
             <h2 id="modalTitle" class="modal-title"></h2>
             <p id="statusMessage" class="modal-message"></p>
 
@@ -367,7 +367,7 @@
 
                 if (userStatus === 'Activate') {
                     // Activate flow
-                    form.action = '/activate-user';
+                    form.action = '/users/update/status';
                     modalTitle.textContent = 'Activate User';
                     modalTitle.style.color = 'green';
                     statusMessage.textContent = `Are you sure you want to activate ${userName}?`;
@@ -377,7 +377,7 @@
                     reasonLabel.textContent = 'Reason for Activation:';
                 } else {
                     // Deactivate flow
-                    form.action = '/deactivate-user';
+                    form.action = '/users/update/status';
                     modalTitle.textContent = 'Deactivate User';
                     modalTitle.style.color = ''; // default styling
                     statusMessage.textContent = `Are you sure you want to deactivate ${userName}?`;
@@ -396,30 +396,46 @@
         }
 
         const statusForm = document.getElementById("statusForm");
-        statusForm.onsubmit = (e) => {
+        statusForm.onsubmit = async (e) => {
             e.preventDefault();
 
-            const userId = deleteIdInput.value;
-            const reason = document.getElementById("deactivationReason").value.trim();
+            const userId = userIdInput.value;
+            const reason = document.getElementById("statusReason").value.trim();
 
             if (!reason) {
                 showToast("Please provide a reason for deactivation.", "error");
                 return;
             }
 
-            // Example AJAX request
-            fetch(`/deactivate-user/${userId}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ reason })
-            })
-                .then(response => response.json())
-                .then(data => {
-                    // handle success (e.g., update UI)
+            try {
+                const response = await fetch(`/users/update/status`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ user_id: userId, reason })
+                });
+
+                if (!response.ok) {
+                    showToast("Failed to update user status.", "error");
+                    console.log("Failed to update user status. Response:", response);
+                    return
+                }
+
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast(result.message || "User status updated successfully.", "success");
                     closeModal(document.getElementById("userStatusModal"));
-                })
-                .catch(error => console.error("Error deactivating user:", error));
+                    window.location.reload();
+                } else {
+                    showToast(result.detail || result.message || "Failed to update user status.", "error");
+                }
+
+            } catch (error) {
+                console.error("Error updating user status:", error);
+                showToast("Failed to update user status.", "error");
+            }
         };
+
     });
 
     document.addEventListener("DOMContentLoaded", () => {
