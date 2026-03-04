@@ -29,7 +29,7 @@ LCC_ROLE_OPTIONS = [
     {"id": "LCC Secretary", "name": "LCC Secretary"},
     {"id": "LCC Vice Secretary", "name": "LCC Vice Secretary"},
     {"id": "CED leader", "name": "CED Leader"},
-    {"id": "LCC Youth Leader", "name": "Youth Leader"},
+    {"id": "LCC Youth Leader", "name": "LCC Youth Leader"},
     {"id": "LCC Youth Secretary", "name": "LCC Youth Secretary"},
     {"id": "LCC Youth Vice Secretary", "name": "LCC Youth Vice Secretary"},
     {"id": "LCC Youth Treasurer", "name": "LCC Youth Treasurer"},
