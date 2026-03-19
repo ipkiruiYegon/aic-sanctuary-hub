@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     SQLALCHEMY_URL: str
     SECRET_KEY: str
+    JWT_SECRET: str
+    JWT_ALGORITHM: str
     DEBUG: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")

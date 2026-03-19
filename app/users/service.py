@@ -32,14 +32,13 @@ class UserService:
 
     async def get_user_by_phone(self, phone_number: str, session: AsyncSession):
         # Logic to retrieve a user by ID from the database
-        sql_query = select(User).where(User.phone_number == phone_number)
+        sql_query = select(User).where(User.phone_no == phone_number)
         result = await session.exec(sql_query)
         user = result.first()
         return user
 
     async def create_user(self, user_data: UserCreateModel, session: AsyncSession):
         # Logic to create a new user in the database
-        print(f"Creating user with data: {user_data}")
         new_user = User(**user_data.model_dump())
         new_user.title = clean_and_title(user_data.title)
         new_user.first_name = clean_and_title(user_data.first_name)
@@ -64,7 +63,6 @@ class UserService:
         sql = select(User).where(User.id == user_id)
         result = await session.exec(sql)
         user = result.first()
-        print(user)
         return user
 
     async def update_user(self, user_data: dict, session: AsyncSession):
@@ -104,3 +102,24 @@ class UserService:
         await session.commit()
         await session.refresh(user)
         return user
+
+    async def remove_user_tokens(self, user_id: str, session: AsyncSession):
+        # Logic to update a user's status in the database
+        user = await self.get_user_by_uid(user_id, session)
+        if not user:
+            return None
+        user.token = None
+        user.reset_token = None
+        await session.commit()
+        await session.refresh(user)
+        return user
+
+    async def token_in_user_db(self, user_id: str, token: str, session: AsyncSession) -> bool:
+        user = await self.get_user_by_uid(user_id, session)
+        if not user:
+            return False  # Token is invalid if user doesn't exist
+        if not user.token:
+            return False  # Token is invalid if user has no token
+        if user.token != token:
+            return False  # Token is invalid if it doesn't match the user's token
+        return True  # Token is valid
