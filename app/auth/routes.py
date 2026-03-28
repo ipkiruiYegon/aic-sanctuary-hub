@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 from app.auth.schemas import LoginModel, PasswordChangeModel
 from app.db.database import get_session
 from app.users.service import UserService
+from app.core import templates
 from app.auth.utils import verify_password, create_access_token, get_request_token, decode_token, generate_password_hash
 
 

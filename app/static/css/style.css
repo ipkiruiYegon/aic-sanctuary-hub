@@ -166,7 +166,7 @@ body {
     overflow-x: auto;
     overflow-y: auto;
     max-height: 400px;
-    margin-top: 10px;
+    margin-top: 20px;
 
 }
 
@@ -175,7 +175,6 @@ body {
 .user-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
     background: white;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
@@ -910,6 +909,67 @@ body.auth {
 
 .auth button:hover {
     background-color: #0056b3;
+}
+
+.unauthorized-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 70vh;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+.unauthorized-card {
+    background: #fff;
+    padding: 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    animation: fadeIn 0.6s ease-in-out;
+}
+
+.unauthorized-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #dc3545;
+    /* Bootstrap danger red */
+    margin-bottom: 20px;
+}
+
+.unauthorized-message {
+    font-size: 1.1rem;
+    color: #555;
+    margin-bottom: 30px;
+}
+
+.btn-back {
+    display: inline-block;
+    padding: 12px 24px;
+    background: linear-gradient(135deg, #0078d7, #00b4db);
+    color: #fff;
+    border-radius: 30px;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+    background: linear-gradient(135deg, #00b4db, #0078d7);
+    transform: scale(1.05);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes fadeIn {

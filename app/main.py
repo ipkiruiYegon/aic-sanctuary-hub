@@ -72,8 +72,13 @@ async def auth_middleware(request: Request, call_next):
         request.state.user = token_data
 
         # Role-based access control
-        # if request.url.path.startswith("/admin") and token_data.get("role") != "admin":
-        #    return RedirectResponse(url="/unauthorized")
+        user_role = token_data.get("user", {}).get("role")
+        # add user routes
+        ALlOWED_USER_ROLES = {"system administrator",
+                              "ced leader", "ced worker", "ced coordinator"}
+        if request.url.path.startswith("/users"):
+            if user_role.lower() not in ALlOWED_USER_ROLES:
+                return RedirectResponse(url="/unauthorized")
 
     except Exception as e:
         print("error", e)
@@ -95,7 +100,7 @@ async def root():
 
 
 @app.get("/dashboard")
-async def home(request: Request, session: AsyncSession = Depends(get_session)):
+async def dashboard(request: Request, session: AsyncSession = Depends(get_session)):
     return templates.TemplateResponse("dashboard.html", {"request": request})
 
 
@@ -107,3 +112,8 @@ async def login_page(request: Request, session: AsyncSession = Depends(get_sessi
 @app.get("/password/change")
 async def login_page(request: Request, session: AsyncSession = Depends(get_session)):
     return templates.TemplateResponse("password_change.html", {"request": request})
+
+
+@app.get("/unauthorized")
+async def unauthorized(request: Request):
+    return templates.TemplateResponse("unauthorized.html", {"request": request})
