@@ -1,8 +1,7 @@
-{% if users%}
-
-<div class="table-container">
-    <table class="user-table">
-        <thead>
+{% if users %}
+<div class="overflow-x-auto">
+    <table class="table table-zebra w-full min-w-full">
+        <thead class="hidden sm:table-header-group">
             <tr>
                 <th>Name</th>
                 <th>Account Status</th>
@@ -13,59 +12,72 @@
         </thead>
         <tbody>
             {% for user in users %}
-            <tr>
-                <td class="firstname-cell">{% if user.avatar_image %}
-                    <img src="{{ user.avatar_image }}" alt="{{ user.first_name }} {{ user.last_name }}"
-                        class="user-photo">
-                    <span>{{ user.title }} {{ user.first_name }} {{ user.last_name }}</span>
-                    {% else %}
-                    <div class="user-initials">
-                        {{ user.first_name[0]|upper }}{{ user.last_name[0]|upper }}
-
+            <tr
+                class="block sm:table-row bg-white sm:bg-transparent rounded-2xl sm:rounded-none shadow-sm sm:shadow-none mb-4 sm:mb-0 border border-gray-300 sm:border-none p-4 sm:p-0">
+                <td class="block sm:table-cell py-3 px-4">
+                    <span class="font-semibold text-sm text-gray-500 sm:hidden inline-block mb-2">Name</span>
+                    <div class="flex items-center gap-2">
+                        {% if user.avatar_image %}
+                        <img src="{{ user.avatar_image }}" alt="{{ user.first_name }} {{ user.last_name }}"
+                            class="w-10 h-10 rounded-full object-cover">
+                        <span class="font-medium">{{ user.title }} {{ user.first_name }} {{ user.last_name }}</span>
+                        {% else %}
+                        <div
+                            class="w-10 h-10 flex items-center justify-center rounded-full bg-gray-300 text-gray-700 font-bold">
+                            {{ user.first_name[0]|upper }}{{ user.last_name[0]|upper }}
+                        </div>
+                        <span class="font-medium">{{ user.title }} {{ user.first_name }} {{ user.last_name }}</span>
+                        {% endif %}
                     </div>
-                    <span>{{ user.title }} {{ user.first_name }} {{ user.last_name }}</span>
-                    {% endif %}
-
-
                 </td>
-                <td>{{ "Verified" if user.linked else "Unverified" }}</td>
-                <td>{{ "Active" if user.is_active else "Dormant" }}</td>
-                <td>{{ user.role }}</td>
-                <td>
-                    <!-- Edit button triggers modal -->
-                    <button class="btn-secondary editBtn" data-id="{{ user.id }}" data-first="{{ user.first_name }}"
-                        data-last="{{ user.last_name }}" data-lccrole="{{ user.lcc_role or '' }}"
-                        data-dccrole="{{ user.dcc_role or '' }}" data-rccrole="{{ user.rcc_role or '' }}"
-                        data-phone="{{ user.phone_no }}" data-title="{{ user.title or ''  }}"
-                        data-region="{{ user.region.id or '' }}" data-district="{{ user.district.id or '' }}"
-                        data-church="{{ user.local_church_id or '' }}">
-                        Edit
-                    </button>
-                    <!-- Activate-Deactivate button triggers modal -->
-
-                    <button class="btn {{ 'btn-info' if not user.is_active else 'btn-danger' }} statusBtn"
-                        data-id="{{ user.id }}" data-name="{{ user.first_name }} {{ user.last_name }}"
-                        data-status="{{ 'Activate' if not user.is_active else 'Deactivate' }}">
-                        {{ 'Activate' if not user.is_active else 'Deactivate' }}
-                    </button>
-
+                <td class="block sm:table-cell py-3 px-4">
+                    <span class="font-semibold text-sm text-gray-500 sm:hidden inline-block mb-2">Account Status</span>
+                    <span class="badge badge-outline {{ 'badge-success' if user.linked else 'badge-warning' }}">{{
+                        'Verified' if user.linked else 'Unverified' }}</span>
+                </td>
+                <td class="block sm:table-cell py-3 px-4">
+                    <span class="font-semibold text-sm text-gray-500 sm:hidden inline-block mb-2">Status</span>
+                    <span class="badge {{ 'badge-success' if user.is_active else 'badge-error' }}">{{ 'Active' if
+                        user.is_active else 'Dormant' }}</span>
+                </td>
+                <td class="block sm:table-cell py-3 px-4">
+                    <span class="font-semibold text-sm text-gray-500 sm:hidden inline-block mb-2">Role</span>
+                    <span>{{ user.role }}</span>
+                </td>
+                <td class="block sm:table-cell py-3 px-4">
+                    <span class="font-semibold text-sm text-gray-500 sm:hidden inline-block mb-2">Actions</span>
+                    <div class="flex flex-col sm:flex-row gap-2">
+                        <label for="editUserModal" class="btn btn-secondary btn-sm editBtn" data-id="{{ user.id }}"
+                            data-first="{{ user.first_name }}" data-last="{{ user.last_name }}"
+                            data-lccrole="{{ user.lcc_role or '' }}" data-dccrole="{{ user.dcc_role or '' }}"
+                            data-rccrole="{{ user.rcc_role or '' }}" data-phone="{{ user.phone_no }}"
+                            data-title="{{ user.title or '' }}" data-region="{{ user.region.id or '' }}"
+                            data-district="{{ user.district.id or '' }}" data-church="{{ user.local_church_id or '' }}">
+                            ✏️ Edit
+                        </label>
+                        <label for="userStatusModal"
+                            class="btn btn-sm {{ 'btn-success' if not user.is_active else 'btn-error' }} statusBtn"
+                            data-id="{{ user.id }}" data-name="{{ user.first_name }} {{ user.last_name }}"
+                            data-status="{{ 'Activate' if not user.is_active else 'Deactivate' }}">
+                            {{ 'Activate' if not user.is_active else 'Deactivate' }}
+                        </label>
+                    </div>
                 </td>
             </tr>
             {% endfor %}
         </tbody>
-        <tfoot>
+        <tfoot class="hidden sm:table-footer-group">
             <tr>
-                <td colspan="5" id="tableFooter">
-                    Showing <span id="userCount">{{users|length}}</span> users | Page <span id="currentPage">1</span> of
-                    <span id="totalPages">1</span>
+                <td colspan="5" class="text-sm text-gray-600">
+                    Showing <span id="userCount">{{ users|length }}</span> users |
+                    Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
                 </td>
             </tr>
         </tfoot>
-
     </table>
 </div>
 {% else %}
-<div class="no-users">
-    <h2>No users found.</h2>
+<div class="text-center py-12">
+    <h2 class="text-xl font-semibold text-gray-600">No users found.</h2>
 </div>
 {% endif %}

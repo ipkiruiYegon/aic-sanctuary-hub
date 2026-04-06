@@ -55,6 +55,8 @@ async def authenticate_users(login_data: LoginModel, session: AsyncSession = Dep
             access_token = create_access_token(
                 user_data={
                     "username": user.first_name,
+                    "first_name": user.first_name,
+                    "last_name": user.last_name,
                     "user_id": str(user.id),
                     "role": user.role,
                 }
@@ -128,7 +130,7 @@ async def change_user_password(request: Request, password_data: PasswordChangeMo
                         detail="Invalid login credentials")
 
 
-@auth_router.post("/logout")
+@auth_router.get("/logout")
 async def logout(request: Request, response: Response, session: AsyncSession = Depends(get_session)):
     token = get_request_token(request)
     if not token:

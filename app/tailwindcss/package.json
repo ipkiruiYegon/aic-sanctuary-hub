@@ -1,0 +1,28 @@
+{
+  "name": "aic-sanctuary-hub",
+  "version": "1.0.0",
+  "description": "AIC Sanctuary Hub is a modern web application built with FastAPI and Jinja templates to serve as a centralized digital platform for AIC church officials. It provides a simple, secure, and engaging way to stay updated on church activities, receive timely notifications, and strengthen fellowship through technology.",
+  "main": "index.js",
+  "scripts": {
+    "dev": "npx @tailwindcss/cli -i ./styles/app.css -o ../static/css/app.css --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ipkiruiYegon/aic-sanctuary-hub.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/ipkiruiYegon/aic-sanctuary-hub/issues"
+  },
+  "homepage": "https://github.com/ipkiruiYegon/aic-sanctuary-hub#readme",
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.2.2",
+    "autoprefixer": "^10.4.27",
+    "daisyui": "^5.5.19",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2"
+  }
+}

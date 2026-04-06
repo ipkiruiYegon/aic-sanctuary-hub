@@ -1,3 +1,6 @@
+from datetime import datetime
+from email.utils import format_datetime
+
 from fastapi import FastAPI, Request, Depends, status
 from fastapi.responses import RedirectResponse, JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
@@ -26,11 +29,18 @@ user_services = UserService()
 version_prefix = f"/api/{version}"
 
 
+def format_datetime(value, fmt="%A %d %Y, %I:%M %p"):
+    return value.strftime(fmt)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with async_session() as session:
         region = await council_services.get_region(session)
         templates.env.globals["region"] = region
+        # Register globals and filters once
+        templates.env.globals["current_time"] = datetime.now
+        templates.env.filters["format_datetime"] = format_datetime
     yield
     print("Application is shutting down...")
 
@@ -75,7 +85,7 @@ async def auth_middleware(request: Request, call_next):
         user_role = token_data.get("user", {}).get("role")
         # add user routes
         ALlOWED_USER_ROLES = {"system administrator",
-                              "ced leader", "ced worker", "ced coordinator"}
+                              "ced leader", "lcc treasurer", "ced worker", "ced coordinator"}
         if request.url.path.startswith("/users"):
             if user_role.lower() not in ALlOWED_USER_ROLES:
                 return RedirectResponse(url="/unauthorized")
@@ -117,3 +127,8 @@ async def login_page(request: Request, session: AsyncSession = Depends(get_sessi
 @app.get("/unauthorized")
 async def unauthorized(request: Request):
     return templates.TemplateResponse("unauthorized.html", {"request": request})
+
+
+@app.get("/events")
+async def events(request: Request):
+    return templates.TemplateResponse("events.html", {"request": request})

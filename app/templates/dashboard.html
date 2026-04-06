@@ -1,25 +1,29 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h1 class="page-title">Admin Dashboard</h1>
+<h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
 
 <!-- Summary Cards -->
-<div class="summary-cards">
-    <div class="card">
-        <h3>👤 Users</h3>
-        <p class="count">{{ users_count }}</p>
-        <a href="/users" class="btn-primary">Manage Users</a>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <!-- Users Card -->
+    <div class="card bg-base-100 shadow-xl p-6">
+        <h3 class="text-lg font-semibold mb-2">👤 Users</h3>
+        <p class="text-3xl font-bold mb-4">{{ users_count }}</p>
+        <a href="/users" class="btn btn-primary w-full md:w-auto">Manage Users</a>
     </div>
-    <div class="card">
-        <h3>📅 Events</h3>
-        <p class="count">{{ events_count }}</p>
-        <a href="/events" class="btn-primary">Manage Events</a>
+
+    <!-- Events Card -->
+    <div class="card bg-base-100 shadow-xl p-6">
+        <h3 class="text-lg font-semibold mb-2">📅 Events</h3>
+        <p class="text-3xl font-bold mb-4">{{ events_count }}</p>
+        <a href="/events" class="btn btn-primary w-full md:w-auto">Manage Events</a>
     </div>
-    <div class="card">
-        <h3>🔔 Notifications</h3>
-        <p class="count">{{ notifications_count }}</p>
-        <a href="/notifications" class="btn-primary">View Notifications</a>
+
+    <!-- Notifications Card -->
+    <div class="card bg-base-100 shadow-xl p-6">
+        <h3 class="text-lg font-semibold mb-2">🔔 Notifications</h3>
+        <p class="text-3xl font-bold mb-4">{{ notifications_count }}</p>
+        <a href="/notifications" class="btn btn-primary w-full md:w-auto">View Notifications</a>
     </div>
 </div>
-
-
 {% endblock %}

@@ -1,148 +1,153 @@
 {% extends "base.html" %}
+
 {% block content %}
 <div class="council-container">
 
     <!-- Council Management Menu -->
-    <h2 class="page-title">Council Management</h2>
-    <div class="menu-buttons">
+    <h2 class="text-2xl font-bold mb-6">Council Management</h2>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {% if not region_exists %}
-        <button id="openRegionModalBtn" class="btn-primary">➕ Add Region</button>
+        <label for="regionModal" class="btn btn-primary w-full flex items-center gap-2">
+            <i class="fas fa-globe-africa"></i> ➕ Add Region
+        </label>
         {% else %}
-        <button id="openRegionModalBtn" class="btn-primary" disabled title="Region already created">
-            ➕ Add Region
+        <button class="btn btn-primary w-full flex items-center gap-2" disabled title="Region already created">
+            <i class="fas fa-globe-africa"></i> ➕ Add Region
         </button>
         {% endif %}
-
-        <button id="openDistrictModalBtn" class="btn-primary">➕ Add District</button>
-        <button id="openLocalModalBtn" class="btn-primary">➕ Add Local Church</button>
+        <label for="districtModal" class="btn btn-primary w-full flex items-center gap-2">
+            <i class="fas fa-city"></i> ➕ Add District
+        </label>
+        <label for="localModal" class="btn btn-primary w-full flex items-center gap-2">
+            <i class="fas fa-church"></i> ➕ Add Local Church
+        </label>
     </div>
 
     <!-- Region Modal -->
-    <div id="regionModal" class="modal">
-        <div class="modal-content">
-            <span class="closeBtn">&times;</span>
-            <h3>Create Region</h3>
-            <form method="post" action="/council/region/create" class="form">
-                <div class="form-group">
-                    <label for="region_name">Region Name:</label>
-                    <input type="text" name="name" id="region_name" required>
+    <input type="checkbox" id="regionModal" class="modal-toggle" />
+    <div class="modal">
+        <div class="modal-box max-w-md">
+            <h3 class="font-bold text-lg mb-4">Create Region</h3>
+            <form method="post" action="/council/region/create" class="space-y-4">
+                <div class="form-control">
+                    <label for="region_name" class="label font-semibold">Region Name</label>
+                    <input type="text" name="name" id="region_name" required class="input input-bordered w-full">
                 </div>
-                <button type="submit" class="btn-primary">Save Region</button>
+                <div class="flex justify-end gap-2">
+                    <button type="submit" class="btn btn-primary">Save Region</button>
+                    <label for="regionModal" class="btn btn-secondary">Cancel</label>
+                </div>
             </form>
         </div>
     </div>
 
     <!-- District Modal -->
-    <div id="districtModal" class="modal">
-        <div class="modal-content">
-            <span class="closeBtn">&times;</span>
-            <h3>Create District</h3>
-            <form method="post" action="/council/districts/create" class="form">
-                <div class="form-group">
-                    <label for="district_name">District Name:</label>
-                    <input type="text" name="name" id="district_name" required>
+    <input type="checkbox" id="districtModal" class="modal-toggle" />
+    <div class="modal">
+        <div class="modal-box max-w-md">
+            <h3 class="font-bold text-lg mb-4">Create District</h3>
+            <form method="post" action="/council/districts/create" class="space-y-4">
+                <div class="form-control">
+                    <label for="district_name" class="label font-semibold">District Name</label>
+                    <input type="text" name="name" id="district_name" required class="input input-bordered w-full">
                 </div>
-                <div class="form-group">
-                    <label for="district_region">Region:</label>
-                    <select name="region_id" id="district_region" required>
+                <div class="form-control">
+                    <label for="district_region" class="label font-semibold">Region</label>
+                    <select name="region_id" id="district_region" required class="select select-bordered w-full">
                         <option value="" disabled selected>-- Select Region --</option>
                         <option value="{{ region.id }}">{{ region.name }}</option>
-
                     </select>
                 </div>
-                <button type="submit" class="btn-primary">Save District</button>
+                <div class="flex justify-end gap-2">
+                    <button type="submit" class="btn btn-primary">Save District</button>
+                    <label for="districtModal" class="btn btn-secondary">Cancel</label>
+                </div>
             </form>
         </div>
     </div>
 
     <!-- Local Church Modal -->
-    <div id="localModal" class="modal">
-        <div class="modal-content">
-            <span class="closeBtn">&times;</span>
-            <h3>Create Local Church</h3>
-            <form method="post" action="/council/locals/create" class="form">
-                <div class="form-group">
-                    <label for="local_name">Local Church Name:</label>
-                    <input type="text" name="name" id="local_name" required>
+    <input type="checkbox" id="localModal" class="modal-toggle" />
+    <div class="modal">
+        <div class="modal-box max-w-md">
+            <h3 class="font-bold text-lg mb-4">Create Local Church</h3>
+            <form method="post" action="/council/locals/create" class="space-y-4">
+                <div class="form-control">
+                    <label for="local_name" class="label font-semibold">Local Church Name</label>
+                    <input type="text" name="name" id="local_name" required class="input input-bordered w-full">
                 </div>
-                <div class="form-group">
-                    <label for="local_district">District:</label>
-                    <select name="district_id" id="local_district" required>
+                <div class="form-control">
+                    <label for="local_district" class="label font-semibold">District</label>
+                    <select name="district_id" id="local_district" required class="select select-bordered w-full">
                         <option value="" disabled selected>-- Select District --</option>
                         {% for district in region.districts %}
                         <option value="{{ district.id }}">{{ district.name }}</option>
                         {% endfor %}
                     </select>
-
                 </div>
-                <button type="submit" class="btn-primary">Save Local Church</button>
+                <div class="flex justify-end gap-2">
+                    <button type="submit" class="btn btn-primary">Save Local Church</button>
+                    <label for="localModal" class="btn btn-secondary">Cancel</label>
+                </div>
             </form>
         </div>
     </div>
 
-    <div class="council-tree">
-        <!-- Region centered -->
-        <div class="region-btn">AIC {{ region.name }} Region</div>
-
-        <!-- Connector line -->
-        <div class="connector"></div>
-
-        <!-- Districts row -->
-        <div class="districts-row">
-            {% for district in region.districts %}
-            <div class="district-block">
-                <div class="district-btn">AIC {{ district.name }} DCC</div>
-                <ul class="churches">
-                    {% for church in district.churches %}
-                    <li class="church">AIC {{ church.name }} Local Church</li>
-                    <span class="actions">
-                        <button onclick="openEditChurchModal('{{ church.id }}')">✏️</button>
-                        <button onclick="confirmDeleteChurch('{{ church.id }}')">🗑️</button>
-                    </span>
-                    {% endfor %}
-                </ul>
+    <!-- Council Tree -->
+    <div class="council-tree mt-8">
+        <div class="flex flex-col items-center space-y-8">
+            <!-- Region -->
+            <div class="region-btn btn btn-primary btn-sm">
+                AIC {{ region.name }} Region
             </div>
-            {% endfor %}
+
+            <!-- Arrow down -->
+            <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m0 0l-6-6m6 6l6-6" />
+            </svg>
+
+            <!-- Districts row -->
+            <div class="districts-row flex flex-wrap justify-center gap-4">
+                {% for district in region.districts %}
+                <div class="district-block flex flex-col items-center space-y-2">
+
+                    <!-- District with hidden actions -->
+                    <div class="district-btn btn btn-secondary btn-xs group relative">
+                        AIC {{ district.name }} DCC
+                        <span
+                            class="absolute right-0 top-0 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition">
+                            <button onclick="openEditDistrictModal('{{ district.id }}')"
+                                class="btn btn-xs btn-secondary">✏️</button>
+                            <button onclick="confirmDeleteDistrict('{{ district.id }}')"
+                                class="btn btn-xs btn-error">🗑️</button>
+                        </span>
+                    </div>
+
+                    <!-- Arrow down to churches -->
+                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 4v16m0 0l-6-6m6 6l6-6" />
+                    </svg>
+
+                    <!-- Churches with hidden actions -->
+                    <ul class="churches flex flex-col space-y-1">
+                        {% for church in district.churches %}
+                        <li class="church text-xs bg-gray-50 px-2 py-1 rounded shadow group relative">
+                            AIC {{ church.name }} Local Church
+                            <span
+                                class="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition">
+                                <button onclick="openEditChurchModal('{{ church.id }}')"
+                                    class="btn btn-xs btn-secondary">✏️</button>
+                                <button onclick="confirmDeleteChurch('{{ church.id }}')"
+                                    class="btn btn-xs btn-error">🗑️</button>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
-
-{% endblock %}
-{% block scripts %}
-<script>
-    document.addEventListener("DOMContentLoaded", () => {
-        // Utility functions
-        function openModal(id) {
-            const modal = document.getElementById(id);
-            if (modal) modal.style.display = "block";
-        }
-        function closeModal(modal) {
-            if (modal) modal.style.display = "none";
-        }
-
-        // Close buttons
-        document.querySelectorAll(".closeBtn").forEach(btn => {
-            btn.onclick = () => closeModal(btn.closest(".modal"));
-        });
-
-        // Region Modal
-        const openRegionBtn = document.getElementById("openRegionModalBtn");
-        if (openRegionBtn) openRegionBtn.onclick = () => openModal("regionModal");
-
-        // District Modal
-        const openDistrictBtn = document.getElementById("openDistrictModalBtn");
-        if (openDistrictBtn) openDistrictBtn.onclick = () => openModal("districtModal");
-
-        // Local Church Modal
-        const openLocalBtn = document.getElementById("openLocalModalBtn");
-        if (openLocalBtn) openLocalBtn.onclick = () => openModal("localModal");
-
-        // Close when clicking outside
-        window.onclick = (event) => {
-            if (event.target.classList.contains("modal")) {
-                closeModal(event.target);
-            }
-        };
-    });
-</script>
 {% endblock %}

@@ -1,26 +1,41 @@
 {% extends "base.html" %}
+
 {% block content %}
-<div class="council-container">
+<div class="council-container p-8">
 
-    <div class="council-tree">
-        <!-- Region centered -->
-        <div class="region-btn">AIC {{ region.name }} Region</div>
+    <!-- Council Tree -->
+    <div class="council-tree flex flex-col items-center space-y-8">
 
-        <!-- Connector line -->
-        <div class="connector"></div>
+        <!-- Region -->
+        <div class="region-btn btn btn-primary btn-sm">
+            AIC {{ region.name }} Region
+        </div>
 
-        <!-- Districts row -->
-        <div class="districts-row">
+        <!-- Arrow down to districts -->
+        <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m0 0l-6-6m6 6l6-6" />
+        </svg>
+
+        <!-- Districts row (horizontal) -->
+        <div class="districts-row flex flex-wrap justify-center gap-4">
             {% for district in region.districts %}
-            <div class="district-block">
-                <div class="district-btn">AIC {{ district.name }} DCC</div>
-                <ul class="churches">
+            <div class="district-block flex flex-col items-center space-y-2">
+                <div class="district-btn btn btn-secondary btn-xs">
+                    AIC {{ district.name }} DCC
+                </div>
+
+                <!-- Arrow down to churches -->
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M12 4v16m0 0l-6-6m6 6l6-6" />
+                </svg>
+
+                <!-- Churches (smaller text) -->
+                <ul class="churches flex flex-col space-y-1">
                     {% for church in district.churches %}
-                    <li class="church">AIC {{ church.name }} Local Church</li>
-                    <span class="actions">
-                        <button onclick="openEditChurchModal('{{ church.id }}')">✏️</button>
-                        <button onclick="confirmDeleteChurch('{{ church.id }}')">🗑️</button>
-                    </span>
+                    <li class="church text-xs bg-gray-50 px-2 py-1 rounded shadow">
+                        AIC {{ church.name }} Local Church
+                    </li>
                     {% endfor %}
                 </ul>
             </div>
@@ -28,6 +43,4 @@
         </div>
     </div>
 </div>
-
-
 {% endblock %}

@@ -1,0 +1,125 @@
+.toast {
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    color: #fff;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.toast.show {
+    opacity: 1;
+}
+
+.toast.success {
+    background-color: #16a34a;
+    /* Tailwind green-600 */
+}
+
+.toast.info {
+    background-color: #2563eb;
+    /* Tailwind blue-600 */
+}
+
+.toast.error {
+    background-color: #dc2626;
+    /* Tailwind red-600 */
+}
+
+.active-menu {
+    background-color: whitesmoke;
+    color: var(--color-primary);
+}
+
+.menu>li>a {
+    width: 100%;
+}
+
+
+@keyframes slideIn {
+    from {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+
+    to {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+}
+
+.drawer-side {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.drawer-side.open {
+    animation: slideIn 0.3s forwards;
+}
+
+.drawer-side.close {
+    animation: slideOut 0.3s forwards;
+}
+
+
+/* Responsive drawer fallback */
+@media (max-width: 1023px) {
+    .drawer-side {
+        display: none;
+    }
+
+    #sidebar-toggle:checked~.drawer-side {
+        display: block;
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 40;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    }
+}
+
+@media (min-width: 1024px) {
+    .drawer-overlay {
+        display: none;
+    }
+
+    .drawer-side {
+        display: block !important;
+        pointer-events: auto !important;
+        visibility: visible !important;
+        opacity: 1 !important;
+        width: 16rem;
+        position: fixed;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        z-index: 30;
+        overflow-y: auto;
+    }
+
+    .drawer-side> :not(.drawer-overlay) {
+        translate: 0% !important;
+    }
+
+    .drawer-content {
+        margin-left: 16rem;
+        min-height: 100vh;
+    }
+
+    .navbar {
+        margin-left: 0;
+        z-index: 10;
+    }
+}

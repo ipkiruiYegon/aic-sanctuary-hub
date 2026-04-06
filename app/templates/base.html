@@ -1,92 +1,146 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="aic">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AIC Sanctuary Hub</title>
-    <link rel="stylesheet" href="/static/css/style.css">
-    <!-- Font Awesome CDN -->
+    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
     <script src="https://kit.fontawesome.com/3113c7c9da.js" crossorigin="anonymous"></script>
 </head>
 
-<body>
-    <nav class=" sidebar">
-        <h2 class="sidebar-title">AIC Sanctuary Hub</h2>
+<body class="bg-base-100 min-h-screen drawer drawer-mobile">
+    <input id="sidebar-toggle" type="checkbox" class="drawer-toggle" />
 
-        <ul class="menu">
-            <li class="{% if request.url.path == '/dashboard' %}active{% endif %}"><a href="/"><i
-                        class="fas fa-home"></i>
-                    Dashboard</a></li>
-            <li class="{% if request.url.path == '/notifications' %}active{% endif %}"><a href="/notifications"><i
-                        class="fas fa-bell"></i> Notifications</a></li>
-            <li class="{% if request.url.path == '/users/' %}active{% endif %}"><a href="/users"><i
-                        class="fas fa-users"></i> User Management</a></li>
-            <li class="{% if request.url.path == '/council/' %}active{% endif %}"><a href="/council"><i
-                        class="fas fa-church"></i> Council Management</a></li>
-            <li class="{% if request.url.path == '/events' %}active{% endif %}"><a href="/events"><i
-                        class="fas fa-calendar-alt"></i> Events Management</a></li>
-        </ul>
+    <!-- Main area -->
+    <div class="drawer-content flex flex-col">
 
-    </nav>
-    <main class="content">
-        <!-- Global app title -->
-        <h1 class="app-title">
-            <a href="/council/structure">AIC {{ region.name }} Region Sanctuary Hub</a>
-        </h1>
+        <!-- Navbar -->
+        <nav class="navbar bg-base-200 shadow-md px-4 flex justify-between items-center h-16">
+            <div class="flex items-center gap-2">
+                <label for="sidebar-toggle" class="btn btn-ghost btn-circle lg:hidden">
+                    <i class="fas fa-bars"></i>
+                </label>
+                <h1 class="hidden lg:block text-xl md:text-2xl font-bold">
+                    <a href="/council/structure">{{ region.name }} Region</a>
+                </h1>
+            </div>
+            <div class="flex items-center gap-4">
+                <span class="hidden md:inline text-sm md:text-base text-gray-600">
+                    {{ current_time()|format_datetime }}
+                </span>
+                <!-- User Dropdown -->
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
+                        {% if request.state.user['user']['avatar_image'] %}
+                        <div class="w-10 rounded-full">
+                            <img src="{{ request.state.user['user']['avatar_image'] }}"
+                                alt="{{ request.state.user['user']['first_name'] }} {{ request.state.user['user']['last_name'] }}">
+                        </div>
+                        {% else %}
+                        <div class="w-10 rounded-full bg-neutral text-white flex items-center justify-center">
+                            <span>{{ request.state.user['user']['first_name'][0]|upper }}{{
+                                request.state.user['user']['last_name'][0]|upper }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
+                        <li><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+                        <li><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
+                        <li><a href="/api/v1/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-4 md:p-6">
+            <div class="grid grid-cols-1 gap-6">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="drawer-side">
+        <label for="sidebar-toggle" class="drawer-overlay"></label>
+        <div class="bg-slate-900 text-white w-64 p-4 min-h-screen shadow-xl">
+            <h2 class="text-xl font-bold mb-6 border-b border-red-500 pb-2 text-center">
+                AIC Sanctuary Hub
+            </h2>
 
 
-        {% block content %}{% endblock %}
-
-    </main>
-
+            <ul class="menu space-y-2 w-full">
+                <li>
+                    <a href="/dashboard"
+                        class="flex items-center gap-2 w-full {% if request.url.path == '/dashboard' %}active-menu{% endif %}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </li>
+                <li>
+                    <a href="/notifications"
+                        class="flex items-center gap-2 w-full {% if request.url.path == '/notifications' %}active-menu{% endif %}">
+                        <i class="fas fa-bell"></i> Notifications
+                    </a>
+                </li>
+                <li>
+                    <a href="/users/"
+                        class="flex items-center gap-2 w-full {% if request.url.path == '/users/' %}active-menu{% endif %}">
+                        <i class="fas fa-users"></i> User Management
+                    </a>
+                </li>
+                <li>
+                    <a href="/council/"
+                        class="flex items-center gap-2 w-full {% if request.url.path == '/council/' %}active-menu{% endif %}">
+                        <i class="fas fa-church"></i> Council Management
+                    </a>
+                </li>
+                <li>
+                    <a href="/events"
+                        class="flex items-center gap-2 w-full {% if request.url.path == '/events' %}active-menu{% endif %}">
+                        <i class="fas fa-calendar-alt"></i> Events Management
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </aside>
 
     <!-- Toast container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <div id="toastContainer" class="fixed top-4 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 
+            flex flex-col items-center space-y-2 z-50 w-auto max-w-sm">
+    </div>
+
+
     <script src="/static/js/htmx.min.js"></script>
     <script src="/static/js/script.js"></script>
     <script>
         const setupInactivityLogout = () => {
-            let timer
-            let debounceTimer
-
+            let timer, debounceTimer;
             const resetTimer = () => {
-                clearTimeout(timer)
-
+                clearTimeout(timer);
                 timer = setTimeout(() => {
-                    fetch("/api/v1/auth/logout", {
-                        method: "POST",
-                        headers: { "content-type": "application/json" },
-                    })
+                    fetch("/api/v1/auth/logout", { method: "GET", headers: { "content-type": "application/json" } })
                         .then(() => {
-                            localStorage.removeItem("access_token")
-                            localStorage.removeItem("refresh_token")
-                            window.location.href = "/login"
+                            localStorage.removeItem("access_token");
+                            localStorage.removeItem("refresh_token");
+                            window.location.href = "/login";
                         })
-                        .catch(() => {
-                            window.location.href = "/login"
-                        })
-                }, 2 * 60 * 1000)
-
-            }
-
+                        .catch(() => { window.location.href = "/login"; });
+                }, 5 * 60 * 1000);
+            };
             const debouncedReset = () => {
-                clearTimeout(debounceTimer)
-                debounceTimer = setTimeout(resetTimer, 250)
-            }
-
-            document.addEventListener("mousemove", debouncedReset)
-            document.addEventListener("keydown", debouncedReset)
-            document.addEventListener("touchstart", debouncedReset)
-
-            resetTimer()
-
-        }
-
-        setupInactivityLogout()    
+                clearTimeout(debounceTimer);
+                debounceTimer = setTimeout(resetTimer, 250);
+            };
+            document.addEventListener("mousemove", debouncedReset);
+            document.addEventListener("keydown", debouncedReset);
+            document.addEventListener("touchstart", debouncedReset);
+            resetTimer();
+        };
+        setupInactivityLogout();
     </script>
     {% block scripts %}{% endblock %}
-
 </body>
 
 </html>
