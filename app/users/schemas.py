@@ -100,4 +100,4 @@ class UserUpdateModel(BaseModel):
 
 class UserStatusModel(BaseModel):
     user_id: uuid.UUID
-    reason: str
+    reason: Optional[str]

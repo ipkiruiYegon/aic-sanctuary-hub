@@ -1,72 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="aic">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - AIC Sanctuary Hub</title>
-    <link rel="stylesheet" href="/static/css/style.css">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
 </head>
 
-<body class="auth">
-    <div class="login-container">
-        <h2>Login to AIC Sanctuary Hub</h2>
-        <form id="loginForm" action="/api/v1/auth/authenticate" method="post">
-            <input type="text" name="username" placeholder="Phone Number" required pattern="0[0-9]{9}">
-            <input type="password" name="password" placeholder="Password" required>
-            <button type="submit">Login</button>
+<body class="bg-gradient-to-br from-red-50 to-gray-100 min-h-screen flex items-center justify-center p-4 relative">
+
+
+
+    <!-- Login container -->
+    <div class="card w-full max-w-sm bg-base-100 shadow-xl p-6 rounded-lg border border-red-300">
+        <img src="{{ url_for('static', path='images/aic.png') }}" alt="AIC Kenya Logo"
+            class="mx-auto mb-2 w-full max-w-[280px] h-[60px] object-contain" />
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">
+            Login to AIC Sanctuary Hub
+        </h2>
+
+        <form id="loginForm" action="/api/v1/auth/authenticate" method="post" class="space-y-4">
+            <input type="text" name="username" placeholder="Phone Number" required pattern="0[0-9]{9}"
+                class="input input-bordered w-full" />
+            <input type="password" name="password" placeholder="Password" required
+                class="input input-bordered w-full" />
+            <button type="submit" class="btn btn-primary w-full bg-red-700 hover:bg-red-800 border-none mt-3">
+                Login
+            </button>
         </form>
     </div>
+
     <!-- Toast container -->
-    <div class="toast-container" id="toastContainer"></div>
+    <div id="toastContainer" class="fixed top-4 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 
+            flex flex-col items-center space-y-2 z-50 w-auto max-w-sm">
+    </div>
+
     <script src="/static/js/script.js"></script>
-</body>
-<script>
-    const phoneInput = document.querySelector('input[name="username"]');
-    phoneInput.addEventListener("input", function () {
-        const regex = /^0\d{9}$/;
-        if (!regex.test(this.value)) {
-            this.setCustomValidity("Phone number must be 10 digits and start with 0");
-        } else {
-            this.setCustomValidity("");
-        }
-    });
-
-    const form = document.getElementById("loginForm");
-
-    form.addEventListener("submit", async function (e) {
-        e.preventDefault(); // prevent normal form submission
-
-        const formData = new FormData(form);
-        const payload = {
-            phone: formData.get("username"),
-            password: formData.get("password")
-        };
-
-        try {
-            const response = await fetch("/api/v1/auth/authenticate", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload)
-            });
-
-            if (response.redirected) {
-                // If FastAPI returned a RedirectResponse
-                window.location.href = response.url;
-            } else if (response.ok) {
-                // If you return JSON with success info
-                window.location.href = "/dashboard";
+    <script>
+        const phoneInput = document.querySelector('input[name="username"]');
+        phoneInput.addEventListener("input", function () {
+            const regex = /^0\d{9}$/;
+            if (!regex.test(this.value)) {
+                this.setCustomValidity("Phone number must be 10 digits and start with 0");
             } else {
-                const err = await response.json();
-                showToast(err.detail || "Login failed", "error");
-
+                this.setCustomValidity("");
             }
-        } catch (err) {
-            showToast("Network error. Please try again.", "error");
+        });
 
-        }
-    });
+        const form = document.getElementById("loginForm");
+        form.addEventListener("submit", async function (e) {
+            e.preventDefault();
+            const formData = new FormData(form);
+            const payload = {
+                phone: formData.get("username"),
+                password: formData.get("password")
+            };
 
-</script>
+            try {
+                const response = await fetch("/api/v1/auth/authenticate", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(payload)
+                });
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                } else if (response.ok) {
+                    window.location.href = "/dashboard";
+                } else {
+                    const err = await response.json();
+                    showToast(err.detail || "Login failed", "error");
+                }
+            } catch (err) {
+                showToast("Network error. Please try again.", "error");
+            }
+        });
+    </script>
+</body>
 
 </html>

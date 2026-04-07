@@ -1,46 +1,177 @@
 {% extends "base.html" %}
+
 {% block content %}
-<h2 class="page-title">Manage Events</h2>
+<div class="container mt-4">
+    <h2 class="text-2xl font-bold text-center mb-6">Event Management</h2>
 
-<!-- Create Event Form -->
-<div class="form-container">
-    <form method="post" action="/events/create" class="event-form">
-        <div class="form-group">
-            <label for="title">Event Title:</label>
-            <input type="text" name="title" id="title" required>
+    <!-- Calendar -->
+    <div id="calendar" class="mb-6"></div>
+
+    <!-- Event Creation Form -->
+    <div class="card bg-base-100 shadow-xl p-6">
+        <form id="eventForm" method="post" action="/events/create" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+            <!-- Event Title -->
+            <div class="flex flex-col">
+                <label for="eventTitle" class="text-sm font-medium mb-1">Event Title</label>
+                <input type="text" id="eventTitle" name="eventTitle" class="input input-bordered w-full" required>
+            </div>
+
+            <!-- Event Type -->
+            <div class="flex flex-col">
+                <label for="eventType" class="text-sm font-medium mb-1">Event Type</label>
+                <select id="eventType" name="eventType" class="select select-bordered w-full" required>
+                    <option value="">-- Select Type --</option>
+                    <option value="regional">Regional Event</option>
+                    <option value="dcc">DCC Event</option>
+                    <option value="local">Local Church Event</option>
+                </select>
+            </div>
+
+            <!-- Start Date -->
+            <div class="flex flex-col">
+                <label for="startDate" class="text-sm font-medium mb-1">Start Date</label>
+                <input type="date" id="startDate" name="startDate" class="input input-bordered w-full" required>
+            </div>
+
+            <!-- End Date -->
+            <div class="flex flex-col">
+                <label for="endDate" class="text-sm font-medium mb-1">End Date</label>
+                <input type="date" id="endDate" name="endDate" class="input input-bordered w-full" required>
+            </div>
+
+            <!-- Venue Region -->
+            <div class="flex flex-col">
+                <label for="venueRegion" class="text-sm font-medium mb-1">Region (if regional)</label>
+                <input type="text" id="venueRegion" name="venueRegion" class="input input-bordered w-full">
+            </div>
+
+            <!-- Venue DCC -->
+            <div class="flex flex-col">
+                <label for="venueDcc" class="text-sm font-medium mb-1">DCC (if regional or DCC)</label>
+                <input type="text" id="venueDcc" name="venueDcc" class="input input-bordered w-full">
+            </div>
+
+            <!-- Venue Church -->
+            <div class="flex flex-col">
+                <label for="venueChurch" class="text-sm font-medium mb-1">Local Church (if local or DCC)</label>
+                <input type="text" id="venueChurch" name="venueChurch" class="input input-bordered w-full">
+            </div>
+
+            <!-- Target Group -->
+            <div class="flex flex-col">
+                <label for="targetGroup" class="text-sm font-medium mb-1">Target Group</label>
+                <select id="targetGroup" name="targetGroup" class="select select-bordered w-full" required>
+                    <option value="">-- Select Group --</option>
+                    <option value="youth">Youth</option>
+                    <option value="women">Women</option>
+                    <option value="men">Men</option>
+                    <option value="all">All</option>
+                </select>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="col-span-1 md:col-span-2 flex justify-center mt-4">
+                <button type="submit" class="btn btn-primary w-full md:w-auto">
+                    Submit for Approval
+                </button>
+            </div>
+        </form>
+    </div>
+    <!-- Pending Events for Checker -->
+    {% if request.state.user['user']['role'] == 'LCC Treasurer' %}
+    <h3 class="text-xl font-semibold mt-8 mb-4">Pending Events</h3>
+
+    <!-- Desktop Table -->
+    <div class="hidden md:block overflow-x-auto">
+        <table class="table table-zebra w-full">
+            <thead>
+                <tr>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Target Group</th>
+                    <th>Start</th>
+                    <th>End</th>
+                    <th>Venue</th>
+                    <th>Submitted By</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for event in pending_events %}
+                <tr>
+                    <td>{{ event.title }}</td>
+                    <td>{{ event.type }}</td>
+                    <td>{{ event.target_group }}</td>
+                    <td>{{ event.start_date }}</td>
+                    <td>{{ event.end_date }}</td>
+                    <td>
+                        {% if event.type == 'regional' %}
+                        Region: {{ event.venue_region }}<br>
+                        DCC: {{ event.venue_dcc }}<br>
+                        Church: {{ event.venue_church }}
+                        {% elif event.type == 'dcc' %}
+                        DCC: {{ event.venue_dcc }}<br>
+                        Church: {{ event.venue_church }}
+                        {% else %}
+                        Church: {{ event.venue_church }}
+                        {% endif %}
+                    </td>
+                    <td>{{ event.creator }}</td>
+                    <td class="flex gap-2">
+                        <form method="post" action="/events/{{ event.id }}/approve">
+                            <button class="btn btn-success btn-sm">Approve</button>
+                        </form>
+                        <form method="post" action="/events/{{ event.id }}/reject">
+                            <button class="btn btn-error btn-sm">Reject</button>
+                        </form>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Mobile Card Layout -->
+    <div class="md:hidden space-y-4">
+        {% for event in pending_events %}
+        <div class="card bg-base-100 shadow-md p-4">
+            <h4 class="font-semibold text-lg mb-2">{{ event.title }}</h4>
+            <p><span class="font-medium">Type:</span> {{ event.type }}</p>
+            <p><span class="font-medium">Target Group:</span> {{ event.target_group }}</p>
+            <p><span class="font-medium">Start:</span> {{ event.start_date }}</p>
+            <p><span class="font-medium">End:</span> {{ event.end_date }}</p>
+            <p class="mb-2">
+                <span class="font-medium">Venue:</span>
+                {% if event.type == 'regional' %}
+                Region: {{ event.venue_region }} | DCC: {{ event.venue_dcc }} | Church: {{ event.venue_church }}
+                {% elif event.type == 'dcc' %}
+                DCC: {{ event.venue_dcc }} | Church: {{ event.venue_church }}
+                {% else %}
+                Church: {{ event.venue_church }}
+                {% endif %}
+            </p>
+            <p><span class="font-medium">Submitted By:</span> {{ event.creator }}</p>
+            <div class="flex gap-2 mt-3">
+                <form method="post" action="/events/{{ event.id }}/approve" class="flex-1">
+                    <button class="btn btn-success w-full">Approve</button>
+                </form>
+                <form method="post" action="/events/{{ event.id }}/reject" class="flex-1">
+                    <button class="btn btn-error w-full">Reject</button>
+                </form>
+            </div>
         </div>
-        <div class="form-group">
-            <label for="date">Date:</label>
-            <input type="date" name="date" id="date" required>
-        </div>
-        <button type="submit" class="btn-primary">Add Event</button>
-    </form>
+        {% endfor %}
+    </div>
+    {% endif %}
 </div>
 
-<!-- Events Table -->
-<div class="table-container">
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Title</th>
-                <th>Date</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for event in events %}
-            <tr>
-                <td>{{ event.id }}</td>
-                <td>{{ event.title }}</td>
-                <td>{{ event.date }}</td>
-                <td>
-                    <a href="/events/edit/{{ event.id }}" class="btn-secondary">Edit</a>
-                    <a href="/events/delete/{{ event.id }}" class="btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-</div>
+<script>
+    document.getElementById('eventType').addEventListener('change', function () {
+        let type = this.value;
+        document.getElementById('venueRegion').parentElement.style.display = (type === 'regional') ? 'block' : 'none';
+        document.getElementById('venueDcc').parentElement.style.display = (type === 'regional' || type === 'dcc') ? 'block' : 'none';
+        document.getElementById('venueChurch').parentElement.style.display = (type === 'local' || type === 'dcc') ? 'block' : 'none';
+    });
+</script>
 {% endblock %}
