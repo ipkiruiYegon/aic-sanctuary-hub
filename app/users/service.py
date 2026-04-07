@@ -69,7 +69,7 @@ class UserService:
         # Logic to update an existing user in the database
         user = await self.get_user_by_uid(str(user_data["user_id"]), session)
         if not user:
-            return None
+            return False
 
         audit_trail = {}
         for field, new_value in user_data.items():
@@ -88,9 +88,9 @@ class UserService:
             session.add(user)
             await session.commit()
             await session.refresh(user)
-            return {"success": True, "message": "User updated successfully"}
+            return True
         else:
-            return {"success": False, "message": "No changes detected"}
+            return False
 
     async def update_user_status(self, user_id: str, reason: str, session: AsyncSession):
         # Logic to update a user's status in the database

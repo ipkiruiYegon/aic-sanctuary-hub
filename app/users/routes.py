@@ -93,7 +93,7 @@ async def create_user(user_data: UserCreateModel = Depends(as_form), session: As
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="User with this phone number already exists")
     user = await user_service.create_user(user_data, session)
-    return JSONResponse({"success": True, "user_id": str(user.id)})
+    return JSONResponse(content={"success": True, "user_id": str(user.id)}, status_code=status.HTTP_201_CREATED)
 
 
 @user_router.get("/", response_class=HTMLResponse)
@@ -139,8 +139,10 @@ async def update_user(user_data: UserUpdateModel, session: AsyncSession = Depend
     if not await user_service.user_exists(user_data.user_id, session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
-
-    return await user_service.update_user(user_data.model_dump(exclude_none=True), session)
+    if await user_service.update_user(user_data.model_dump(exclude_none=True), session):
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"success": True, "message": "User updated successfully"})
+    else:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False, "message": "No changes detected"})
 
 
 # delete user route that does not delete but sets is_active to false
@@ -155,6 +157,6 @@ async def update_user_status(user_status_data: UserStatusModel, session: AsyncSe
                             detail="User not found")
     user_updated = await user_service.update_user_status(user_status_data.user_id, user_status_data.reason, session)
     if not user_updated:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Failed to update user status")
-    return JSONResponse({"success": True, "message": "User status updated successfully"})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"success": True, "message": "User status updated successfully"})

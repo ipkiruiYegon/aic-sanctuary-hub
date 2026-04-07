@@ -107,13 +107,14 @@
     </aside>
 
     <!-- Toast container -->
-    <div id="toastContainer" class="fixed top-4 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 
+    <div id="toastContainer" class="z-[1000] fixed top-4 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 
             flex flex-col items-center space-y-2 z-50 w-auto max-w-sm">
     </div>
 
 
     <script src="/static/js/htmx.min.js"></script>
     <script src="/static/js/script.js"></script>
+    <script src="/static/js/toast.js"></script>
     <script>
         const setupInactivityLogout = () => {
             let timer, debounceTimer;

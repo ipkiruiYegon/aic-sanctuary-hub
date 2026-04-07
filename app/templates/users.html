@@ -7,7 +7,7 @@
 <label for="createUserModal" class="btn btn-outline btn-success mb-4">➕ Add User</label>
 
 <!-- Users Table -->
-<div id="usersTableContainer" hx-get="/users/table" hx-trigger="load">
+<div id="usersTableContainer" hx-get="/users/table" hx-trigger="load, reloadUsersTable from:body">
     {% include "users_table.html" %}
 </div>
 
@@ -386,11 +386,13 @@
                     }
 
                     const result = await response.json().catch(() => ({}));
+
                     if (result.success) {
                         showToast("User created successfully!", "success");
                         userCreateForm.reset();
                         document.getElementById("createUserModal").checked = false;
-                        window.location.reload();
+
+                        htmx.trigger("body", "reloadUsersTable");
                     } else {
                         showToast(result.message || result.detail || "Unknown error occurred.", "error");
                     }
@@ -448,11 +450,13 @@
                     }
 
                     const result = await response.json().catch(() => ({}));
+
                     if (result.success) {
                         showToast("User updated successfully!", "success");
                         userUpdateForm.reset();
                         document.getElementById("editUserModal").checked = false;
-                        window.location.reload();
+
+                        htmx.trigger("body", "reloadUsersTable");
                     } else {
                         showToast(result.message || result.detail || "Unknown error occurred.", "error");
                     }
@@ -467,7 +471,7 @@
             usersTableContainer.addEventListener("click", (event) => {
                 const editBtn = event.target.closest(".editBtn");
                 if (editBtn) {
-                    console.debug("Edit button clicked", editBtn.dataset);
+
                     const editIdInput = document.getElementById("edit_id");
                     const editFirstName = document.getElementById("edit_first_name");
                     const editLastName = document.getElementById("edit_last_name");
@@ -507,7 +511,7 @@
 
                 const statusBtn = event.target.closest(".statusBtn");
                 if (statusBtn) {
-                    console.debug("Status button clicked", statusBtn.dataset);
+
                     const userId = statusBtn.dataset.id;
                     const userName = statusBtn.dataset.name;
                     const action = statusBtn.dataset.status;
@@ -534,12 +538,10 @@
         if (statusForm) {
             statusForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
-                console.debug("Status form submitted");
+
                 const userId = userIdInput.value;
                 const reason = document.getElementById("statusReason").value.trim();
                 const isDeactivate = statusSubmitBtn.textContent === "Deactivate";
-
-                console.debug("Status submission - userId:", userId, "reason:", reason, "isDeactivate:", isDeactivate);
 
                 if (isDeactivate && !reason) {
                     showToast("Please provide a reason for deactivation.", "error");
@@ -553,27 +555,27 @@
                         body: JSON.stringify({ user_id: userId, reason: reason || null })
                     });
 
-                    console.debug("Status response status:", response.status);
 
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
-                        console.error("Status update error:", errorData);
+
                         showToast(errorData.detail || 'Failed to update user status.', 'error');
                         return;
                     }
 
                     const result = await response.json().catch(() => ({}));
-                    console.debug("Status update result:", result);
+
 
                     if (result.success) {
                         showToast(result.message || 'User status updated successfully.', 'success');
                         document.getElementById('userStatusModal').checked = false;
-                        window.location.reload();
+
+                        htmx.trigger("body", "reloadUsersTable");
                     } else {
                         showToast(result.detail || result.message || 'Failed to update user status.', 'error');
                     }
                 } catch (error) {
-                    console.error("Status update exception:", error);
+
                     showToast('Failed to update user status: ' + error.message, 'error');
                 }
             });
