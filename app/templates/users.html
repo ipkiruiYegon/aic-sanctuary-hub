@@ -321,8 +321,16 @@
 
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
-        function validateName(name, message) {
+        function validateFName(name, message) {
             if (!name || !/^[A-Za-z]{3,}$/.test(name.trim())) {
+                showToast(message, "error");
+                return false;
+            }
+            return true;
+        }
+
+        function validateLName(name, message) {
+            if (!name || !/^[A-Za-z]+(?: [A-Za-z]+)?$/.test(name.trim())) {
                 showToast(message, "error");
                 return false;
             }
@@ -356,8 +364,8 @@
                 const district = userCreateForm.querySelector("[name='district_id']").value;
                 const localChurch = userCreateForm.querySelector("[name='local_church_id']").value;
 
-                if (!validateName(firstName, "First name must be at least 3 letters and no spaces.")) return;
-                if (!validateName(lastName, "Last name must be at least 3 letters and no spaces.")) return;
+                if (!validateFName(firstName, "First name must be at least 3 letters and no spaces.")) return;
+                if (!validateLName(lastName, "Last name must be at least 3 letters and no spaces.")) return;
                 if (!validatePhone(phoneNo)) return;
                 if (!validateUUID(region, "Region must be a valid UUID.")) return;
                 if (!validateUUID(district, "District must be a valid UUID.")) return;
@@ -405,8 +413,8 @@
                 const localChurch = userUpdateForm.querySelector("[name='update_local_church_id']").value;
 
                 if (!validateUUID(userId, "User ID must be a valid UUID.")) return;
-                if (!validateName(firstName, "First name must be at least 3 letters and no spaces.")) return;
-                if (!validateName(lastName, "Last name must be at least 3 letters and no spaces.")) return;
+                if (!validateFName(firstName, "First name must be at least 3 letters and no spaces.")) return;
+                if (!validateLName(lastName, "Last name must be at least 3 letters and no spaces.")) return;
                 if (!validatePhone(phoneNo)) return;
                 if (!validateUUID(region, "Region ID must be a valid UUID.")) return;
                 if (!validateUUID(district, "District ID must be a valid UUID.")) return;

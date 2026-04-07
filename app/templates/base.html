@@ -7,7 +7,7 @@
     <title>AIC Sanctuary Hub</title>
     <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
-    <script src="https://kit.fontawesome.com/3113c7c9da.js" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="{{ url_for('static', path='fontawesome/css/all.css')}}">
 </head>
 
 <body class="bg-base-100 min-h-screen drawer drawer-mobile">
@@ -65,7 +65,7 @@
     <!-- Sidebar -->
     <aside class="drawer-side">
         <label for="sidebar-toggle" class="drawer-overlay"></label>
-        <div class="bg-slate-900 text-white w-64 p-4 min-h-screen shadow-xl">
+        <div class="relative z-50 bg-slate-900 text-white w-64 p-4 min-h-screen shadow-xl">
             <h2 class="text-xl font-bold mb-6 border-b border-red-500 pb-2 text-center">
                 AIC Sanctuary Hub
             </h2>
