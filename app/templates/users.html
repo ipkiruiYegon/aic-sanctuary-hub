@@ -568,6 +568,7 @@
 
                     if (result.success) {
                         showToast(result.message || 'User status updated successfully.', 'success');
+                        statusForm.reset()
                         document.getElementById('userStatusModal').checked = false;
 
                         htmx.trigger("body", "reloadUsersTable");

@@ -22,19 +22,48 @@
         </h2>
 
         <form id="loginForm" action="/api/v1/auth/authenticate" method="post" class="space-y-4">
-            <input type="text" name="username" placeholder="Phone Number" required pattern="0[0-9]{9}"
-                class="input input-bordered w-full" />
-            <input type="password" name="password" placeholder="Password" required
-                class="input input-bordered w-full" />
+            <!-- Telephone input -->
+            <div
+                class="flex items-center border border-gray-300 rounded px-3 py-2 focus-within:ring-2 focus-within:ring-red-700">
+                <div class="flex items-center pr-3 mr-3 border-r-2 border-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="currentColor"
+                        viewBox="0 0 24 24">
+                        <path
+                            d="M2 3a1 1 0 011-1h3a1 1 0 011 .8l1 5a1 1 0 01-.3.9l-2 2a16 16 0 007.1 7.1l2-2a1 1 0 01.9-.3l5 1a1 1 0 01.8 1v3a1 1 0 01-1 1h-2C9.7 21 3 14.3 3 6V4a1 1 0 01-1-1z" />
+                    </svg>
+                </div>
+                <input type="tel" name="username" placeholder="Phone Number" required pattern="0[0-9]{9}"
+                    class="flex-1 outline-none border-none bg-transparent text-sm sm:text-base" />
+            </div>
+
+            <!-- Password input -->
+            <div
+                class="flex items-center border border-gray-300 rounded px-3 py-2 focus-within:ring-2 focus-within:ring-red-700">
+                <div class="flex items-center pr-3 mr-3 border-r-2 border-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-gray-500" fill="currentColor"
+                        viewBox="0 0 24 24">
+                        <path fill-rule="evenodd" clip-rule="evenodd"
+                            d="M12 1a5 5 0 00-5 5v4H6a2 2 0 00-2 2v9a2 2 0 002 2h12a2 2 0 002-2v-9a2 2 0 00-2-2h-1V6a5 5 0 00-5-5zm-3 9V6a3 3 0 116 0v4H9z" />
+                    </svg>
+                </div>
+                <input type="password" name="password" placeholder="Password" required
+                    class="flex-1 outline-none border-none bg-transparent text-sm sm:text-base" />
+            </div>
+
+            <!-- Submit button -->
             <button type="submit" class="btn btn-primary w-full bg-red-700 hover:bg-red-800 border-none mt-3">
                 Login
             </button>
         </form>
+        <p class="text-center text-sm text-gray-600 mt-4">
+            Don't have an account?
+            <a href="/register" class="text-red-700 hover:underline">Register here</a>
     </div>
 
     <!-- Toast container -->
-    <div id="toastContainer" class="fixed top-4 inset-x-4 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 
-            flex flex-col items-center space-y-2 z-50 w-auto max-w-sm">
+    <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 
+            flex flex-col items-center space-y-2 z-50 
+            w-full sm:w-auto sm:max-w-sm px-4">
     </div>
 
     <script src="/static/js/toast.js"></script>

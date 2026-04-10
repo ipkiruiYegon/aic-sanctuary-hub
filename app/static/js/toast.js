@@ -19,14 +19,18 @@ function showToast(message, type = "error") {
   };
 
   const toast = document.createElement("div");
-  toast.className = `alert ${colors[type]} shadow-lg w-full flex items-center justify-between text-white`;
+  toast.className = `alert ${colors[type]} shadow-lg 
+                   w-full sm:w-auto sm:max-w-sm 
+                   flex items-center justify-between text-white px-4`;
   toast.innerHTML = `
-    <div class="flex items-center space-x-2 text-white">
-      ${icons[type]}
-      <span>${message}</span>
-    </div>
-    <button class="btn btn-sm btn-ghost text-white" onclick="this.parentElement.remove()">✕</button>
-  `;
+  <div class="flex items-center text-white w-full">
+    <span class="flex-shrink-0 mr-6">${icons[type]}</span>
+    <span class="flex-1 break-words">${message}</span>
+  </div>
+  <button class="btn btn-sm btn-ghost text-white" onclick="this.parentElement.remove()">✕</button>
+`;
+
+
   document.getElementById("toastContainer").appendChild(toast);
   setTimeout(() => toast.remove(), 4000);
 }
