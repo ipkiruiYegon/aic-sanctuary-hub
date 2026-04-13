@@ -1,83 +1,126 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mt-4">
-    <h2 class="text-2xl font-bold text-center mb-6">Event Management</h2>
+<div class="event-container">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold">Event Management</h2>
+        <button class="btn btn-primary" onclick="document.getElementById('eventModal').showModal()">
+            <i class="fas fa-plus"></i> New Event
+        </button>
+    </div>
 
     <!-- Calendar -->
     <div id="calendar" class="mb-6"></div>
 
-    <!-- Event Creation Form -->
-    <div class="card bg-base-100 shadow-xl p-6">
-        <form id="eventForm" method="post" action="/events/create" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <!-- Event Creation Modal -->
+    <dialog id="eventModal" class="modal">
+        <div class="modal-box w-11/12 max-w-2xl relative">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg">Create New Event</h3>
 
-            <!-- Event Title -->
-            <div class="flex flex-col">
-                <label for="eventTitle" class="text-sm font-medium mb-1">Event Title</label>
-                <input type="text" id="eventTitle" name="eventTitle" class="input input-bordered w-full" required>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200">✕</button>
+                </form>
             </div>
 
-            <!-- Event Type -->
-            <div class="flex flex-col">
-                <label for="eventType" class="text-sm font-medium mb-1">Event Type</label>
-                <select id="eventType" name="eventType" class="select select-bordered w-full" required>
-                    <option value="">-- Select Type --</option>
-                    <option value="regional">Regional Event</option>
-                    <option value="dcc">DCC Event</option>
-                    <option value="local">Local Church Event</option>
-                </select>
-            </div>
 
-            <!-- Start Date -->
-            <div class="flex flex-col">
-                <label for="startDate" class="text-sm font-medium mb-1">Start Date</label>
-                <input type="date" id="startDate" name="startDate" class="input input-bordered w-full" required>
-            </div>
+            <form id="eventForm" method="post" action="/events/create" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <!-- Event Title -->
+                    <div class="flex flex-col">
+                        <label for="eventTitle" class="text-sm font-medium mb-1">Event Title</label>
+                        <input type="text" id="eventTitle" name="eventTitle" class="input input-bordered w-full"
+                            required>
+                    </div>
 
-            <!-- End Date -->
-            <div class="flex flex-col">
-                <label for="endDate" class="text-sm font-medium mb-1">End Date</label>
-                <input type="date" id="endDate" name="endDate" class="input input-bordered w-full" required>
-            </div>
+                    <!-- Event Type -->
+                    <div class="flex flex-col">
+                        <label for="eventType" class="text-sm font-medium mb-1">Event Type</label>
+                        <select id="eventType" name="eventType" class="select select-bordered w-full" required>
+                            <option value="">-- Select Type --</option>
+                            <option value="LCC Event">Local Church Event</option>
+                            <option value="DCC Event">DCC Event</option>
+                            <option value="RCC Event">Regional Event</option>
+                            <option value="ACC Event">Area Event</option>
+                        </select>
+                    </div>
 
-            <!-- Venue Region -->
-            <div class="flex flex-col">
-                <label for="venueRegion" class="text-sm font-medium mb-1">Region (if regional)</label>
-                <input type="text" id="venueRegion" name="venueRegion" class="input input-bordered w-full">
-            </div>
+                    <!-- Start Date -->
+                    <div class="flex flex-col">
+                        <label for="startDate" class="text-sm font-medium mb-1">Start Date</label>
+                        <input type="date" id="startDate" name="startDate" class="input input-bordered w-full" required>
+                    </div>
 
-            <!-- Venue DCC -->
-            <div class="flex flex-col">
-                <label for="venueDcc" class="text-sm font-medium mb-1">DCC (if regional or DCC)</label>
-                <input type="text" id="venueDcc" name="venueDcc" class="input input-bordered w-full">
-            </div>
+                    <!-- End Date -->
+                    <div class="flex flex-col">
+                        <label for="endDate" class="text-sm font-medium mb-1">End Date</label>
+                        <input type="date" id="endDate" name="endDate" class="input input-bordered w-full" required>
+                    </div>
 
-            <!-- Venue Church -->
-            <div class="flex flex-col">
-                <label for="venueChurch" class="text-sm font-medium mb-1">Local Church (if local or DCC)</label>
-                <input type="text" id="venueChurch" name="venueChurch" class="input input-bordered w-full">
-            </div>
+                    <!-- Venue Region -->
+                    <div class="flex flex-col">
+                        <label for="venueRegion" class="block text-sm font-medium text-gray-700">Region (if
+                            regional)</label>
+                        <select name="venueRegion" id="venueRegion" required class="select select-bordered w-full">
+                            <option value="{{ region.id }}">{{ region.name }}</option>
+                        </select>
+                    </div>
 
-            <!-- Target Group -->
-            <div class="flex flex-col">
-                <label for="targetGroup" class="text-sm font-medium mb-1">Target Group</label>
-                <select id="targetGroup" name="targetGroup" class="select select-bordered w-full" required>
-                    <option value="">-- Select Group --</option>
-                    <option value="youth">Youth</option>
-                    <option value="women">Women</option>
-                    <option value="men">Men</option>
-                    <option value="all">All</option>
-                </select>
-            </div>
+                    <!-- Venue DCC -->
+                    <div class="flex flex-col">
+                        <label for="district_id" class="block text-sm font-medium text-gray-700">District - DCC</label>
+                        <select name="district_id" id="district_id" required hx-get="/council/get-churches"
+                            hx-target="#venueChurch" hx-trigger="change" class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select host DCC --</option>
+                            {% for district in region.districts %}
+                            <option value="{{ district.id }}">{{ district.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
 
-            <!-- Submit Button -->
-            <div class="col-span-1 md:col-span-2 flex justify-center mt-4">
-                <button type="submit" class="btn btn-primary w-full md:w-auto">
-                    Submit for Approval
-                </button>
-            </div>
+                    <!-- Venue Church -->
+                    <div class="flex flex-col">
+                        <label for="venueChurch" class="block text-sm font-medium text-gray-700">Host Local
+                            Church</label>
+                        <select name="venueChurch" id="venueChurch" required class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select host Church --</option>
+                        </select>
+                    </div>
+
+                    <!-- Actual Venue  -->
+                    <div class="flex flex-col">
+                        <label for="actualVenue" class="text-sm font-medium mb-1">Actual Venue</label>
+                        <input type="text" id="actualVenue" name="actualVenue" class="input input-bordered w-full">
+                    </div>
+
+                    <!-- Target Group -->
+                    <div class="flex flex-col">
+                        <label for="targetGroup" class="text-sm font-medium mb-1">Target Group</label>
+                        <select id="targetGroup" name="targetGroup" class="select select-bordered w-full" required>
+                            <option value="">-- Select Group --</option>
+                            <option value="youth">Youth</option>
+                            <option value="women">Women</option>
+                            <option value="men">Men</option>
+                            <option value="all">All</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="flex justify-end gap-4 mt-6">
+                    <button type="submit" class="btn btn-primary">
+                        Submit for Approval
+                    </button>
+                    <button type="button" class="btn btn-ghost" onclick="document.getElementById('eventModal').close()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+        <form method="dialog" class="modal-backdrop">
+            <button>close</button>
         </form>
-    </div>
+    </dialog>
     <!-- Pending Events for Checker -->
     {% if request.state.user['user']['role'] == 'LCC Treasurer' %}
     <h3 class="text-xl font-semibold mt-8 mb-4">Pending Events</h3>
@@ -87,46 +130,59 @@
         <table class="table table-zebra w-full">
             <thead>
                 <tr>
-                    <th>Title</th>
-                    <th>Type</th>
-                    <th>Target Group</th>
-                    <th>Start</th>
-                    <th>End</th>
-                    <th>Venue</th>
-                    <th>Submitted By</th>
-                    <th>Actions</th>
+                    <th class="text-center">Title</th>
+                    <th class="text-center">Type</th>
+                    <th class="text-center">Target Group</th>
+                    <th class="text-center">Start</th>
+                    <th class="text-center">End</th>
+                    <th class="text-center">Venue</th>
+                    <th class="text-center">Submitted By</th>
+                    <th class="text-center">Actions</th>
                 </tr>
             </thead>
+
             <tbody>
                 {% for event in pending_events %}
-                <tr>
-                    <td>{{ event.title }}</td>
-                    <td>{{ event.type }}</td>
-                    <td>{{ event.target_group }}</td>
-                    <td>{{ event.start_date }}</td>
-                    <td>{{ event.end_date }}</td>
-                    <td>
-                        {% if event.type == 'regional' %}
-                        Region: {{ event.venue_region }}<br>
-                        DCC: {{ event.venue_dcc }}<br>
-                        Church: {{ event.venue_church }}
-                        {% elif event.type == 'dcc' %}
-                        DCC: {{ event.venue_dcc }}<br>
-                        Church: {{ event.venue_church }}
+                <tr class="hover">
+                    <!-- Text-based columns -->
+                    <td class="text-center">{{ event.event_name }}</td>
+                    <td class="text-center">{{ event.event_type }}</td>
+                    <td class="text-center">{{ event.target_group }}</td>
+                    <td class="text-center">{{ event.date_from }}</td>
+                    <td class="text-center">{{ event.date_to }}</td>
+
+                    <!-- Multi-line venue column -->
+                    <td class="text-center text-xs">
+                        {% if event.event_type == 'RCC Event' %}
+                        <span class="font-semibold">Region:</span> {{ event.venue_region.name }}<br>
+                        <span class="font-semibold">Host DCC:</span> {{ event.venue_district.name }}<br>
+                        <span class="font-semibold">Host Church:</span> {{ event.venue_church.name }}<br>
+                        <span class="font-semibold">Venue:</span> {{ event.actual_venue }}
+                        {% elif event.event_type == 'DCC Event' %}
+                        <span class="font-semibold">DCC:</span> {{ event.venue_district.name }}<br>
+                        <span class="font-semibold">Host Church:</span> {{ event.venue_church.name }}<br>
+                        <span class="font-semibold">Venue:</span> {{ event.actual_venue }}
                         {% else %}
-                        Church: {{ event.venue_church }}
+                        <span class="font-semibold">Host Church:</span> {{ event.venue_church.name }}<br>
+                        <span class="font-semibold">Venue:</span> {{ event.actual_venue }}
                         {% endif %}
                     </td>
-                    <td>{{ event.creator }}</td>
-                    <td class="flex gap-2">
-                        <form method="post" action="/events/{{ event.id }}/approve">
-                            <button class="btn btn-success btn-sm">Approve</button>
-                        </form>
-                        <form method="post" action="/events/{{ event.id }}/reject">
-                            <button class="btn btn-error btn-sm">Reject</button>
-                        </form>
+
+                    <td class="text-center">{{ event.created_by }}</td>
+
+                    <!-- Action buttons centered using justify-center -->
+                    <td>
+                        <div class="flex gap-2 justify-center">
+                            <form method="post" action="/events/{{ event.id }}/approve">
+                                <button class="btn btn-success btn-xs md:btn-sm">Approve</button>
+                            </form>
+                            <form method="post" action="/events/{{ event.id }}/reject">
+                                <button class="btn btn-error btn-xs md:btn-sm">Reject</button>
+                            </form>
+                        </div>
                     </td>
                 </tr>
+
                 {% endfor %}
             </tbody>
         </table>
@@ -136,22 +192,23 @@
     <div class="md:hidden space-y-4">
         {% for event in pending_events %}
         <div class="card bg-base-100 shadow-md p-4">
-            <h4 class="font-semibold text-lg mb-2">{{ event.title }}</h4>
-            <p><span class="font-medium">Type:</span> {{ event.type }}</p>
+            <h4 class="font-semibold text-lg mb-2">{{ event.event_name }}</h4>
+            <p><span class="font-medium">Type:</span> {{ event.event_type }}</p>
             <p><span class="font-medium">Target Group:</span> {{ event.target_group }}</p>
-            <p><span class="font-medium">Start:</span> {{ event.start_date }}</p>
-            <p><span class="font-medium">End:</span> {{ event.end_date }}</p>
+            <p><span class="font-medium">Start:</span> {{ event.date_from }}</p>
+            <p><span class="font-medium">End:</span> {{ event.date_to }}</p>
             <p class="mb-2">
                 <span class="font-medium">Venue:</span>
-                {% if event.type == 'regional' %}
-                Region: {{ event.venue_region }} | DCC: {{ event.venue_dcc }} | Church: {{ event.venue_church }}
+                {% if event.event_type == 'RCC Event' %}
+                Region: {{ event.venue_region.name }} | DCC: {{ event.venue_district.name }} | Church: {{
+                event.venue_church.name }}
                 {% elif event.type == 'dcc' %}
-                DCC: {{ event.venue_dcc }} | Church: {{ event.venue_church }}
+                DCC: {{ event.venue_district.name }} | Church: {{ event.venue_church.name }}
                 {% else %}
-                Church: {{ event.venue_church }}
+                Church: {{ event.venue_church.name }}
                 {% endif %}
             </p>
-            <p><span class="font-medium">Submitted By:</span> {{ event.creator }}</p>
+            <p><span class="font-medium">Submitted By:</span> {{ event.created_by }}</p>
             <div class="flex gap-2 mt-3">
                 <form method="post" action="/events/{{ event.id }}/approve" class="flex-1">
                     <button class="btn btn-success w-full">Approve</button>
@@ -173,5 +230,66 @@
         document.getElementById('venueDcc').parentElement.style.display = (type === 'regional' || type === 'dcc') ? 'block' : 'none';
         document.getElementById('venueChurch').parentElement.style.display = (type === 'local' || type === 'dcc') ? 'block' : 'none';
     });
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const eventCreateForm = document.querySelector("form[action='/events/create']")
+        const eventModal = document.getElementById('eventModal');
+
+        if (eventCreateForm) {
+            eventCreateForm.addEventListener("submit", async (event) => {
+                event.preventDefault();
+
+                const event_name = eventCreateForm.querySelector("[name='eventTitle']").value;
+                const event_type = eventCreateForm.querySelector("[name='eventType']").value;
+                const date_from = eventCreateForm.querySelector("[name='startDate']").value;
+                const date_to = eventCreateForm.querySelector("[name='endDate']").value;
+                const venue_church_id = eventCreateForm.querySelector("[name='venueChurch']").value;
+                const venue_district_id = eventCreateForm.querySelector("[name='district_id']").value;
+                const venue_region_id = eventCreateForm.querySelector("[name='venueRegion']").value;
+                const actual_venue = eventCreateForm.querySelector("[name='actualVenue']").value;
+                const target_group = eventCreateForm.querySelector("[name='targetGroup']").value;
+
+                const payload = {
+                    event_name,
+                    event_type,
+                    date_from,
+                    date_to,
+                    venue_church_id,
+                    venue_district_id,
+                    venue_region_id,
+                    actual_venue,
+                    target_group
+                };
+
+                try {
+                    const response = await fetch(eventCreateForm.action, {
+                        method: eventCreateForm.method,
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify(payload)
+                    });
+                    console.log(response)
+
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        showToast(errorData.detail || "Submission failed.", "error");
+                        return;
+                    }
+
+                    const result = await response.json().catch(() => ({}));
+
+                    if (result.success) {
+                        showToast("Event created successfully!", "success");
+                        eventCreateForm.reset();
+                        eventModal.close();
+
+                    } else {
+                        showToast(result.message || result.detail || "Unknown error occurred.", "error");
+                    }
+                } catch (error) {
+                    showToast("Network error: " + error.message, "error");
+                }
+            });
+        }
+    })
 </script>
 {% endblock %}

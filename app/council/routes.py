@@ -28,7 +28,7 @@ async def get_churches(request: Request, district_id: str, session: AsyncSession
     return options
 
 
-@council_router.get("/")
+@council_router.get("")
 async def get_council_structure(request: Request, session: AsyncSession = Depends(get_session)):
     region = await council_services.get_region_with_hierarchy(session)
     region_exists = region is not None

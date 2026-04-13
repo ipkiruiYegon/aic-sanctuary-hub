@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker
 from .users.routes import user_router  # Import the users router
 from .council.routes import council_router  # Import the council router
 from .auth.routes import auth_router      # Import the auth routes
+from .events.routes import events_router
 from .core.templates import templates  # Import the templates object
 from app.db.database import get_session  # Import the async session dependency
 from app.db.database import async_session
@@ -102,6 +103,7 @@ app.include_router(
 app.include_router(
     council_router, prefix="/council", tags=["council"])
 app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
+app.include_router(events_router, prefix="/events", tags=["events"])
 
 
 @app.get("/")
@@ -129,6 +131,7 @@ async def unauthorized(request: Request):
     return templates.TemplateResponse("unauthorized.html", {"request": request})
 
 
-@app.get("/events")
-async def events(request: Request):
-    return templates.TemplateResponse("events.html", {"request": request})
+@app.get("/notifications")
+async def notification(request: Request):
+    return templates.TemplateResponse(
+        "notifications.html", {"request": request})

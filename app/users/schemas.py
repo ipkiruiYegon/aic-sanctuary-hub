@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import Form
 
 
-class UserCreateModel(BaseModel):
+class UserCreateSchema(BaseModel):
     title: str
     first_name: str
     last_name: str
@@ -35,8 +35,8 @@ def as_form(
     region_id: str = Form(...),
     district_id: str = Form(...),
     local_church_id: str = Form(...),
-) -> UserCreateModel:
-    return UserCreateModel(
+) -> UserCreateSchema:
+    return UserCreateSchema(
         title=title,
         first_name=first_name,
         last_name=last_name,
@@ -56,7 +56,7 @@ class UserEditSchema(BaseModel):
     role: Optional[str]
 
 
-class UserBaseModel(BaseModel):
+class UserSchema(BaseModel):
     id: uuid.UUID
     title: str
     first_name: str
@@ -84,7 +84,7 @@ class UserBaseModel(BaseModel):
     last_login_mobile: Optional[datetime]
 
 
-class UserUpdateModel(BaseModel):
+class UserUpdateSchema(BaseModel):
     user_id: uuid.UUID
     title: str
     first_name: str
@@ -98,6 +98,6 @@ class UserUpdateModel(BaseModel):
     local_church_id: uuid.UUID
 
 
-class UserStatusModel(BaseModel):
+class UserStatusSchema(BaseModel):
     user_id: uuid.UUID
     reason: Optional[str]

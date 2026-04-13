@@ -4,7 +4,7 @@ from sqlmodel import select
 
 from app.db.models import User  # Import your User model here
 # Import your Pydantic schemas here
-from app.users.schemas import UserCreateModel
+from app.users.schemas import UserCreateSchema
 from app.auth.utils import generate_password_hash, clean_and_title, resolve_role_from_audit
 
 
@@ -37,7 +37,7 @@ class UserService:
         user = result.first()
         return user
 
-    async def create_user(self, user_data: UserCreateModel, session: AsyncSession):
+    async def create_user(self, user_data: UserCreateSchema, session: AsyncSession):
         # Logic to create a new user in the database
         new_user = User(**user_data.model_dump())
         new_user.title = clean_and_title(user_data.title)

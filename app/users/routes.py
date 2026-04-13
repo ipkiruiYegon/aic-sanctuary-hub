@@ -13,7 +13,7 @@ from app.council.service import CouncilService
 # Import the templates object from core/templates.py
 from app.core.templates import templates
 # Import your Pydantic schemas here
-from app.users.schemas import UserCreateModel, UserBaseModel, as_form, UserUpdateModel, UserStatusModel
+from app.users.schemas import UserCreateSchema, UserSchema, as_form, UserUpdateSchema, UserStatusSchema
 
 
 user_router = APIRouter()
@@ -87,7 +87,7 @@ RCC_ROLE_OPTIONS = [
 
 
 @user_router.post("/create")
-async def create_user(user_data: UserCreateModel = Depends(as_form), session: AsyncSession = Depends(get_session)):
+async def create_user(user_data: UserCreateSchema = Depends(as_form), session: AsyncSession = Depends(get_session)):
     # print(f"Received user data: {user_data}")
     if await user_service.user_phone_exists(user_data.phone_no, session):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -96,7 +96,7 @@ async def create_user(user_data: UserCreateModel = Depends(as_form), session: As
     return JSONResponse(content={"success": True, "user_id": str(user.id)}, status_code=status.HTTP_201_CREATED)
 
 
-@user_router.get("/", response_class=HTMLResponse)
+@user_router.get("", response_class=HTMLResponse)
 async def get_users(request: Request, session: AsyncSession = Depends(get_session)):
     # Query users from DB
     users = await user_service.get_all_users(session)
@@ -123,7 +123,7 @@ async def users_table(request: Request, session: AsyncSession = Depends(get_sess
     })
 
 
-@user_router.get("/{user_id}", response_model=UserBaseModel)
+@user_router.get("/{user_id}", response_model=UserSchema)
 async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
     # Example raw query; adjust based on your schema
     user = await user_service.get_user_by_uid(user_id, session)
@@ -134,7 +134,7 @@ async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
 
 
 @user_router.post("/update")
-async def update_user(user_data: UserUpdateModel, session: AsyncSession = Depends(get_session)):
+async def update_user(user_data: UserUpdateSchema, session: AsyncSession = Depends(get_session)):
     # Example raw query; adjust based on your schema
     if not await user_service.user_exists(user_data.user_id, session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
@@ -149,7 +149,7 @@ async def update_user(user_data: UserUpdateModel, session: AsyncSession = Depend
 
 
 @user_router.post("/update/status")
-async def update_user_status(user_status_data: UserStatusModel, session: AsyncSession = Depends(get_session)):
+async def update_user_status(user_status_data: UserStatusSchema, session: AsyncSession = Depends(get_session)):
     user_id = user_status_data.user_id
     user = await user_service.get_user_by_uid(user_id, session)
     if not user:

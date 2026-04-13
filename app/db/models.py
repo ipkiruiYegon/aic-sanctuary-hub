@@ -87,3 +87,44 @@ class User(SQLModel, table=True):
     local_church: Optional["Church"] = Relationship(back_populates="users")
     district: Optional["District"] = Relationship()
     region: Optional["Region"] = Relationship()
+
+
+class Event(SQLModel, table=True):
+    __tablename__ = "events"
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    event_name: str
+    event_type: str
+    description: Optional[str] = None
+    date_from: datetime
+    date_to: datetime
+    status: Optional[str] = Field(default="Scheduled")
+    venue_church_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="churches.id")
+    venue_district_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="districts.id")
+    venue_region_id: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="regions.id")
+    actual_venue: str
+    target_group: str
+    approved: Optional[bool] = Field(default=False)
+    created_by: uuid.UUID = Field(
+        foreign_key="users.id"
+    )
+    approved_by: Optional[uuid.UUID] = Field(
+        default=None, foreign_key="users.id"
+    )
+    updated_at: Optional[datetime] = Field(sa_column=Column(
+        pg.TIMESTAMP, default=datetime.now, nullable=True))
+    created_at: Optional[datetime] = Field(
+        sa_column=Column(pg.TIMESTAMP, default=datetime.now, nullable=False)
+    )
+
+    creator: "User" = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Event.created_by]"}
+    )
+    approver: Optional["User"] = Relationship(
+        sa_relationship_kwargs={"foreign_keys": "[Event.approved_by]"}
+    )
+    venue_church: Optional["Church"] = Relationship()
+    venue_district: Optional["District"] = Relationship()
+    venue_region: Optional["Region"] = Relationship()
