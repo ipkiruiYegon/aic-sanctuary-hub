@@ -1,8 +1,10 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
+from sqlalchemy.orm import selectinload
 
-from app.events.schemas import EventSchema
-from app.db.models import Event
+from app.events.models import EventSchema
+from app.events.models import Event
+from app.users.models import User
 
 
 class EventService:
@@ -26,7 +28,11 @@ class EventService:
         return events
 
     async def get_unapproved_events(self, session: AsyncSession):
-        sql = select(Event).where(Event.approved == False)
+        sql = select(Event).where(Event.approved == False).options(
+            selectinload(Event.creator)
+            # ONLY load these
+            .load_only(User.first_name, User.last_name, User.role)
+        )
         results = await session.exec(sql)
         events = results.all()
         return events

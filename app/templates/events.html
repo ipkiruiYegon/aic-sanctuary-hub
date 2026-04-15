@@ -111,7 +111,8 @@
                     <button type="submit" class="btn btn-primary">
                         Submit for Approval
                     </button>
-                    <button type="button" class="btn btn-ghost" onclick="document.getElementById('eventModal').close()">
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('eventModal').close()">
                         Cancel
                     </button>
                 </div>
@@ -148,13 +149,12 @@
                     <td class="text-center">{{ event.event_name }}</td>
                     <td class="text-center">{{ event.event_type }}</td>
                     <td class="text-center">{{ event.target_group }}</td>
-                    <td class="text-center">{{ event.date_from }}</td>
-                    <td class="text-center">{{ event.date_to }}</td>
+                    <td class="text-center">{{ event.date_from.strftime('%b %d, %Y') }}</td>
+                    <td class="text-center">{{ event.date_to.strftime('%b %d, %Y') }}</td>
 
                     <!-- Multi-line venue column -->
                     <td class="text-center text-xs">
                         {% if event.event_type == 'RCC Event' %}
-                        <span class="font-semibold">Region:</span> {{ event.venue_region.name }}<br>
                         <span class="font-semibold">Host DCC:</span> {{ event.venue_district.name }}<br>
                         <span class="font-semibold">Host Church:</span> {{ event.venue_church.name }}<br>
                         <span class="font-semibold">Venue:</span> {{ event.actual_venue }}
@@ -168,16 +168,25 @@
                         {% endif %}
                     </td>
 
-                    <td class="text-center">{{ event.created_by }}</td>
+                    <td class="text-center">
+                        <span class="cursor-help underline decoration-dotted decoration-gray-400"
+                            title="Role: {{ event.creator.role }}">
+                            {{ event.creator.first_name }} {{ event.creator.last_name }}
+                        </span>
+                    </td>
 
                     <!-- Action buttons centered using justify-center -->
                     <td>
                         <div class="flex gap-2 justify-center">
                             <form method="post" action="/events/{{ event.id }}/approve">
-                                <button class="btn btn-success btn-xs md:btn-sm">Approve</button>
+                                <button class="btn btn-success btn-xs md:btn-sm" {% if event.created_by |
+                                    string==current_user['user_id'] | string %} disabled
+                                    title="You cannot approve your own event" {% endif %}>Approve</button>
                             </form>
                             <form method="post" action="/events/{{ event.id }}/reject">
-                                <button class="btn btn-error btn-xs md:btn-sm">Reject</button>
+                                <button class="btn btn-error btn-xs md:btn-sm" {% if event.created_by |
+                                    string==current_user['user_id'] | string %} disabled
+                                    title="You cannot reject your own event" {% endif %}>Reject</button>
                             </form>
                         </div>
                     </td>
@@ -195,12 +204,12 @@
             <h4 class="font-semibold text-lg mb-2">{{ event.event_name }}</h4>
             <p><span class="font-medium">Type:</span> {{ event.event_type }}</p>
             <p><span class="font-medium">Target Group:</span> {{ event.target_group }}</p>
-            <p><span class="font-medium">Start:</span> {{ event.date_from }}</p>
-            <p><span class="font-medium">End:</span> {{ event.date_to }}</p>
+            <p><span class="font-medium">Start:</span> {{ event.date_from.strftime('%b %d, %Y') }}</p>
+            <p><span class="font-medium">End:</span> {{ event.date_to.strftime('%b %d, %Y') }}</p>
             <p class="mb-2">
                 <span class="font-medium">Venue:</span>
                 {% if event.event_type == 'RCC Event' %}
-                Region: {{ event.venue_region.name }} | DCC: {{ event.venue_district.name }} | Church: {{
+                DCC: {{ event.venue_district.name }} | Church: {{
                 event.venue_church.name }}
                 {% elif event.type == 'dcc' %}
                 DCC: {{ event.venue_district.name }} | Church: {{ event.venue_church.name }}
@@ -208,13 +217,18 @@
                 Church: {{ event.venue_church.name }}
                 {% endif %}
             </p>
-            <p><span class="font-medium">Submitted By:</span> {{ event.created_by }}</p>
+            <p><span class="font-medium">Submitted By:</span> <span
+                    class="cursor-help underline decoration-dotted decoration-gray-400"
+                    title="Role: {{ event.creator.role }}">{{ event.creator.first_name }} {{ event.creator.last_name
+                    }}</span></p>
             <div class="flex gap-2 mt-3">
                 <form method="post" action="/events/{{ event.id }}/approve" class="flex-1">
-                    <button class="btn btn-success w-full">Approve</button>
+                    <button class="btn btn-success w-full" {% if event.created_by | string==current_user['user_id'] |
+                        string %} disabled title="You cannot approve your own event" {% endif %}>Approve</button>
                 </form>
                 <form method="post" action="/events/{{ event.id }}/reject" class="flex-1">
-                    <button class="btn btn-error w-full">Reject</button>
+                    <button class="btn btn-error w-full" {% if event.created_by | string==current_user['user_id'] |
+                        string %} disabled title="You cannot reject your own event" {% endif %}>Reject</button>
                 </form>
             </div>
         </div>

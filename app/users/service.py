@@ -2,9 +2,9 @@ import uuid
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 
-from app.db.models import User  # Import your User model here
-# Import your Pydantic schemas here
-from app.users.schemas import UserCreateSchema
+from app.users.models import User  # Import your User model here
+# Import your Sql_models here
+from app.users.models import UserCreate
 from app.auth.utils import generate_password_hash, clean_and_title, resolve_role_from_audit
 
 
@@ -37,7 +37,7 @@ class UserService:
         user = result.first()
         return user
 
-    async def create_user(self, user_data: UserCreateSchema, session: AsyncSession):
+    async def create_user(self, user_data: UserCreate, session: AsyncSession):
         # Logic to create a new user in the database
         new_user = User(**user_data.model_dump())
         new_user.title = clean_and_title(user_data.title)
@@ -67,7 +67,7 @@ class UserService:
 
     async def update_user(self, user_data: dict, session: AsyncSession):
         # Logic to update an existing user in the database
-        user = await self.get_user_by_uid(str(user_data["user_id"]), session)
+        user = await self.get_user_by_uid(str(user_data["id"]), session)
         if not user:
             return False
 

@@ -7,7 +7,7 @@
 
         <!-- Button to open modal for creating user -->
         <label for="createUserModal" class="btn btn-primary"><i class="fas fa-user-plus"></i>Create
-            user</label>
+            User</label>
     </div>
     <!-- Users Table -->
     <div id="usersTableContainer" hx-get="/users/table" hx-trigger="load, reloadUsersTable from:body">
@@ -125,7 +125,7 @@
                 <!-- Actions -->
                 <div class="flex flex-col sm:flex-row justify-end gap-2 mt-3">
                     <button type="submit" class="btn btn-primary w-full sm:w-auto">Save User</button>
-                    <label for="createUserModal" class="btn w-full sm:w-auto">Cancel</label>
+                    <label for="createUserModal" class="btn btn-secondary w-full sm:w-auto">Cancel</label>
                 </div>
             </form>
         </div>
@@ -269,7 +269,7 @@
                 <!-- Actions -->
                 <div class="flex flex-col sm:flex-row justify-end gap-2 mt-3">
                     <button type="submit" class="btn btn-primary w-full sm:w-auto">Update User</button>
-                    <label for="editUserModal" class="btn w-full sm:w-auto">Cancel</label>
+                    <label for="editUserModal" class="btn btn-secondary w-full sm:w-auto">Cancel</label>
                 </div>
             </form>
         </div>
@@ -434,7 +434,7 @@
                 if (!validateUUID(localChurch, "Local Church ID must be a valid UUID.")) return;
 
                 const payload = {
-                    user_id: userId,
+                    id: userId,
                     title: userUpdateForm.querySelector("[name='update_title']").value || null,
                     first_name: firstName,
                     last_name: lastName,

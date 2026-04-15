@@ -3,7 +3,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 from sqlalchemy.orm import selectinload
 
-from app.db.models import Region, District, Church
+from app.council.models import Region, District, Church
 
 
 class CouncilService:

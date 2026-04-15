@@ -12,8 +12,8 @@ from app.users.service import UserService  # Import your UserService here
 from app.council.service import CouncilService
 # Import the templates object from core/templates.py
 from app.core.templates import templates
-# Import your Pydantic schemas here
-from app.users.schemas import UserCreateSchema, UserSchema, as_form, UserUpdateSchema, UserStatusSchema
+# Import your Sql_models here
+from app.users.models import UserCreate, userPublic, user_create_form, UserUpdate, UserStatus
 
 
 user_router = APIRouter()
@@ -87,7 +87,7 @@ RCC_ROLE_OPTIONS = [
 
 
 @user_router.post("/create")
-async def create_user(user_data: UserCreateSchema = Depends(as_form), session: AsyncSession = Depends(get_session)):
+async def create_user(user_data: UserCreate = Depends(user_create_form), session: AsyncSession = Depends(get_session)):
     # print(f"Received user data: {user_data}")
     if await user_service.user_phone_exists(user_data.phone_no, session):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
@@ -123,7 +123,7 @@ async def users_table(request: Request, session: AsyncSession = Depends(get_sess
     })
 
 
-@user_router.get("/{user_id}", response_model=UserSchema)
+@user_router.get("/{user_id}", response_model=userPublic)
 async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
     # Example raw query; adjust based on your schema
     user = await user_service.get_user_by_uid(user_id, session)
@@ -134,9 +134,9 @@ async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
 
 
 @user_router.post("/update")
-async def update_user(user_data: UserUpdateSchema, session: AsyncSession = Depends(get_session)):
+async def update_user(user_data: UserUpdate, session: AsyncSession = Depends(get_session)):
     # Example raw query; adjust based on your schema
-    if not await user_service.user_exists(user_data.user_id, session):
+    if not await user_service.user_exists(user_data.id, session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
     if await user_service.update_user(user_data.model_dump(exclude_none=True), session):
@@ -149,7 +149,7 @@ async def update_user(user_data: UserUpdateSchema, session: AsyncSession = Depen
 
 
 @user_router.post("/update/status")
-async def update_user_status(user_status_data: UserStatusSchema, session: AsyncSession = Depends(get_session)):
+async def update_user_status(user_status_data: UserStatus, session: AsyncSession = Depends(get_session)):
     user_id = user_status_data.user_id
     user = await user_service.get_user_by_uid(user_id, session)
     if not user:
