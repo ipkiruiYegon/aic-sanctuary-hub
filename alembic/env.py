@@ -9,6 +9,7 @@ from sqlmodel import SQLModel
 import app.users.models
 import app.events.models
 import app.council.models
+import app.notifications.models
 
 # Load environment variables
 load_dotenv()

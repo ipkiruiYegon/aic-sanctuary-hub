@@ -123,6 +123,50 @@ async def users_table(request: Request, session: AsyncSession = Depends(get_sess
     })
 
 
+@user_router.get("/profile", response_class=HTMLResponse)
+async def user_profile(request: Request, session: AsyncSession = Depends(get_session)):
+    current_user = request.state.user["user"]
+    user_id = current_user["user_id"]
+
+    # Get the full user data
+    user = await user_service.get_user_by_uid(user_id, session)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="User not found")
+
+    # Get region hierarchy for context
+    region = await council_services.get_region_with_hierarchy(session)
+
+    # Mock activity logs for now (you can implement actual activity logging later)
+    activity_logs = [
+        {
+            "id": 1,
+            "action": "Logged in",
+            "timestamp": user.last_login or user.created_at,
+            "details": "User logged into the system"
+        },
+        {
+            "id": 2,
+            "action": "Profile viewed",
+            "timestamp": user.updated_at or user.created_at,
+            "details": "User viewed their profile"
+        },
+        {
+            "id": 3,
+            "action": "Account created",
+            "timestamp": user.created_at,
+            "details": "User account was created"
+        }
+    ]
+
+    return templates.TemplateResponse("profile.html", {
+        "request": request,
+        "user": user,
+        "region": region,
+        "activity_logs": activity_logs
+    })
+
+
 @user_router.get("/{user_id}", response_model=userPublic)
 async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
     # Example raw query; adjust based on your schema

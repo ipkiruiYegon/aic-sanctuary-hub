@@ -3,11 +3,14 @@ import re
 import sqlalchemy.dialects.postgresql as pg
 from pydantic import field_validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional, TYPE_CHECKING
 from fastapi import Form, HTTPException
 from sqlmodel import Relationship, Field, SQLModel, Column
 
 from app.council.models import Church, Region, District
+
+if TYPE_CHECKING:
+    from app.notifications.models import EventLike, EventComment, Notification, NotificationPreference
 
 
 class UserBase(SQLModel):
@@ -131,3 +134,10 @@ class User(UserBase, table=True):
     local_church: Optional["Church"] = Relationship(back_populates="users")
     district: Optional["District"] = Relationship()
     region: Optional["Region"] = Relationship()
+
+    # Event notification relationships
+    event_likes: list["EventLike"] = Relationship(back_populates="user")
+    event_comments: list["EventComment"] = Relationship(back_populates="user")
+    notifications: list["Notification"] = Relationship(back_populates="user")
+    notification_preferences: Optional["NotificationPreference"] = Relationship(
+        back_populates="user")

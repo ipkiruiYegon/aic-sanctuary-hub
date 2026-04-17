@@ -13,9 +13,11 @@ from .users.routes import user_router  # Import the users router
 from .council.routes import council_router  # Import the council router
 from .auth.routes import auth_router      # Import the auth routes
 from .events.routes import events_router
+from .notifications.routes import notifications_router
 from .core.templates import templates  # Import the templates object
 from app.db.database import get_session  # Import the async session dependency
 from app.db.database import async_session
+from app.events.service import EventService
 from app.council.service import CouncilService  # Import the CouncilService
 from app.config import settings  # Import settings for configuration
 from app.auth.utils import decode_token, get_request_token
@@ -26,6 +28,7 @@ version = "v1"
 
 
 user_services = UserService()
+event_services = EventService()
 
 version_prefix = f"/api/{version}"
 
@@ -40,7 +43,7 @@ async def lifespan(app: FastAPI):
         region = await council_services.get_region(session)
         templates.env.globals["region"] = region
         # Register globals and filters once
-        templates.env.globals["current_time"] = datetime.now
+        templates.env.globals["current_time"] = lambda: datetime.now()
         templates.env.filters["format_datetime"] = format_datetime
     yield
     print("Application is shutting down...")
@@ -104,6 +107,8 @@ app.include_router(
     council_router, prefix="/council", tags=["council"])
 app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
 app.include_router(events_router, prefix="/events", tags=["events"])
+app.include_router(notifications_router,
+                   prefix="/notifications", tags=["notifications"])
 
 
 @app.get("/")
@@ -113,7 +118,11 @@ async def root():
 
 @app.get("/dashboard")
 async def dashboard(request: Request, session: AsyncSession = Depends(get_session)):
-    return templates.TemplateResponse("dashboard.html", {"request": request})
+    upcoming_events = await event_services.get_upcoming_events(limit=5, session=session)
+    return templates.TemplateResponse("dashboard.html", {
+        "request": request,
+        "upcoming_events": upcoming_events
+    })
 
 
 @app.get("/login")
@@ -129,9 +138,3 @@ async def login_page(request: Request, session: AsyncSession = Depends(get_sessi
 @app.get("/unauthorized")
 async def unauthorized(request: Request):
     return templates.TemplateResponse("unauthorized.html", {"request": request})
-
-
-@app.get("/notifications")
-async def notification(request: Request):
-    return templates.TemplateResponse(
-        "notifications.html", {"request": request})

@@ -122,8 +122,148 @@
             <button>close</button>
         </form>
     </dialog>
+
+    <!-- Approve Event Modal -->
+    <dialog id="approveModal" class="modal">
+        <div class="modal-box w-11/12 max-w-2xl relative">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="font-bold text-lg">Review and Approve Event</h3>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200">✕</button>
+                </form>
+            </div>
+
+            <form id="approveForm" method="post" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex flex-col">
+                        <label for="approveEventTitle" class="text-sm font-medium mb-1">Event Title</label>
+                        <input type="text" id="approveEventTitle" name="event_name" class="input input-bordered w-full"
+                            required>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveEventType" class="text-sm font-medium mb-1">Event Type</label>
+                        <select id="approveEventType" name="event_type" class="select select-bordered w-full" required>
+                            <option value="">-- Select Type --</option>
+                            <option value="LCC Event">Local Church Event</option>
+                            <option value="DCC Event">DCC Event</option>
+                            <option value="RCC Event">Regional Event</option>
+                            <option value="ACC Event">Area Event</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveStartDate" class="text-sm font-medium mb-1">Start Date</label>
+                        <input type="date" id="approveStartDate" name="date_from" class="input input-bordered w-full"
+                            required>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveEndDate" class="text-sm font-medium mb-1">End Date</label>
+                        <input type="date" id="approveEndDate" name="date_to" class="input input-bordered w-full"
+                            required>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveVenueRegion" class="block text-sm font-medium text-gray-700">Region (if
+                            regional)</label>
+                        <select name="venue_region_id" id="approveVenueRegion" class="select select-bordered w-full"
+                            required>
+                            <option value="{{ region.id }}">{{ region.name }}</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveVenueDistrict" class="block text-sm font-medium text-gray-700">District -
+                            DCC</label>
+                        <select name="venue_district_id" id="approveVenueDistrict" required
+                            hx-get="/council/get-churches" hx-target="#approveVenueChurch" hx-trigger="change"
+                            class="select select-bordered w-full">
+                            <option value="" disabled>-- Select host DCC --</option>
+                            {% for district in region.districts %}
+                            <option value="{{ district.id }}">{{ district.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveVenueChurch" class="block text-sm font-medium text-gray-700">Host Local
+                            Church</label>
+                        <select name="venue_church_id" id="approveVenueChurch" required
+                            class="select select-bordered w-full">
+                            <option value="" disabled>-- Select host Church --</option>
+                        </select>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveActualVenue" class="text-sm font-medium mb-1">Actual Venue</label>
+                        <input type="text" id="approveActualVenue" name="actual_venue"
+                            class="input input-bordered w-full">
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveTargetGroup" class="text-sm font-medium mb-1">Target Group</label>
+                        <select id="approveTargetGroup" name="target_group" class="select select-bordered w-full"
+                            required>
+                            <option value="">-- Select Group --</option>
+                            <option value="youth">Youth</option>
+                            <option value="women">Women</option>
+                            <option value="men">Men</option>
+                            <option value="all">All</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex flex-col">
+                    <label for="approveDescription" class="text-sm font-medium mb-1">Approval Notes</label>
+                    <textarea id="approveDescription" name="description" class="textarea textarea-bordered w-full"
+                        rows="4" placeholder="Enter notes for the event approval" required></textarea>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-6">
+                    <button type="submit" class="btn btn-success">
+                        Approve Event
+                    </button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('approveModal').close()">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- Reject Event Modal -->
+    <dialog id="rejectModal" class="modal">
+        <div class="modal-box w-11/12 max-w-xl relative">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h3 class="font-bold text-lg">Reject Event</h3>
+                    <p class="text-sm text-gray-500">Provide the reason for rejecting this event.</p>
+                </div>
+                <form method="dialog">
+                    <button class="btn btn-sm btn-circle btn-ghost hover:bg-gray-200">✕</button>
+                </form>
+            </div>
+
+            <form id="rejectForm" method="post" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-1" for="rejectDescription">Reject Reason</label>
+                    <textarea id="rejectDescription" name="description" rows="5"
+                        class="textarea textarea-bordered w-full" placeholder="Enter rejection reason"
+                        required></textarea>
+                </div>
+
+                <div class="flex justify-end gap-4 mt-4">
+                    <button type="submit" class="btn btn-error">Reject Event</button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="document.getElementById('rejectModal').close()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
     <!-- Pending Events for Checker -->
-    {% if request.state.user['user']['role'] == 'LCC Treasurer' %}
+    {% if request.state.user['user']['role'] == 'CED Leader' %}
     <h3 class="text-xl font-semibold mt-8 mb-4">Pending Events</h3>
 
     <!-- Desktop Table -->
@@ -178,16 +318,24 @@
                     <!-- Action buttons centered using justify-center -->
                     <td>
                         <div class="flex gap-2 justify-center">
-                            <form method="post" action="/events/{{ event.id }}/approve">
-                                <button class="btn btn-success btn-xs md:btn-sm" {% if event.created_by |
-                                    string==current_user['user_id'] | string %} disabled
-                                    title="You cannot approve your own event" {% endif %}>Approve</button>
-                            </form>
-                            <form method="post" action="/events/{{ event.id }}/reject">
-                                <button class="btn btn-error btn-xs md:btn-sm" {% if event.created_by |
-                                    string==current_user['user_id'] | string %} disabled
-                                    title="You cannot reject your own event" {% endif %}>Reject</button>
-                            </form>
+                            <button type="button" class="btn btn-success btn-xs md:btn-sm"
+                                onclick="openApproveModal(this)" data-event-id="{{ event.id }}"
+                                data-event-name="{{ event.event_name }}" data-event-type="{{ event.event_type }}"
+                                data-date-from="{{ event.date_from.strftime('%Y-%m-%d') }}"
+                                data-date-to="{{ event.date_to.strftime('%Y-%m-%d') }}"
+                                data-venue-region-id="{{ event.venue_region_id }}"
+                                data-venue-district-id="{{ event.venue_district_id }}"
+                                data-venue-church-id="{{ event.venue_church_id }}"
+                                data-venue-church-name="{{ event.venue_church.name if event.venue_church else '' }}"
+                                data-actual-venue="{{ event.actual_venue }}"
+                                data-target-group="{{ event.target_group }}"
+                                data-description="{{ event.description | default('') | e }}" {% if event.created_by |
+                                string==current_user['user_id'] | string %} disabled
+                                title="You cannot approve your own event" {% endif %}>Approve</button>
+                            <button type="button" class="btn btn-error btn-xs md:btn-sm" onclick="openRejectModal(this)"
+                                data-event-id="{{ event.id }}" data-event-name="{{ event.event_name }}" {% if
+                                event.created_by | string==current_user['user_id'] | string %} disabled
+                                title="You cannot reject your own event" {% endif %}>Reject</button>
                         </div>
                     </td>
                 </tr>
@@ -221,15 +369,23 @@
                     class="cursor-help underline decoration-dotted decoration-gray-400"
                     title="Role: {{ event.creator.role }}">{{ event.creator.first_name }} {{ event.creator.last_name
                     }}</span></p>
-            <div class="flex gap-2 mt-3">
-                <form method="post" action="/events/{{ event.id }}/approve" class="flex-1">
-                    <button class="btn btn-success w-full" {% if event.created_by | string==current_user['user_id'] |
-                        string %} disabled title="You cannot approve your own event" {% endif %}>Approve</button>
-                </form>
-                <form method="post" action="/events/{{ event.id }}/reject" class="flex-1">
-                    <button class="btn btn-error w-full" {% if event.created_by | string==current_user['user_id'] |
-                        string %} disabled title="You cannot reject your own event" {% endif %}>Reject</button>
-                </form>
+            <div class="flex flex-col sm:flex-row gap-2 mt-3">
+                <button type="button" class="btn btn-success w-full sm:w-1/2" onclick="openApproveModal(this)"
+                    data-event-id="{{ event.id }}" data-event-name="{{ event.event_name }}"
+                    data-event-type="{{ event.event_type }}" data-date-from="{{ event.date_from.strftime('%Y-%m-%d') }}"
+                    data-date-to="{{ event.date_to.strftime('%Y-%m-%d') }}"
+                    data-venue-region-id="{{ event.venue_region_id }}"
+                    data-venue-district-id="{{ event.venue_district_id }}"
+                    data-venue-church-id="{{ event.venue_church_id }}"
+                    data-venue-church-name="{{ event.venue_church.name if event.venue_church else '' }}"
+                    data-actual-venue="{{ event.actual_venue }}" data-target-group="{{ event.target_group }}"
+                    data-description="{{ event.description | default('') | e }}" {% if event.created_by |
+                    string==current_user['user_id'] | string %} disabled title="You cannot approve your own event" {%
+                    endif %}>Approve</button>
+                <button type="button" class="btn btn-error w-full sm:w-1/2" onclick="openRejectModal(this)"
+                    data-event-id="{{ event.id }}" data-event-name="{{ event.event_name }}" {% if event.created_by |
+                    string==current_user['user_id'] | string %} disabled title="You cannot reject your own event" {%
+                    endif %}>Reject</button>
             </div>
         </div>
         {% endfor %}
@@ -245,9 +401,44 @@
         document.getElementById('venueChurch').parentElement.style.display = (type === 'local' || type === 'dcc') ? 'block' : 'none';
     });
 
+    function openApproveModal(button) {
+        const eventId = button.dataset.eventId;
+        const approveForm = document.getElementById('approveForm');
+
+        approveForm.action = `/events/${eventId}/approve`;
+        document.getElementById('approveEventTitle').value = button.dataset.eventName || '';
+        document.getElementById('approveEventType').value = button.dataset.eventType || '';
+        document.getElementById('approveStartDate').value = button.dataset.dateFrom || '';
+        document.getElementById('approveEndDate').value = button.dataset.dateTo || '';
+        document.getElementById('approveVenueRegion').value = button.dataset.venueRegionId || document.getElementById('approveVenueRegion').value;
+        document.getElementById('approveVenueDistrict').value = button.dataset.venueDistrictId || '';
+
+        // Trigger HTMX to load churches for the selected district
+        document.getElementById('approveVenueDistrict').dispatchEvent(new Event('change'));
+
+        // After HTMX loads, set the selected church
+        setTimeout(() => {
+            document.getElementById('approveVenueChurch').value = button.dataset.venueChurchId || '';
+        }, 200); // Adjust delay if needed
+
+        document.getElementById('approveActualVenue').value = button.dataset.actualVenue || '';
+        document.getElementById('approveTargetGroup').value = button.dataset.targetGroup || '';
+        document.getElementById('approveDescription').value = button.dataset.description || '';
+
+        document.getElementById('approveModal').showModal();
+    }
+
+    function openRejectModal(button) {
+        const rejectForm = document.getElementById('rejectForm');
+        rejectForm.action = `/events/${button.dataset.eventId}/reject`;
+        document.getElementById('rejectDescription').value = '';
+        document.getElementById('rejectModal').showModal();
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
         const eventCreateForm = document.querySelector("form[action='/events/create']")
         const eventModal = document.getElementById('eventModal');
+        const eventApproveForm = document.querySelector("form[action='/events/create']")
 
         if (eventCreateForm) {
             eventCreateForm.addEventListener("submit", async (event) => {

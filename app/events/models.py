@@ -8,6 +8,7 @@ from datetime import datetime
 if TYPE_CHECKING:
     from app.users.models import User
     from app.council.models import Church, District, Region
+    from app.notifications.models import EventLike, EventComment
 
 
 class EventBase(SQLModel):
@@ -66,3 +67,7 @@ class Event(EventBase, table=True):
     venue_church: Optional["Church"] = Relationship()
     venue_district: Optional["District"] = Relationship()
     venue_region: Optional["Region"] = Relationship()
+
+    # Notification relationships
+    likes: list["EventLike"] = Relationship(back_populates="event")
+    comments: list["EventComment"] = Relationship(back_populates="event")

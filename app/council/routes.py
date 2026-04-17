@@ -14,9 +14,15 @@ council_services = CouncilService()  # Instantiate the service
 
 
 @council_router.get("/get-churches", response_class=HTMLResponse)
-async def get_churches(request: Request, district_id: str, session: AsyncSession = Depends(get_session)):
+async def get_churches(request: Request, session: AsyncSession = Depends(get_session)):
     # Find the specific district from your 'region' object
     # (Assuming 'region' is available or fetched from DB)
+    params = dict(request.query_params)
+    district_id = next((v for k, v in params.items()
+                       if "district_id" in k), None)
+    if not district_id:
+        return None
+
     selected_district = await council_services.get_churches_by_district(
         uuid.UUID(district_id), session)
 

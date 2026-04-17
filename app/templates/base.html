@@ -30,6 +30,29 @@
                 <span class="hidden md:inline text-sm md:text-base text-gray-600">
                     {{ current_time()|format_datetime }}
                 </span>
+                <!-- Notifications Bell -->
+                <div class="dropdown dropdown-end">
+                    <div tabindex="0" role="button" class="btn btn-primary btn-circle relative">
+                        <i class="fas fa-bell text-lg"></i>
+                        <span id="navbar-unread-count"
+                            class="badge badge-xs badge-error absolute -top-1 -right-1 hidden">0</span>
+                    </div>
+                    <div tabindex="0"
+                        class="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-80 max-h-96 overflow-y-auto">
+                        <div class="px-4 py-2 border-b">
+                            <h3 class="font-semibold">Notifications</h3>
+                        </div>
+                        <div id="navbar-notifications-list" class="py-2">
+                            <!-- Notifications will be loaded here -->
+                            <div class="px-4 py-2 text-center text-gray-500 text-sm">
+                                Loading notifications...
+                            </div>
+                        </div>
+                        <div class="px-4 py-2 border-t">
+                            <a href="/notifications" class="btn btn-sm btn-block btn-outline">View All</a>
+                        </div>
+                    </div>
+                </div>
                 <!-- User Dropdown -->
                 <div class="dropdown dropdown-end">
                     <div tabindex="0" role="button" class="btn btn-ghost btn-circle avatar">
@@ -46,7 +69,7 @@
                         {% endif %}
                     </div>
                     <ul tabindex="0" class="menu menu-sm dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52">
-                        <li><a href="/profile"><i class="fas fa-user"></i> Profile</a></li>
+                        <li><a href="/users/profile"><i class="fas fa-user"></i> Profile</a></li>
                         <li><a href="/settings"><i class="fas fa-cog"></i> Settings</a></li>
                         <li><a href="/api/v1/auth/logout"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
                     </ul>
@@ -141,6 +164,90 @@
             resetTimer();
         };
         setupInactivityLogout();
+
+        // Load navbar notifications
+        async function loadNavbarNotifications() {
+            try {
+                const response = await fetch('/notifications/api/unread-count');
+                const data = await response.json();
+
+                const unreadCount = document.getElementById('navbar-unread-count');
+                if (data.unread_count > 0) {
+                    unreadCount.textContent = data.unread_count > 99 ? '99+' : data.unread_count;
+                    unreadCount.classList.remove('hidden');
+                } else {
+                    unreadCount.classList.add('hidden');
+                }
+
+                // Load recent notifications for dropdown
+                const notifResponse = await fetch('/notifications/api/recent');
+                if (notifResponse.ok) {
+                    const notifData = await notifResponse.json();
+                    updateNavbarNotifications(notifData.notifications);
+                }
+            } catch (error) {
+                console.error('Error loading navbar notifications:', error);
+            }
+        }
+
+        function updateNavbarNotifications(notifications) {
+            const container = document.getElementById('navbar-notifications-list');
+            if (notifications.length === 0) {
+                container.innerHTML = '<div class="px-4 py-2 text-center text-gray-500 text-sm">No new notifications</div>';
+                return;
+            }
+
+            container.innerHTML = notifications.slice(0, 5).map(notification => `
+                <a href="/notifications" class="px-4 py-2 hover:bg-gray-50 block border-b border-gray-100 last:border-b-0">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 ${getNotificationIconClass(notification.type)} rounded-full flex items-center justify-center flex-shrink-0">
+                            <i class="${getNotificationIcon(notification.type)} text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-sm font-medium truncate">${notification.title}</p>
+                            <p class="text-xs text-gray-600 line-clamp-2">${notification.message}</p>
+                            <p class="text-xs text-gray-400 mt-1">${formatTimeAgo(new Date(notification.created_at))}</p>
+                        </div>
+                        ${!notification.is_read ? '<div class="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></div>' : ''}
+                    </div>
+                </a>
+            `).join('');
+        }
+
+        function getNotificationIcon(type) {
+            switch (type) {
+                case 'event_created': return 'fas fa-calendar-plus';
+                case 'event_liked': return 'fas fa-heart';
+                case 'system_announcement': return 'fas fa-bullhorn';
+                default: return 'fas fa-bell';
+            }
+        }
+
+        function getNotificationIconClass(type) {
+            switch (type) {
+                case 'event_created': return 'bg-blue-100 text-blue-600';
+                case 'event_liked': return 'bg-red-100 text-red-600';
+                case 'system_announcement': return 'bg-yellow-100 text-yellow-600';
+                default: return 'bg-gray-100 text-gray-600';
+            }
+        }
+
+        function formatTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+
+            if (diffInSeconds < 60) return 'Just now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+
+        // Load notifications on page load and periodically
+        document.addEventListener('DOMContentLoaded', function () {
+            loadNavbarNotifications();
+            // Refresh every 30 seconds
+            setInterval(loadNavbarNotifications, 30000);
+        });
     </script>
     {% block scripts %}{% endblock %}
 </body>
