@@ -191,6 +191,13 @@
                         <input type="tel" name="update_phone_no" id="edit_phone_no" required
                             class="input input-bordered w-full">
                     </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="edit_email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" name="update_email" id="edit_email" required
+                            class="input input-bordered w-full">
+                    </div>
                 </div>
 
                 <div id="panel-roles" class="tab-panel hidden grid grid-cols-1 gap-4">
@@ -331,6 +338,7 @@
         const statusForm = document.getElementById("statusForm");
 
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         function validateFName(name, message) {
             if (!name || !/^[A-Za-z]{3,}$/.test(name.trim())) {
@@ -351,6 +359,14 @@
         function validatePhone(phone) {
             if (!phone || !/^0\d{9}$/.test(phone.trim())) {
                 showToast("Phone number must be 10 digits, start with 0, and contain only numbers.", "error");
+                return false;
+            }
+            return true;
+        }
+
+        function validateEmail(value, message) {
+            if (!value || !emailRegex.test(value.trim())) {
+                showToast(message, "error");
                 return false;
             }
             return true;
@@ -396,7 +412,7 @@
                         return;
                     }
 
-                    const result = await response.json().catch(() => ({}));
+                    const result = await response.json();
 
                     if (result.success) {
                         showToast("User created successfully!", "success");
@@ -421,6 +437,7 @@
                 const firstName = userUpdateForm.querySelector("[name='update_first_name']").value;
                 const lastName = userUpdateForm.querySelector("[name='update_last_name']").value;
                 const phoneNo = userUpdateForm.querySelector("[name='update_phone_no']").value;
+                const email = userUpdateForm.querySelector("[name='update_email']").value;
                 const region = userUpdateForm.querySelector("[name='update_region_id']").value;
                 const district = userUpdateForm.querySelector("[name='district_id']").value;
                 const localChurch = userUpdateForm.querySelector("[name='update_local_church_id']").value;
@@ -429,6 +446,7 @@
                 if (!validateFName(firstName, "First name must be at least 3 letters and no spaces.")) return;
                 if (!validateLName(lastName, "Last name must be at least 3 letters and no spaces.")) return;
                 if (!validatePhone(phoneNo)) return;
+                if (!validateEmail(email, "Enter a valid email.")) return;
                 if (!validateUUID(region, "Region ID must be a valid UUID.")) return;
                 if (!validateUUID(district, "District ID must be a valid UUID.")) return;
                 if (!validateUUID(localChurch, "Local Church ID must be a valid UUID.")) return;
@@ -439,6 +457,7 @@
                     first_name: firstName,
                     last_name: lastName,
                     phone_no: phoneNo,
+                    email: email,
                     rcc_role: userUpdateForm.querySelector("[name='update_rcc_role']").value || null,
                     dcc_role: userUpdateForm.querySelector("[name='update_dcc_role']").value || null,
                     lcc_role: userUpdateForm.querySelector("[name='update_lcc_role']").value || null,
@@ -456,6 +475,7 @@
 
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
+                        console.log(errorData)
                         showToast(errorData.detail || "Submission failed.", "error");
                         return;
                     }
@@ -487,6 +507,7 @@
                     const editFirstName = document.getElementById("edit_first_name");
                     const editLastName = document.getElementById("edit_last_name");
                     const editPhoneNo = document.getElementById("edit_phone_no");
+                    const editEmail = document.getElementById("edit_email");
                     const editTitle = document.getElementById("edit_title");
                     const editLccRole = document.getElementById("edit_lcc_role");
                     const editDccRole = document.getElementById("edit_dcc_role");
@@ -498,6 +519,7 @@
                     if (editFirstName) editFirstName.value = editBtn.dataset.first || "";
                     if (editLastName) editLastName.value = editBtn.dataset.last || "";
                     if (editPhoneNo) editPhoneNo.value = editBtn.dataset.phone || "";
+                    if (editEmail) editEmail.value = editBtn.dataset.email || "";
                     if (editTitle) editTitle.value = editBtn.dataset.title || "";
                     if (editLccRole) editLccRole.value = editBtn.dataset.lccrole || "";
                     if (editDccRole) editDccRole.value = editBtn.dataset.dccrole || "";

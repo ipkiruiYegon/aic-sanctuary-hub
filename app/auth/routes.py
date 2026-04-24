@@ -6,12 +6,15 @@ from datetime import datetime, timedelta
 from app.auth.schemas import LoginModel, PasswordChangeModel
 from app.db.database import get_session
 from app.users.service import UserService
-from app.core import templates
+from app.users.models import user_create_form, UserCreate
+from app.council.service import CouncilService
+from app.core.templates import templates
 from app.auth.utils import verify_password, create_access_token, get_request_token, decode_token, generate_password_hash
 
 
 auth_router = APIRouter()
 user_services = UserService()
+council_services = CouncilService()
 
 REFRESH_TOKEN_EXPIRY = 2
 
@@ -59,6 +62,9 @@ async def authenticate_users(login_data: LoginModel, session: AsyncSession = Dep
                     "last_name": user.last_name,
                     "user_id": str(user.id),
                     "role": user.role,
+                    "admin": user.is_superuser,
+                    "staff": user.is_staff
+
                 }
             )
 
@@ -152,3 +158,16 @@ async def logout(request: Request, response: Response, session: AsyncSession = D
     except:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Invalid Token")
+
+
+@auth_router.post("/register/user")
+async def create_user(user_data: UserCreate = Depends(user_create_form), session: AsyncSession = Depends(get_session)):
+    # print(f"Received user data: {user_data}")
+    if await user_services.user_phone_exists(user_data.phone_no, session):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="User with this phone number already exists")
+    if await user_services.user_email_exists(user_data.email, session):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="User with this email already exists")
+    user = await user_services.create_user(user_data, session, "user")
+    return JSONResponse(content={"success": True, "user_id": str(user.id)}, status_code=status.HTTP_201_CREATED)

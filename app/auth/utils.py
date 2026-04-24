@@ -29,7 +29,7 @@ def clean_and_title(text: str, acronyms=None) -> str:
     Preserves acronyms if provided.
     """
     if acronyms is None:
-        acronyms = ["AIC"]
+        acronyms = ["AIC", "RCC", "DCC", "LCC", "CED", "CMD", "CYA", "AICMD"]
 
     # Step 1: Trim leading/trailing spaces
     trimmed = text.strip()
@@ -53,6 +53,7 @@ def resolve_role_from_audit(audit_trail: dict) -> str | None:
     """
     has_rcc = "rcc_role" in audit_trail and audit_trail["rcc_role"]["new"]
     has_dcc = "dcc_role" in audit_trail and audit_trail["dcc_role"]["new"]
+    has_lcc = "lcc_role" in audit_trail and audit_trail["lcc_role"]["new"]
 
     if has_rcc and has_dcc:
         return audit_trail["rcc_role"]["new"]  # highest role
@@ -60,6 +61,8 @@ def resolve_role_from_audit(audit_trail: dict) -> str | None:
         return audit_trail["rcc_role"]["new"]
     elif has_dcc:
         return audit_trail["dcc_role"]["new"]
+    elif has_lcc:
+        return audit_trail["lcc_role"]["new"]
     return None
 
 

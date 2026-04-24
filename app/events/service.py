@@ -2,18 +2,19 @@ import uuid
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 from sqlalchemy.orm import selectinload
-from datetime import datetime
+from datetime import datetime, date
 
 from app.events.models import EventSchema
 from app.events.models import Event
 from app.users.models import User
+from app.auth.utils import clean_and_title
 
 
 class EventService:
     async def create_event(self, current_user, event_data: EventSchema, session: AsyncSession):
         # Logic to create a new event in the database
         new_event = Event(**event_data.model_dump())
-        new_event.event_name = event_data.event_name.title()
+        new_event.event_name = clean_and_title(event_data.event_name)
         new_event.actual_venue = event_data.actual_venue.title()
         new_event.target_group = event_data.target_group.title()
         new_event.created_by = current_user
@@ -97,7 +98,7 @@ class EventService:
             current_time = datetime.now()
         sql = select(Event).where(
             Event.approved == True,
-            Event.date_from >= current_time,
+            Event.date_to >= current_time,
             Event.status != "Cancelled"
         ).order_by(Event.date_from).limit(limit)
         results = await session.exec(sql)
@@ -115,3 +116,19 @@ class EventService:
         results = await session.exec(sql)
         events = results.all()
         return events
+
+    async def get_events_for_month(self, session: AsyncSession, year: int, month: int):
+        start_date = date(year, month, 1)
+        if month == 12:
+            end_date = date(year + 1, 1, 1)
+        else:
+            end_date = date(year, month + 1, 1)
+
+        sql = select(Event).where(
+            Event.approved == True,
+            Event.date_to >= start_date,
+            Event.date_from < end_date,
+            Event.status != "Cancelled"
+        ).order_by(Event.date_from)
+        results = await session.exec(sql)
+        return results.all()

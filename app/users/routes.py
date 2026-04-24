@@ -92,6 +92,9 @@ async def create_user(user_data: UserCreate = Depends(user_create_form), session
     if await user_service.user_phone_exists(user_data.phone_no, session):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="User with this phone number already exists")
+    if await user_service.user_email_exists(user_data.email, session):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="User with this phone number already exists")
     user = await user_service.create_user(user_data, session)
     return JSONResponse(content={"success": True, "user_id": str(user.id)}, status_code=status.HTTP_201_CREATED)
 
@@ -178,12 +181,13 @@ async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
 
 
 @user_router.post("/update")
-async def update_user(user_data: UserUpdate, session: AsyncSession = Depends(get_session)):
-    # Example raw query; adjust based on your schema
+async def update_user(request: Request, user_data: UserUpdate, session: AsyncSession = Depends(get_session)):
+    current_user = request.state.user["user"]
+
     if not await user_service.user_exists(user_data.id, session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
-    if await user_service.update_user(user_data.model_dump(exclude_none=True), session):
+    if await user_service.update_user(current_user, user_data.model_dump(exclude_none=True), session):
         return JSONResponse(status_code=status.HTTP_200_OK, content={"success": True, "message": "User updated successfully"})
     else:
         return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False, "message": "No changes detected"})
@@ -193,13 +197,14 @@ async def update_user(user_data: UserUpdate, session: AsyncSession = Depends(get
 
 
 @user_router.post("/update/status")
-async def update_user_status(user_status_data: UserStatus, session: AsyncSession = Depends(get_session)):
+async def update_user_status(request: Request, user_status_data: UserStatus, session: AsyncSession = Depends(get_session)):
+    current_user = request.state.user["user"]
     user_id = user_status_data.user_id
     user = await user_service.get_user_by_uid(user_id, session)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
-    user_updated = await user_service.update_user_status(user_status_data.user_id, user_status_data.reason, session)
+    user_updated = await user_service.update_user_status(current_user, user_status_data.user_id, user_status_data.reason, session)
     if not user_updated:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Failed to update user status")

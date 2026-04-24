@@ -14,6 +14,7 @@ from .council.routes import council_router  # Import the council router
 from .auth.routes import auth_router      # Import the auth routes
 from .events.routes import events_router
 from .notifications.routes import notifications_router
+from .calendar.routes import calendar_router
 from .core.templates import templates  # Import the templates object
 from app.db.database import get_session  # Import the async session dependency
 from app.db.database import async_session
@@ -41,7 +42,7 @@ def format_datetime(value, fmt="%A %d %Y, %I:%M %p"):
 async def lifespan(app: FastAPI):
     async with async_session() as session:
         region = await council_services.get_region(session)
-        templates.env.globals["region"] = region
+        templates.env.globals["RCC"] = region
         # Register globals and filters once
         templates.env.globals["current_time"] = lambda: datetime.now()
         templates.env.filters["format_datetime"] = format_datetime
@@ -62,7 +63,8 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     # Public routes that don't require authentication
-    public_paths = ["/login", "/api/v1/auth/authenticate", "/static"]
+    public_paths = ["/login", "/auth/authenticate",
+                    "/register", "/auth/register/user", "/static", "/council/get-churches"]
 
     if any(request.url.path.startswith(path) for path in public_paths):
         return await call_next(request)
@@ -89,7 +91,7 @@ async def auth_middleware(request: Request, call_next):
         user_role = token_data.get("user", {}).get("role")
         # add user routes
         ALlOWED_USER_ROLES = {"system administrator",
-                              "ced leader", "lcc treasurer", "ced worker", "ced coordinator"}
+                              "ced leader", "ced worker", "ced coordinator"}
         if request.url.path.startswith("/users"):
             if user_role.lower() not in ALlOWED_USER_ROLES:
                 return RedirectResponse(url="/unauthorized")
@@ -105,10 +107,11 @@ app.include_router(
     user_router, prefix="/users", tags=["users"])
 app.include_router(
     council_router, prefix="/council", tags=["council"])
-app.include_router(auth_router, prefix=f"{version_prefix}/auth", tags=["auth"])
+app.include_router(auth_router, prefix="/auth", tags=["auth"])
 app.include_router(events_router, prefix="/events", tags=["events"])
 app.include_router(notifications_router,
                    prefix="/notifications", tags=["notifications"])
+app.include_router(calendar_router, prefix="/calendar", tags=["calendar"])
 
 
 @app.get("/")
@@ -128,6 +131,14 @@ async def dashboard(request: Request, session: AsyncSession = Depends(get_sessio
 @app.get("/login")
 async def login_page(request: Request, session: AsyncSession = Depends(get_session)):
     return templates.TemplateResponse("login.html", {"request": request})
+
+
+@app.get("/register")
+async def self_user_register(request: Request, session: AsyncSession = Depends(get_session)):
+    region = await council_services.get_region_with_hierarchy(session)
+    region_exists = region is not None
+
+    return templates.TemplateResponse("sign_up.html", {"request": request, "region": region})
 
 
 @app.get("/password/change")

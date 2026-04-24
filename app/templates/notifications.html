@@ -59,17 +59,18 @@
         <div class="lg:col-span-2">
             <!-- Mobile-Responsive Tabs -->
             <div class="tabs tabs-boxed mb-6 w-full">
-                <a class="tab tab-active text-red-600 flex-1 sm:flex-none" onclick="showTab('events')">
+                <a class="tab tab-active text-red-600 flex-1 sm:flex-none" data-tab="events"
+                    onclick="showTab('events')">
                     <i class="fas fa-calendar-alt mr-2"></i>
                     <span class="hidden sm:inline">Events</span>
                     <span class="sm:hidden">Events</span>
                 </a>
-                <a class="tab flex-1 sm:flex-none" onclick="showTab('activity')">
+                <a class="tab flex-1 sm:flex-none" data-tab="activity" onclick="showTab('activity')">
                     <i class="fas fa-history mr-2"></i>
                     <span class="hidden sm:inline">Activity Feed</span>
                     <span class="sm:hidden">Activity</span>
                 </a>
-                <a class="tab flex-1 sm:flex-none" onclick="showTab('notifications')">
+                <a class="tab flex-1 sm:flex-none" data-tab="notifications" onclick="showTab('notifications')">
                     <i class="fas fa-bell mr-2"></i>
                     <span class="hidden sm:inline">Notifications</span>
                     <span class="sm:hidden">Alerts</span>
@@ -82,25 +83,39 @@
             <!-- Events Tab -->
             <div id="events-tab" class="tab-content">
                 <!-- Event Filters -->
-                <div class="flex flex-wrap gap-2 mb-4">
-                    <button class="btn btn-sm btn-active" onclick="filterEvents('all')">All Events</button>
-                    <button class="btn btn-sm" onclick="filterEvents('upcoming')">Upcoming</button>
-                    <button class="btn btn-sm" onclick="filterEvents('past')">Past</button>
+                <div class="flex flex-wrap gap-2 mb-4 filter-events">
+                    <button class="btn btn-sm btn-active" data-filter="all" onclick="filterEvents('all')">All
+                        Events</button>
+                    <button class="btn btn-sm" data-filter="upcoming"
+                        onclick="filterEvents('upcoming')">Upcoming</button>
+                    <button class="btn btn-sm" data-filter="past" onclick="filterEvents('past')">Past</button>
                 </div>
 
                 <div id="events-container">
-                    <!-- Upcoming Events -->
-                    <div id="upcoming-events-section" class="mb-8">
+                    {% if upcoming_events|length == 0 and past_events|length == 0 %}
+                    <div class="text-center py-16 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                        <div class="mx-auto mb-4 w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-calendar-times text-3xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">No events available</h3>
+                        <p class="text-gray-600 mb-4">There are no approved events in the system right now.</p>
+                        <button class="btn btn-primary" onclick="window.location.href='/events'">
+                            <i class="fas fa-calendar-plus mr-2"></i>
+                            Create or review events
+                        </button>
+                    </div>
+                    {% else %}
+                    <!-- All Events -->
+                    <div id="all-events-section">
                         <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <i class="fas fa-calendar-plus text-blue-600"></i>
-                            Upcoming Events
+                            <i class="fas fa-calendar-alt text-blue-600"></i>
+                            All Events ({{ upcoming_events|length + past_events|length }} total)
                         </h3>
-                        <div class="space-y-4" id="upcoming-events-list">
+                        <div class="space-y-4" id="all-events-list">
                             {% for event in upcoming_events %}
-                            <div
-                                class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200">
+                            <div class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200"
+                                data-event-type="upcoming">
                                 <div class="card-body p-6">
-                                    <!-- Event Header -->
                                     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                                         <div class="flex-1">
                                             <div class="flex items-center gap-3 mb-2">
@@ -132,19 +147,15 @@
                                         </div>
                                         <div class="badge badge-primary badge-lg">Upcoming</div>
                                     </div>
-
-                                    <!-- Event Description -->
                                     {% if event.description %}
-                                    <p class="text-gray-700 mb-4 leading-relaxed">{{ event.description }}</p>
+                                    <p class="text-gray-600 mb-4 leading-relaxed">{{ event.description }}</p>
                                     {% endif %}
-
-                                    <!-- Action Buttons -->
                                     <div
                                         class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
                                         <div class="flex items-center gap-4">
                                             <button onclick="toggleLike('{{ event.id }}', this)"
                                                 class="btn btn-sm btn-ghost gap-2 hover:bg-red-50 hover:text-red-600 transition-colors">
-                                                <i class="fas fa-heart"></i>
+                                                <i class="far fa-heart"></i>
                                                 <span class="like-count">0</span>
                                             </button>
                                             <button onclick="toggleComments('{{ event.id }}')"
@@ -163,14 +174,8 @@
                                             View Details
                                         </button>
                                     </div>
-
-                                    <!-- Comments Section (Hidden by default) -->
                                     <div id="comments-{{ event.id }}" class="mt-4 pt-4 border-t border-gray-100 hidden">
-                                        <div class="space-y-3 mb-4" id="comments-list-{{ event.id }}">
-                                            <!-- Comments will be loaded here -->
-                                        </div>
-
-                                        <!-- Add Comment Form -->
+                                        <div class="space-y-3 mb-4" id="comments-list-{{ event.id }}"></div>
                                         <div class="flex gap-3">
                                             <input type="text" id="comment-input-{{ event.id }}"
                                                 placeholder="Write a comment..."
@@ -184,38 +189,10 @@
                                 </div>
                             </div>
                             {% endfor %}
-                        </div>
-
-                        <!-- Empty State for Upcoming Events -->
-                        {% if upcoming_events|length == 0 %}
-                        <div class="text-center py-12 bg-gray-50 rounded-lg">
-                            <div
-                                class="w-24 h-24 bg-gradient-to-r from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-calendar-alt text-3xl text-blue-500"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">No Upcoming Events</h3>
-                            <p class="text-gray-600 mb-4">There are no upcoming events scheduled at the moment.</p>
-                            <button class="btn btn-primary">
-                                <i class="fas fa-plus mr-2"></i>
-                                Create Event
-                            </button>
-                        </div>
-                        {% endif %}
-                    </div>
-
-
-                    <!-- Past Events -->
-                    <div id="past-events-section" class="hidden">
-                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
-                            <i class="fas fa-history text-green-600"></i>
-                            Past Events
-                        </h3>
-                        <div class="space-y-4" id="past-events-list">
                             {% for event in past_events %}
-                            <div
-                                class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200 opacity-75">
+                            <div class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200 opacity-75"
+                                data-event-type="past">
                                 <div class="card-body p-6">
-                                    <!-- Event Header -->
                                     <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
                                         <div class="flex-1">
                                             <div class="flex items-center gap-3 mb-2">
@@ -247,19 +224,15 @@
                                         </div>
                                         <div class="badge badge-secondary badge-lg">Completed</div>
                                     </div>
-
-                                    <!-- Event Description -->
                                     {% if event.description %}
                                     <p class="text-gray-600 mb-4 leading-relaxed">{{ event.description }}</p>
                                     {% endif %}
-
-                                    <!-- Action Buttons -->
                                     <div
                                         class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
                                         <div class="flex items-center gap-4">
                                             <button onclick="toggleLike('{{ event.id }}', this)"
                                                 class="btn btn-sm btn-ghost gap-2 hover:bg-red-50 hover:text-red-600 transition-colors">
-                                                <i class="fas fa-heart"></i>
+                                                <i class="far fa-heart"></i>
                                                 <span class="like-count">0</span>
                                             </button>
                                             <button onclick="toggleComments('{{ event.id }}')"
@@ -278,14 +251,8 @@
                                             View Details
                                         </button>
                                     </div>
-
-                                    <!-- Comments Section (Hidden by default) -->
                                     <div id="comments-{{ event.id }}" class="mt-4 pt-4 border-t border-gray-100 hidden">
-                                        <div class="space-y-3 mb-4" id="comments-list-{{ event.id }}">
-                                            <!-- Comments will be loaded here -->
-                                        </div>
-
-                                        <!-- Add Comment Form -->
+                                        <div class="space-y-3 mb-4" id="comments-list-{{ event.id }}"></div>
                                         <div class="flex gap-3">
                                             <input type="text" id="comment-input-{{ event.id }}"
                                                 placeholder="Write a comment..."
@@ -300,19 +267,8 @@
                             </div>
                             {% endfor %}
                         </div>
-
-                        <!-- Empty State for Past Events -->
-                        {% if past_events|length == 0 %}
-                        <div class="text-center py-12 bg-gray-50 rounded-lg">
-                            <div
-                                class="w-24 h-24 bg-gradient-to-r from-gray-100 to-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                                <i class="fas fa-history text-3xl text-gray-400"></i>
-                            </div>
-                            <h3 class="text-xl font-semibold text-gray-900 mb-2">No Past Events</h3>
-                            <p class="text-gray-600">Past events will appear here once they are completed.</p>
-                        </div>
-                        {% endif %}
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
@@ -608,33 +564,49 @@
     function showTab(tabName) {
         const tabs = ['events', 'activity', 'notifications'];
         const tabElements = tabs.map(tab => document.getElementById(tab + '-tab'));
-        const tabButtons = document.querySelectorAll('.tabs .tab');
+        const tabButtons = Array.from(document.querySelectorAll('.tabs .tab'));
 
-        // Hide all tabs
+        // Hide all tabs and reset button styles
         tabElements.forEach(el => el.classList.add('hidden'));
-        tabButtons.forEach(btn => btn.classList.remove('tab-active'));
+        tabButtons.forEach(btn => {
+            btn.classList.remove('tab-active');
+            btn.classList.remove('text-red-600');
+            btn.classList.add('text-gray-600');
+        });
 
-        // Show selected tab
+        // Show selected tab and style active button
         document.getElementById(tabName + '-tab').classList.remove('hidden');
-        const activeButton = Array.from(tabButtons).find(btn => btn.onclick.toString().includes(tabName));
-        if (activeButton) activeButton.classList.add('tab-active');
+        const activeButton = tabButtons.find(btn => btn.dataset.tab === tabName);
+        if (activeButton) {
+            activeButton.classList.add('tab-active');
+            activeButton.classList.add('text-red-600');
+            activeButton.classList.remove('text-gray-600');
+        }
     }
 
     // Filter events
     function filterEvents(filter) {
-        const upcomingSection = document.getElementById('upcoming-events-section');
-        const pastSection = document.getElementById('past-events-section');
+        const allEvents = document.querySelectorAll('#all-events-list [data-event-type]');
+        const filterButtons = document.querySelectorAll('.filter-events button');
 
-        if (filter === 'all') {
-            upcomingSection.classList.remove('hidden');
-            pastSection.classList.remove('hidden');
-        } else if (filter === 'upcoming') {
-            upcomingSection.classList.remove('hidden');
-            pastSection.classList.add('hidden');
-        } else if (filter === 'past') {
-            upcomingSection.classList.add('hidden');
-            pastSection.classList.remove('hidden');
-        }
+        // Update active button
+        filterButtons.forEach(btn => {
+            btn.classList.remove('btn-active');
+            if (btn.dataset.filter === filter) {
+                btn.classList.add('btn-active');
+            }
+        });
+
+        // Show/hide events based on filter
+        allEvents.forEach(eventCard => {
+            const eventType = eventCard.dataset.eventType;
+
+            if (filter === 'all' || filter === eventType) {
+                eventCard.style.display = 'block';
+            } else {
+                eventCard.style.display = 'none';
+            }
+        });
     }
 
     // Like functionality
@@ -707,8 +679,13 @@
             });
 
             // Update comment count
-            const commentCount = document.querySelector(`#comments-${eventId}`).closest('.card').querySelector('.comment-count');
-            commentCount.textContent = data.comments.length;
+            const commentButton = document.querySelector(`[onclick="toggleComments('${eventId}')"]`);
+            if (commentButton) {
+                const commentCount = commentButton.querySelector('.comment-count');
+                if (commentCount) {
+                    commentCount.textContent = data.comments.length;
+                }
+            }
 
         } catch (error) {
             console.error('Error loading comments:', error);
@@ -867,18 +844,7 @@
         }
     });
 
-    // Initialize - load likes and comment counts on page load
-    document.addEventListener('DOMContentLoaded', function () {
-        // Load initial data for all events
-        const eventCards = document.querySelectorAll('.card');
-        eventCards.forEach(card => {
-            const eventId = card.querySelector('[onclick*="toggleLike"]')?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
-            if (eventId) {
-                loadEventStats(eventId);
-            }
-        });
-    });
-
+    // Load event stats (likes and comments count)
     async function loadEventStats(eventId) {
         try {
             // Load likes count
@@ -887,7 +853,10 @@
                 const likeData = await likeResponse.json();
                 const likeButton = document.querySelector(`[onclick="toggleLike('${eventId}', this)"]`);
                 if (likeButton) {
-                    likeButton.querySelector('.like-count').textContent = likeData.likes_count || 0;
+                    const likeCountSpan = likeButton.querySelector('.like-count');
+                    if (likeCountSpan) {
+                        likeCountSpan.textContent = likeData.likes_count || 0;
+                    }
                 }
             }
 
@@ -897,19 +866,80 @@
                 const commentsData = await commentsResponse.json();
                 const commentButton = document.querySelector(`[onclick="toggleComments('${eventId}')"]`);
                 if (commentButton) {
-                    commentButton.querySelector('.comment-count').textContent = commentsData.comments.length || 0;
+                    const commentCountSpan = commentButton.querySelector('.comment-count');
+                    if (commentCountSpan) {
+                        commentCountSpan.textContent = commentsData.comments.length || 0;
+                    }
                 }
             }
         } catch (error) {
-            console.error('Error loading event stats:', error);
+            console.error('Error loading event stats for', eventId, error);
         }
     }
 
-    // Toast notification function (assuming it exists globally)
+    // Toast notification function
     function showToast(message, type = 'info') {
-        // Implement toast notification
         console.log(`${type.toUpperCase()}: ${message}`);
-        // You can integrate with a toast library here
+    }
+
+    // Initialize page on load
+    function initializePage() {
+        console.log('🔵 Page initialization starting...');
+
+        // Hide activity and notifications tabs
+        const activityTab = document.getElementById('activity-tab');
+        const notificationsTab = document.getElementById('notifications-tab');
+        if (activityTab) activityTab.style.display = 'none';
+        if (notificationsTab) notificationsTab.style.display = 'none';
+
+        // Show events tab - force display with inline style
+        const eventsTab = document.getElementById('events-tab');
+        if (eventsTab) {
+            eventsTab.style.display = 'block';
+            eventsTab.classList.remove('hidden');
+            console.log('✅ Events tab shown - forced display:block');
+        }
+
+        // Update tab buttons
+        const tabButtons = document.querySelectorAll('.tabs .tab');
+        tabButtons.forEach(btn => {
+            btn.classList.remove('tab-active', 'text-red-600');
+            btn.classList.add('text-gray-600');
+        });
+
+        const eventsButton = Array.from(tabButtons).find(btn => btn.dataset.tab === 'events');
+        if (eventsButton) {
+            eventsButton.classList.add('tab-active', 'text-red-600');
+            eventsButton.classList.remove('text-gray-600');
+        }
+
+        // Apply all events filter
+        filterEvents('all');
+        console.log('✅ Events filter applied');
+
+        // Check for events
+        const eventCards = document.querySelectorAll('#all-events-section [data-event-type]');
+        console.log('📊 Found', eventCards.length, 'event cards');
+
+        // Load initial data for all event cards
+        eventCards.forEach(card => {
+            const likeButton = card.querySelector('[onclick*="toggleLike"]');
+            const eventId = likeButton?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            if (eventId) {
+                console.log('📥 Loading stats for event:', eventId);
+                loadEventStats(eventId);
+            }
+        });
+        console.log('✅ Page initialization complete');
+    }
+
+    // Call on DOM ready
+    if (document.readyState === 'loading') {
+        console.log('⏳ DOM still loading, waiting for DOMContentLoaded...');
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        console.log('⚡ DOM already loaded, initializing now...');
+        initializePage();
     }
 </script>
 {% endblock %}

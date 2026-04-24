@@ -65,6 +65,11 @@ class CouncilService:
         result = await session.exec(statement)
         return result.all()
 
+    async def get_all_churches(self, session: AsyncSession):
+        statement = select(Church)
+        result = await session.exec(statement)
+        return result.all()
+
     async def get_churches_by_district(self, district_id: uuid.UUID, session: AsyncSession):
         statement = select(Church).where(Church.district_id == district_id)
         result = await session.exec(statement)

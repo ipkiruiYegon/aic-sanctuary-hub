@@ -91,6 +91,13 @@ async def get_notification_preferences(request: Request, session: AsyncSession =
     return {"preferences": preferences}
 
 
+@notifications_router.get("/api/unread-count")
+async def get_unread_count_api(request: Request, session: AsyncSession = Depends(get_session)):
+    current_user = request.state.user["user"]["user_id"]
+    unread_count = await notification_services.get_unread_count(current_user, session)
+    return {"unread_count": unread_count}
+
+
 @notifications_router.post("/preferences")
 async def update_notification_preferences(
     request: Request,
@@ -102,6 +109,27 @@ async def update_notification_preferences(
     preferences_data = preferences.model_dump(exclude={'id', 'user_id'})
     await notification_services.update_preferences(current_user, preferences_data, session)
     return {"success": True, "message": "Preferences updated successfully"}
+
+
+@notifications_router.get("/events/{event_id}/like")
+async def get_event_like_status(
+    request: Request,
+    event_id: UUID,
+    session: AsyncSession = Depends(get_session)
+):
+    current_user = request.state.user["user"]["user_id"]
+
+    try:
+        likes_count = await notification_services.get_event_likes_count(event_id, session)
+        liked = await notification_services.is_event_liked_by_user(event_id, current_user, session)
+
+        return {
+            "success": True,
+            "liked": liked,
+            "likes_count": likes_count
+        }
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @notifications_router.post("/events/{event_id}/like")

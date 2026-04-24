@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime
 from sqlmodel import select, update
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from app.notifications.models import EventLike, EventComment, Notification, NotificationPreference, NotificationType
 
@@ -50,8 +51,9 @@ class NotificationService:
 
     async def get_event_comments(self, event_id: uuid.UUID, session: AsyncSession, limit: int = 10):
         """Get comments for an event."""
-        sql = select(EventComment).where(EventComment.event_id == event_id).order_by(
-            EventComment.created_at.desc()).limit(limit)
+        sql = select(EventComment).where(EventComment.event_id == event_id).options(
+            selectinload(EventComment.user)
+        ).order_by(EventComment.created_at.desc()).limit(limit)
         result = await session.exec(sql)
         comments = result.all()
         return comments

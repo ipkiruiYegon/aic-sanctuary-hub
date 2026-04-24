@@ -42,6 +42,8 @@
                             <option value="DCC Event">DCC Event</option>
                             <option value="RCC Event">Regional Event</option>
                             <option value="ACC Event">Area Event</option>
+                            <option value="DCC Common Event">DCC Common Event All Churches</option>
+                            <option value="RCC common Event">Regional Common Event All DCC's</option>
                         </select>
                     </div>
 
@@ -89,7 +91,7 @@
 
                     <!-- Actual Venue  -->
                     <div class="flex flex-col">
-                        <label for="actualVenue" class="text-sm font-medium mb-1">Actual Venue</label>
+                        <label for="actualVenue" class="text-sm font-medium">Actual Venue</label>
                         <input type="text" id="actualVenue" name="actualVenue" class="input input-bordered w-full">
                     </div>
 
@@ -98,8 +100,10 @@
                         <label for="targetGroup" class="text-sm font-medium mb-1">Target Group</label>
                         <select id="targetGroup" name="targetGroup" class="select select-bordered w-full" required>
                             <option value="">-- Select Group --</option>
+                            <option value="leaders">Leaders</option>
                             <option value="youth">Youth</option>
                             <option value="women">Women</option>
+                            <option value="widows">Widows</option>
                             <option value="men">Men</option>
                             <option value="all">All</option>
                         </select>
@@ -206,8 +210,10 @@
                         <select id="approveTargetGroup" name="target_group" class="select select-bordered w-full"
                             required>
                             <option value="">-- Select Group --</option>
+                            <option value="leaders">Leaders</option>
                             <option value="youth">Youth</option>
                             <option value="women">Women</option>
+                            <option value="widows">Widows</option>
                             <option value="men">Men</option>
                             <option value="all">All</option>
                         </select>
@@ -263,7 +269,7 @@
         </div>
     </dialog>
     <!-- Pending Events for Checker -->
-    {% if request.state.user['user']['role'] == 'CED Leader' %}
+    {% if request.state.user['user']['staff'] == True %}
     <h3 class="text-xl font-semibold mt-8 mb-4">Pending Events</h3>
 
     <!-- Desktop Table -->
@@ -396,6 +402,7 @@
 <script>
     document.getElementById('eventType').addEventListener('change', function () {
         let type = this.value;
+        console.log(type)
         document.getElementById('venueRegion').parentElement.style.display = (type === 'regional') ? 'block' : 'none';
         document.getElementById('venueDcc').parentElement.style.display = (type === 'regional' || type === 'dcc') ? 'block' : 'none';
         document.getElementById('venueChurch').parentElement.style.display = (type === 'local' || type === 'dcc') ? 'block' : 'none';

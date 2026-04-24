@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="aic">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - AIC Sanctuary Hub</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
+</head>
+
+<body class="bg-gradient-to-br from-red-50 to-gray-100 min-h-screen flex items-center justify-center p-4 relative">
+    <div class="card w-full max-w-2xl shadow-lg bg-white">
+        <div class="card-body">
+            <h2 class="card-title text-center text-primary">Sanctuary Hub Sign Up</h2>
+            <form method="POST" action="/auth/register/user" class="space-y-4">
+
+                <!-- Responsive grid: 1 col mobile, 2 cols desktop -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                    <!-- Title -->
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                        <select id="title" name="title" required class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Title --</option>
+                            <option>Mr</option>
+                            <option>Mrs</option>
+                            <option>Miss</option>
+                            <option>Dr</option>
+                            <option>Pastor</option>
+                            <option>Reverend</option>
+                            <option>Bishop</option>
+                        </select>
+                    </div>
+
+                    <!-- First Name -->
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input id="first_name" type="text" name="first_name" placeholder="Enter first name"
+                            class="input input-bordered w-full" required />
+                    </div>
+
+                    <!-- Last Name -->
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input id="last_name" type="text" name="last_name" placeholder="Enter last name"
+                            class="input input-bordered w-full" required />
+                    </div>
+
+                    <!-- Phone Number -->
+                    <div>
+                        <label for="phone_no" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <input id="phone_no" type="tel" name="phone_no" placeholder="07XX XXX XXX"
+                            class="input input-bordered w-full" required />
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input id="email" type="email" name="email" placeholder="example@email.com"
+                            class="input input-bordered w-full" required />
+                    </div>
+
+                    <!-- Region -->
+                    <div>
+                        <label for="region" class="block text-sm font-medium text-gray-700">Region</label>
+                        <select id="region" name="region_id" class="select select-bordered w-full" required>
+                            <option value="" disabled selected>-- Select your church Region --</option>
+                            <option value="{{ region.id }}">{{ region.name }}</option>
+                        </select>
+                    </div>
+
+                    <!-- District -->
+                    <div>
+                        <label for="district" class="block text-sm font-medium text-gray-700">District</label>
+                        <select id="district" name="district_id" class="select select-bordered w-full" required
+                            hx-get="/council/get-churches" hx-target="#local_church" hx-trigger="change"
+                            class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select District --</option>
+                            {% for district in region.districts %}
+                            <option value="{{ district.id }}">{{ district.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Local Church -->
+                    <div>
+                        <label for="local_church" class="block text-sm font-medium text-gray-700">Local Church</label>
+                        <select id="local_church" name="local_church_id" class="select select-bordered w-full" required>
+
+                        </select>
+                    </div>
+
+                    <!-- Password -->
+                    <div>
+                        <label for="password" class="block text-sm font-medium text-gray-700">Password</label>
+                        <input id="password" type="password" name="password" placeholder="Enter password"
+                            class="input input-bordered w-full" required />
+                    </div>
+
+                    <!-- Confirm Password -->
+                    <div>
+                        <label for="confirm_password" class="block text-sm font-medium text-gray-700">Confirm
+                            Password</label>
+                        <input id="confirm_password" type="password" name="confirm_password"
+                            placeholder="Confirm password" class="input input-bordered w-full" required />
+                    </div>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="form-control mt-6">
+                    <button type="submit" class="btn btn-primary w-full">Sign Up</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Toast container -->
+    <div id="toastContainer" class="fixed top-4 left-1/2 -translate-x-1/2 
+            flex flex-col items-center space-y-2 z-50 
+            w-full sm:w-auto sm:max-w-sm px-4">
+    </div>
+
+
+    <script src="/static/js/htmx.min.js"></script>
+    <script src="/static/js/toast.js"></script>
+    <!-- Client-side validation -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const signUpForm = document.querySelector("form")
+            const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            function validateFName(name, message) {
+
+                if (!name || !/^[A-Za-z]{3,}$/.test(name.trim())) {
+                    showToast(message, "error");
+                    return false;
+                }
+                return true;
+            }
+
+            function validateLName(name, message) {
+                if (!name || !/^[A-Za-z]+(?: [A-Za-z]+)?$/.test(name.trim())) {
+                    showToast(message, "error");
+                    return false;
+                }
+                return true;
+            }
+
+            function validatePhone(phone) {
+                if (!phone || !/^0\d{9}$/.test(phone.trim())) {
+                    showToast("Phone number must be 10 digits, start with 0, and contain only numbers.", "error");
+                    return false;
+                }
+                return true;
+            }
+
+            function validateUUID(value, message) {
+                if (!value || !uuidRegex.test(value.trim())) {
+                    showToast(message, "error");
+                    return false;
+                }
+                return true;
+            }
+
+            function validateEmail(value, message) {
+                if (!value || !emailRegex.test(value.trim())) {
+                    showToast(message, "error");
+                    return false;
+                }
+                return true;
+            }
+
+            function validatePassword(value, message) {
+                if (!value || value.trim().length < 6) {
+                    showToast(message, "error");
+                    return false;
+                }
+                return true;
+            }
+
+            if (signUpForm) {
+                signUpForm.addEventListener("submit", async function (event) {
+                    event.preventDefault()
+
+                    const firstName = document.querySelector("[name='first_name']").value;
+                    const lastName = document.querySelector("[name='last_name']").value;
+                    const phone = document.querySelector("[name='phone_no']").value;
+                    const email = document.querySelector("[name='email']").value;
+                    const region = document.querySelector("[name='region_id']").value;
+                    const district = document.querySelector("[name='district_id']").value;
+                    const church = document.querySelector("[name='local_church_id']").value;
+                    const password = document.querySelector("[name='password']").value;
+                    const confirmPassword = document.querySelector("[name='confirm_password']").value;
+
+                    if (!validateFName(firstName, "First name must be at least 3 letters and no spaces.")) return;
+                    if (!validateLName(lastName, "Last name must be at least 3 letters and no spaces.")) return;
+                    if (!validatePhone(phone)) return;
+                    if (!validateEmail(email, "Enter a valid email.")) return;
+                    if (!validateUUID(region, "Region must be a valid UUID.")) return;
+                    if (!validateUUID(district, "District must be a valid UUID.")) return;
+                    if (!validateUUID(church, "Local Church must be a valid UUID.")) return;
+                    if (!validatePassword(password, "Password must be atleast 6 characters long.")) return;
+                    if (password !== confirmPassword) {
+                        showToast("Passwords do not match.", "error");
+                        return false;
+                    }
+
+                    const formData = new FormData(signUpForm);
+
+                    try {
+
+                        const response = await fetch(signUpForm.action, {
+                            method: signUpForm.method,
+                            body: formData
+                        });
+
+                        if (!response.ok) {
+                            const errorData = await response.json().catch(() => ({}));
+                            showToast(errorData.detail || "Submission failed.", "error");
+                            return;
+                        }
+
+                        const result = await response.json().catch(() => ({}));
+
+                        if (result.success) {
+                            showToast("User registered successfully!", "success");
+                            signUpForm.reset();
+                            window.location.href = "/login";
+                        } else {
+                            showToast(result.message || result.detail || "Unknown error occurred.", "error");
+                        }
+                    } catch (error) {
+                        showToast("Network error: " + error.message, "error");
+                    }
+
+
+                });
+            }
+
+
+        })
+    </script>
+</body>
+
+</html>

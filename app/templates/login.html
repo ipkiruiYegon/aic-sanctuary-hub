@@ -21,7 +21,7 @@
             Login to AIC Sanctuary Hub
         </h2>
 
-        <form id="loginForm" action="/api/v1/auth/authenticate" method="post" class="space-y-4">
+        <form id="loginForm" action="/auth/authenticate" method="post" class="space-y-4">
             <!-- Telephone input -->
             <div
                 class="flex items-center border border-gray-300 rounded px-3 py-2 focus-within:ring-2 focus-within:ring-red-700">
@@ -88,7 +88,7 @@
             };
 
             try {
-                const response = await fetch("/api/v1/auth/authenticate", {
+                const response = await fetch("/auth/authenticate", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify(payload)

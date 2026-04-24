@@ -1,6 +1,7 @@
 import uuid
 from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
+from datetime import datetime
 
 from app.users.models import User  # Import your User model here
 # Import your Sql_models here
@@ -12,6 +13,13 @@ class UserService:
     async def user_phone_exists(self, phone_number: str, session: AsyncSession):
         # Logic to retrieve a user by ID from the database
         sql_query = select(User).where(User.phone_no == phone_number)
+        result = await session.exec(sql_query)
+        user = result.first()
+        return True if user is not None else False
+
+    async def user_email_exists(self, email: str, session: AsyncSession):
+        # Logic to retrieve a user by ID from the database
+        sql_query = select(User).where(User.email == email.lower())
         result = await session.exec(sql_query)
         user = result.first()
         return True if user is not None else False
@@ -37,21 +45,34 @@ class UserService:
         user = result.first()
         return user
 
-    async def create_user(self, user_data: UserCreate, session: AsyncSession):
+    async def get_user_by_email(self, email: str, session: AsyncSession):
+        # Logic to retrieve a user by ID from the database
+        sql_query = select(User).where(User.email == email)
+        result = await session.exec(sql_query)
+        user = result.first()
+        return user
+
+    async def create_user(self, user_data: UserCreate, session: AsyncSession, creation_type: str = "Admin"):
         # Logic to create a new user in the database
         new_user = User(**user_data.model_dump())
         new_user.title = clean_and_title(user_data.title)
         new_user.first_name = clean_and_title(user_data.first_name)
         new_user.last_name = clean_and_title(user_data.last_name)
-        new_user.role = clean_and_title(user_data.role, acronyms=[
+        new_user.email = user_data.email.lower()
+        new_user.role = clean_and_title("Member", acronyms=[
                                         "CED", "LCC", "DCC", "RCC", "AIC"])
-        new_user.lcc_role = new_user.role
+
+        if creation_type == "user":
+            new_user.password_status = "Changed"
+            new_user.password_hash = generate_password_hash(
+                user_data.password)
+        else:
+            new_user.password_hash = generate_password_hash(
+                "Test@1234")  # Set a default password or generate one as needed
 
         if new_user.title in ["Pastor", "Reverend", "Bishop"]:
             new_user.is_staff = True
 
-        new_user.password_hash = generate_password_hash(
-            "Test@1234")  # Set a default password or generate one as needed
         session.add(new_user)
         await session.commit()
         await session.refresh(new_user)
@@ -65,7 +86,7 @@ class UserService:
         user = result.first()
         return user
 
-    async def update_user(self, user_data: dict, session: AsyncSession):
+    async def update_user(self, current_user: dict, user_data: dict, session: AsyncSession):
         # Logic to update an existing user in the database
         user = await self.get_user_by_uid(str(user_data["id"]), session)
         if not user:
@@ -82,9 +103,12 @@ class UserService:
                 audit_trail[field] = {"old": old_value, "new": new_value}
 
         if audit_trail:
-            effective_role = resolve_role_from_audit(audit_trail)
-            if effective_role:
-                user.role = effective_role   # set effective role field
+            if not user.is_superuser:
+                effective_role = resolve_role_from_audit(audit_trail)
+                if effective_role:
+                    user.role = effective_role   # set effective role field
+            user.updated_by = current_user["user_id"]
+            user.updated_at = datetime.now()
             session.add(user)
             await session.commit()
             await session.refresh(user)
@@ -92,12 +116,14 @@ class UserService:
         else:
             return False
 
-    async def update_user_status(self, user_id: str, reason: str, session: AsyncSession):
+    async def update_user_status(self, current_user, user_id: str, reason: str, session: AsyncSession):
         # Logic to update a user's status in the database
         user = await self.get_user_by_uid(user_id, session)
         if not user:
             return None
         user.is_active = not user.is_active  # Toggle the is_active status
+        user.updated_by = current_user["user_id"]
+        user.updated_at = datetime.now()
         # Optionally, you can log the reason for status change in an audit trail
         await session.commit()
         await session.refresh(user)

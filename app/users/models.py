@@ -1,13 +1,16 @@
 import uuid
 import re
 import sqlalchemy.dialects.postgresql as pg
-from pydantic import field_validator
+from pydantic import field_validator, EmailStr
 from datetime import datetime
 from typing import Optional, TYPE_CHECKING
 from fastapi import Form, HTTPException
 from sqlmodel import Relationship, Field, SQLModel, Column
 
+
 from app.council.models import Church, Region, District
+from app.notifications.models import EventLike, EventComment, Notification, NotificationPreference
+from app.events.models import Event
 
 if TYPE_CHECKING:
     from app.notifications.models import EventLike, EventComment, Notification, NotificationPreference
@@ -15,9 +18,9 @@ if TYPE_CHECKING:
 
 class UserBase(SQLModel):
     title: str = Field(max_length=12)
-    first_name: str = Field(max_length=12)
-    last_name: str = Field(max_length=50)
-    role: Optional[str] = Field(default=None)
+    first_name: str = Field(max_length=12, min_length=3)
+    last_name: str = Field(max_length=50, min_length=3)
+    email: EmailStr = Field(unique=True)
 
 
 class UserCreate(UserBase):
@@ -25,6 +28,8 @@ class UserCreate(UserBase):
     region_id: uuid.UUID = Field(..., description="Region UUID")
     district_id: uuid.UUID = Field(..., description="District UUID")
     local_church_id: uuid.UUID = Field(..., description="Church UUID")
+    password: str = Field(min_length=6)
+    confirm_password: str = Field(min_length=6)
 
     @field_validator("phone_no")
     @classmethod
@@ -37,6 +42,7 @@ class UserCreate(UserBase):
 
 class userPublic(UserBase):
     id: uuid.UUID
+    role: Optional[str] = Field(default=None)
     rcc_role: Optional[str] = Field(default=None)
     dcc_role: Optional[str] = Field(default=None)
     lcc_role: Optional[str] = Field(default=None)
@@ -52,10 +58,12 @@ def user_create_form(
     first_name: str = Form(...),
     last_name: str = Form(...),
     phone_no: str = Form(...),
-    role: str = Form(...),
+    email: EmailStr = Form(...),
     region_id: str = Form(...),
     district_id: str = Form(...),
     local_church_id: str = Form(...),
+    password: str = Form(...),
+    confirm_password: str = Form(...)
 ) -> UserCreate:
     try:
         return UserCreate(
@@ -63,22 +71,28 @@ def user_create_form(
             first_name=first_name,
             last_name=last_name,
             phone_no=phone_no,
-            role=role,
+            email=email,
             region_id=region_id,
             district_id=district_id,
             local_church_id=local_church_id,
+            password=password,
+            confirm_password=confirm_password
         )
     except ValueError as e:
         # This catches your @field_validator errors and returns them to the UI
         raise HTTPException(status_code=422, detail=str(e))
 
 
-class UserUpdate(UserCreate):
+class UserUpdate(UserBase):
     id: uuid.UUID = Field(..., description="User UUID")
     phone_no: str = Field(max_length=10, unique=True, regex=r"^0\d{9}$")
-    region_id: uuid.UUID = Field(..., description="Region UUID")
-    district_id: uuid.UUID = Field(..., description="District UUID")
-    local_church_id: uuid.UUID = Field(..., description="Church UUID")
+    region_id: Optional[uuid.UUID] = Field(..., description="Region UUID")
+    district_id: Optional[uuid.UUID] = Field(..., description="District UUID")
+    local_church_id: Optional[uuid.UUID] = Field(
+        ..., description="Church UUID")
+    rcc_role: Optional[str] = Field(default=None)
+    dcc_role: Optional[str] = Field(default=None)
+    lcc_role: Optional[str] = Field(default=None)
 
     @field_validator("phone_no")
     @classmethod
@@ -125,16 +139,17 @@ class User(UserBase, table=True):
         pg.TIMESTAMP, default=datetime.now, nullable=True))
     mobile_login: Optional[bool] = Field(default=False)
     last_login_mobile: Optional[datetime] = Field(default=None, nullable=True)
-    local_church_id: uuid.UUID = Field(foreign_key="churches.id")
+    local_church_id: Optional[uuid.UUID] = Field(foreign_key="churches.id")
     district_id: Optional[uuid.UUID] = Field(
         default=None, foreign_key="districts.id")
     region_id: Optional[uuid.UUID] = Field(
         default=None, foreign_key="regions.id")
+    role: Optional[str] = Field(default=None)
 
+    # Council relationships
     local_church: Optional["Church"] = Relationship(back_populates="users")
     district: Optional["District"] = Relationship()
     region: Optional["Region"] = Relationship()
-
     # Event notification relationships
     event_likes: list["EventLike"] = Relationship(back_populates="user")
     event_comments: list["EventComment"] = Relationship(back_populates="user")

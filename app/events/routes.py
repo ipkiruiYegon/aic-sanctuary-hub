@@ -85,6 +85,6 @@ async def reject_event(
 @events_router.post("/create")
 async def events(request: Request, event_data: EventSchema, session: AsyncSession = Depends(get_session)):
     current_user = request.state.user["user"]["user_id"]
-    print("user", current_user)
+
     event = await event_services.create_event(current_user, event_data, session)
-    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"success": True, "message": "User status updated successfully"})
+    return JSONResponse(status_code=status.HTTP_201_CREATED, content={"success": True, "message": "Event created successfully", "event": str(event.id)})
