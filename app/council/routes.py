@@ -14,9 +14,15 @@ council_services = CouncilService()  # Instantiate the service
 
 
 @council_router.get("/get-churches", response_class=HTMLResponse)
-async def get_churches(request: Request, district_id: str, session: AsyncSession = Depends(get_session)):
+async def get_churches(request: Request, session: AsyncSession = Depends(get_session)):
     # Find the specific district from your 'region' object
     # (Assuming 'region' is available or fetched from DB)
+    params = dict(request.query_params)
+    district_id = next((v for k, v in params.items()
+                       if "district" in k), None)
+    if not district_id:
+        return None
+
     selected_district = await council_services.get_churches_by_district(
         uuid.UUID(district_id), session)
 
@@ -28,7 +34,29 @@ async def get_churches(request: Request, district_id: str, session: AsyncSession
     return options
 
 
-@council_router.get("/")
+@council_router.get("/get-all-churches", response_class=HTMLResponse)
+async def get_all_churches(request: Request, session: AsyncSession = Depends(get_session)):
+    # Find the specific district from your 'region' object
+    # (Assuming 'region' is available or fetched from DB)
+    params = dict(request.query_params)
+    district_id = next((v for k, v in params.items()
+                       if "district" in k), None)
+    print(district_id)
+    if not district_id:
+        return None
+
+    selected_churches = await council_services.get_churches_by_district(
+        uuid.UUID(district_id), session)
+    print(selected_churches)
+    options = '<option value="" disabled selected>-- Select Church --</option>'
+    if selected_churches:
+        for church in selected_churches:
+            options += f'<option value="{church.id}">AIC {church.name} Local Church</option>'
+
+    return options
+
+
+@council_router.get("")
 async def get_council_structure(request: Request, session: AsyncSession = Depends(get_session)):
     region = await council_services.get_region_with_hierarchy(session)
     region_exists = region is not None

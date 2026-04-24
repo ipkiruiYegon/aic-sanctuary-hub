@@ -1,25 +1,25 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="council-container">
+<div class="council-container ">
 
     <!-- Council Management Menu -->
     <h2 class="text-2xl font-bold mb-6">Council Management</h2>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {% if not region_exists %}
         <label for="regionModal" class="btn btn-primary w-full flex items-center gap-2">
-            <i class="fas fa-globe-africa"></i> ➕ Add Region
+            <i class="fas fa-globe-africa"></i> <i class="fas fa-plus"></i>Add Region
         </label>
         {% else %}
         <button class="btn btn-primary w-full flex items-center gap-2" disabled title="Region already created">
-            <i class="fas fa-globe-africa"></i> ➕ Add Region
+            <i class="fas fa-globe-africa"></i> <i class="fas fa-plus"></i>Add Region
         </button>
         {% endif %}
         <label for="districtModal" class="btn btn-primary w-full flex items-center gap-2">
-            <i class="fas fa-city"></i> ➕ Add District
+            <i class="fas fa-city"></i> <i class="fas fa-plus"></i> Add District
         </label>
         <label for="localModal" class="btn btn-primary w-full flex items-center gap-2">
-            <i class="fas fa-church"></i> ➕ Add Local Church
+            <i class="fas fa-church"></i> <i class="fas fa-plus"></i> Add Local Church
         </label>
     </div>
 
@@ -97,7 +97,7 @@
     <div class="council-tree mt-8">
         <div class="flex flex-col items-center space-y-8">
             <!-- Region -->
-            <div class="region-btn btn btn-primary btn-sm">
+            <div class="region-btn btn btn-outline btn-primary btn-sm">
                 AIC {{ region.name }} Region
             </div>
 
@@ -112,14 +112,17 @@
                 <div class="district-block flex flex-col items-center space-y-2">
 
                     <!-- District with hidden actions -->
-                    <div class="district-btn btn btn-secondary btn-xs group relative">
+                    <div class="district-btn btn btn-outline btn-secondary btn-xs group relative">
                         AIC {{ district.name }} DCC
                         <span
                             class="absolute right-0 top-0 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition">
                             <button onclick="openEditDistrictModal('{{ district.id }}')"
-                                class="btn btn-xs btn-secondary">✏️</button>
+                                class="btn btn-xs btn-primary"><i class="fas fa-plus"></i></button>
+                            <button onclick="openEditDistrictModal('{{ district.id }}')"
+                                class="btn btn-xs btn-primary"><i class="fas fa-edit"></i></button>
                             <button onclick="confirmDeleteDistrict('{{ district.id }}')"
-                                class="btn btn-xs btn-error">🗑️</button>
+                                class="btn btn-xs btn-danger bg-red-600 hover:bg-red-700 text-white p-1 rounded"><i
+                                    class="fas fa-trash"></i></button>
                         </span>
                     </div>
 
@@ -137,9 +140,10 @@
                             <span
                                 class="absolute right-1 top-1 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 transition">
                                 <button onclick="openEditChurchModal('{{ church.id }}')"
-                                    class="btn btn-xs btn-secondary">✏️</button>
+                                    class="btn btn-xs btn-primary"><i class="fas fa-edit"></i></button>
                                 <button onclick="confirmDeleteChurch('{{ church.id }}')"
-                                    class="btn btn-xs btn-error">🗑️</button>
+                                    class="btn btn-xs btn-danger bg-red-600 hover:bg-red-700 text-white p-1 rounded"><i
+                                        class="fas fa-trash"></i></button>
                             </span>
                         </li>
                         {% endfor %}

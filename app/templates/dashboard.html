@@ -1,29 +1,206 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h1 class="text-2xl font-bold mb-6">Admin Dashboard</h1>
+<div class="dashboard-container">
+    <h2 class="text-2xl font-bold mb-2">Admin Dashboard</h2>
+    <p class="text-lg text-gray-700 mb-6"><span id="timeGreeting"></span>, {{ request.state.user['user']['first_name']
+        }}.</p>
 
-<!-- Summary Cards -->
-<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-    <!-- Users Card -->
-    <div class="card bg-base-100 shadow-xl p-6">
-        <h3 class="text-lg font-semibold mb-2">👤 Users</h3>
-        <p class="text-3xl font-bold mb-4">{{ users_count }}</p>
-        <a href="/users" class="btn btn-primary w-full md:w-auto">Manage Users</a>
+    <!-- Verse of the Day -->
+    <div id="verseCard"
+        class="card bg-gradient-to-r from-slate-900 via-sky-700 to-indigo-600 text-white shadow-2xl p-8 mb-6">
+        <div class="flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3">
+                <div>
+                    <p class="text-sm uppercase tracking-[0.2em] text-sky-200">Verse of the Day</p>
+                    <h3 class="text-3xl font-semibold">Matthew 5:14-16</h3>
+                </div>
+                <span class="inline-flex rounded-full bg-white/10 px-3 py-1 text-sm text-slate-100">Shine the
+                    light</span>
+            </div>
+            <blockquote class="text-lg leading-relaxed text-slate-100">“You are the light of the world. A city built on
+                a hill cannot be hidden. Neither do people light a lamp and put it under a bowl. Instead they put it on
+                its stand, and it gives light to everyone in the house.”</blockquote>
+            <p class="text-sm text-slate-200 max-w-2xl">Let this verse inspire your day and remind you to lead with
+                clarity, kindness, and purpose.</p>
+
+            <!-- Action Buttons -->
+            <div class="flex gap-3 mt-6 pt-4 border-t border-white/20">
+                <button onclick="toggleLove(this)"
+                    class="btn btn-sm gap-2 bg-white/10 hover:bg-white/20 border-0 text-white">
+                    <span class="text-lg">♡</span>
+                    <span class="love-count">0</span>
+                </button>
+                <button onclick="openCommentModal()"
+                    class="btn btn-sm gap-2 bg-white/10 hover:bg-white/20 border-0 text-white">
+                    <i class="fas fa-comment"></i>
+                    <span class="comment-count">0</span>
+                </button>
+                <button onclick="shareVerse()"
+                    class="btn btn-sm gap-2 bg-white/10 hover:bg-white/20 border-0 text-white">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+            </div>
+        </div>
     </div>
 
-    <!-- Events Card -->
-    <div class="card bg-base-100 shadow-xl p-6">
-        <h3 class="text-lg font-semibold mb-2">📅 Events</h3>
-        <p class="text-3xl font-bold mb-4">{{ events_count }}</p>
-        <a href="/events" class="btn btn-primary w-full md:w-auto">Manage Events</a>
-    </div>
+    <!-- Comment Modal -->
+    <dialog id="verseCommentModal" class="modal">
+        <div class="modal-box w-11/12 max-w-md">
+            <h3 class="font-bold text-lg mb-4">Share Your Reflection</h3>
+            <form id="verseCommentForm" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium mb-2">Your Comment</label>
+                    <textarea id="verseComment" class="textarea textarea-bordered w-full"
+                        placeholder="Share your thoughts on this verse..." rows="4" required></textarea>
+                </div>
+                <div class="flex justify-end gap-2">
+                    <button type="button" class="btn btn-sm"
+                        onclick="document.getElementById('verseCommentModal').close()">Cancel</button>
+                    <button type="submit" class="btn btn-sm btn-primary">Post Comment</button>
+                </div>
+            </form>
+        </div>
+    </dialog>
 
-    <!-- Notifications Card -->
+    <!-- Upcoming Events Table -->
     <div class="card bg-base-100 shadow-xl p-6">
-        <h3 class="text-lg font-semibold mb-2">🔔 Notifications</h3>
-        <p class="text-3xl font-bold mb-4">{{ notifications_count }}</p>
-        <a href="/notifications" class="btn btn-primary w-full md:w-auto">View Notifications</a>
+        <h3 class="text-lg font-semibold mb-4">📅 Upcoming Events</h3>
+        {% if upcoming_events %}
+        <div class="overflow-x-auto">
+            <table class="table table-zebra w-full">
+                <thead>
+                    <tr>
+                        <th>Event Name</th>
+                        <th>Type</th>
+                        <th>Date</th>
+                        <th>Venue</th>
+                        <th>Target Group</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in upcoming_events %}
+                    <tr>
+                        <td class="font-medium">{{ event.event_name }}</td>
+                        <td>
+                            <span class="badge badge-primary badge-sm">{{ event.event_type }}</span>
+                        </td>
+                        <td>
+                            <div class="text-sm">
+                                <div>{{ event.date_from.strftime('%b %d, %Y') }}</div>
+                                {% if event.date_from.date() != event.date_to.date() %}
+                                <div class="text-gray-500">to {{ event.date_to.strftime('%b %d, %Y') }}</div>
+                                {% endif %}
+                            </div>
+                        </td>
+                        <td>{{ event.actual_venue }}</td>
+                        <td>{{ event.target_group }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-8 text-gray-500">
+            <i class="fas fa-calendar-alt text-4xl mb-2"></i>
+            <p>No upcoming events scheduled</p>
+        </div>
+        {% endif %}
+        <div class="mt-4">
+            <a href="/events" class="btn btn-primary w-full md:w-auto">Manage Events</a>
+        </div>
     </div>
 </div>
+
+<script>
+    // Random verse card backgrounds
+    const verseBackgrounds = [
+        'bg-gradient-to-r from-slate-900 via-sky-700 to-indigo-600',
+        'bg-gradient-to-r from-purple-900 via-pink-700 to-red-600',
+        'bg-gradient-to-r from-green-900 via-teal-700 to-blue-600',
+        'bg-gradient-to-r from-orange-900 via-yellow-700 to-red-600',
+        'bg-gradient-to-r from-indigo-900 via-purple-700 to-pink-600',
+        'bg-gradient-to-r from-emerald-900 via-cyan-700 to-blue-600',
+        'bg-gradient-to-r from-rose-900 via-pink-700 to-purple-600',
+        'bg-gradient-to-r from-amber-900 via-orange-700 to-red-600',
+        'bg-gradient-to-r from-cyan-900 via-blue-700 to-indigo-600',
+        'bg-gradient-to-r from-violet-900 via-purple-700 to-fuchsia-600'
+    ];
+
+    // Set random background on page load
+    document.addEventListener('DOMContentLoaded', () => {
+        const verseCard = document.getElementById('verseCard');
+        if (verseCard) {
+            // Remove default background
+            verseCard.classList.remove('bg-gradient-to-r', 'from-slate-900', 'via-sky-700', 'to-indigo-600');
+            // Add random background
+            const randomBg = verseBackgrounds[Math.floor(Math.random() * verseBackgrounds.length)];
+            verseCard.classList.add(...randomBg.split(' '));
+        }
+
+        // Set time-based greeting
+        const timeGreeting = document.getElementById('timeGreeting');
+        if (timeGreeting) {
+            const hour = new Date().getHours();
+            let greeting = 'Good morning';
+            if (hour >= 12 && hour < 17) {
+                greeting = 'Good afternoon';
+            } else if (hour >= 17) {
+                greeting = 'Good evening';
+            }
+            timeGreeting.textContent = greeting;
+        }
+
+        const verseCommentForm = document.getElementById('verseCommentForm');
+        if (verseCommentForm) {
+            verseCommentForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const comment = document.getElementById('verseComment').value;
+                // Here you would typically send the comment to the server
+                showToast(`Comment posted: "${comment}"`, 'success');
+                document.getElementById('verseCommentModal').close();
+                verseCommentForm.reset();
+            });
+        }
+    });
+
+    let isLoved = false;
+
+    function toggleLove(button) {
+        isLoved = !isLoved;
+        const loveCount = button.querySelector('.love-count');
+        const heart = button.querySelector('span:first-child');
+
+        if (isLoved) {
+            heart.textContent = '❤';
+            loveCount.textContent = parseInt(loveCount.textContent) + 1;
+            button.classList.add('bg-red-500/20', 'hover:bg-red-500/30');
+            showToast('Added to your favorites!', 'success');
+        } else {
+            heart.textContent = '♡';
+            loveCount.textContent = Math.max(0, parseInt(loveCount.textContent) - 1);
+            button.classList.remove('bg-red-500/20', 'hover:bg-red-500/30');
+            showToast('Removed from favorites', 'info');
+        }
+    }
+
+    function openCommentModal() {
+        document.getElementById('verseCommentModal').showModal();
+    }
+
+    function shareVerse() {
+        const text = "Matthew 5:14-16 - You are the light of the world...";
+        if (navigator.share) {
+            navigator.share({
+                title: 'Verse of the Day',
+                text: text
+            }).catch(err => console.log('Share failed:', err));
+        } else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('Verse copied to clipboard!', 'success');
+            });
+        }
+    };
+</script>
 {% endblock %}

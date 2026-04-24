@@ -12,8 +12,8 @@ from app.users.service import UserService  # Import your UserService here
 from app.council.service import CouncilService
 # Import the templates object from core/templates.py
 from app.core.templates import templates
-# Import your Pydantic schemas here
-from app.users.schemas import UserCreateModel, UserBaseModel, as_form, UserUpdateModel, UserStatusModel
+# Import your Sql_models here
+from app.users.models import UserCreate, userPublic, user_create_form, UserUpdate, UserStatus
 
 
 user_router = APIRouter()
@@ -87,16 +87,19 @@ RCC_ROLE_OPTIONS = [
 
 
 @user_router.post("/create")
-async def create_user(user_data: UserCreateModel = Depends(as_form), session: AsyncSession = Depends(get_session)):
+async def create_user(user_data: UserCreate = Depends(user_create_form), session: AsyncSession = Depends(get_session)):
     # print(f"Received user data: {user_data}")
     if await user_service.user_phone_exists(user_data.phone_no, session):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="User with this phone number already exists")
+    if await user_service.user_email_exists(user_data.email, session):
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
+                            detail="User with this phone number already exists")
     user = await user_service.create_user(user_data, session)
-    return JSONResponse({"success": True, "user_id": str(user.id)})
+    return JSONResponse(content={"success": True, "user_id": str(user.id)}, status_code=status.HTTP_201_CREATED)
 
 
-@user_router.get("/", response_class=HTMLResponse)
+@user_router.get("", response_class=HTMLResponse)
 async def get_users(request: Request, session: AsyncSession = Depends(get_session)):
     # Query users from DB
     users = await user_service.get_all_users(session)
@@ -123,7 +126,51 @@ async def users_table(request: Request, session: AsyncSession = Depends(get_sess
     })
 
 
-@user_router.get("/{user_id}", response_model=UserBaseModel)
+@user_router.get("/profile", response_class=HTMLResponse)
+async def user_profile(request: Request, session: AsyncSession = Depends(get_session)):
+    current_user = request.state.user["user"]
+    user_id = current_user["user_id"]
+
+    # Get the full user data
+    user = await user_service.get_user_by_uid(user_id, session)
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
+                            detail="User not found")
+
+    # Get region hierarchy for context
+    region = await council_services.get_region_with_hierarchy(session)
+
+    # Mock activity logs for now (you can implement actual activity logging later)
+    activity_logs = [
+        {
+            "id": 1,
+            "action": "Logged in",
+            "timestamp": user.last_login or user.created_at,
+            "details": "User logged into the system"
+        },
+        {
+            "id": 2,
+            "action": "Profile viewed",
+            "timestamp": user.updated_at or user.created_at,
+            "details": "User viewed their profile"
+        },
+        {
+            "id": 3,
+            "action": "Account created",
+            "timestamp": user.created_at,
+            "details": "User account was created"
+        }
+    ]
+
+    return templates.TemplateResponse("profile.html", {
+        "request": request,
+        "user": user,
+        "region": region,
+        "activity_logs": activity_logs
+    })
+
+
+@user_router.get("/{user_id}", response_model=userPublic)
 async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_session)):
     # Example raw query; adjust based on your schema
     user = await user_service.get_user_by_uid(user_id, session)
@@ -134,27 +181,31 @@ async def get_user(user_id: uuid.UUID, session: AsyncSession = Depends(get_sessi
 
 
 @user_router.post("/update")
-async def update_user(user_data: UserUpdateModel, session: AsyncSession = Depends(get_session)):
-    # Example raw query; adjust based on your schema
-    if not await user_service.user_exists(user_data.user_id, session):
+async def update_user(request: Request, user_data: UserUpdate, session: AsyncSession = Depends(get_session)):
+    current_user = request.state.user["user"]
+
+    if not await user_service.user_exists(user_data.id, session):
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
-
-    return await user_service.update_user(user_data.model_dump(exclude_none=True), session)
+    if await user_service.update_user(current_user, user_data.model_dump(exclude_none=True), session):
+        return JSONResponse(status_code=status.HTTP_200_OK, content={"success": True, "message": "User updated successfully"})
+    else:
+        return JSONResponse(status_code=status.HTTP_400_BAD_REQUEST, content={"success": False, "message": "No changes detected"})
 
 
 # delete user route that does not delete but sets is_active to false
 
 
 @user_router.post("/update/status")
-async def update_user_status(user_status_data: UserStatusModel, session: AsyncSession = Depends(get_session)):
+async def update_user_status(request: Request, user_status_data: UserStatus, session: AsyncSession = Depends(get_session)):
+    current_user = request.state.user["user"]
     user_id = user_status_data.user_id
     user = await user_service.get_user_by_uid(user_id, session)
     if not user:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND,
                             detail="User not found")
-    user_updated = await user_service.update_user_status(user_status_data.user_id, user_status_data.reason, session)
+    user_updated = await user_service.update_user_status(current_user, user_status_data.user_id, user_status_data.reason, session)
     if not user_updated:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST,
                             detail="Failed to update user status")
-    return JSONResponse({"success": True, "message": "User status updated successfully"})
+    return JSONResponse(status_code=status.HTTP_200_OK, content={"success": True, "message": "User status updated successfully"})

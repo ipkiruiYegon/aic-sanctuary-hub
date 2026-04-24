@@ -1,39 +1,945 @@
 {% extends "base.html" %}
 {% block content %}
-<h2 class="page-title">Manage Notifications</h2>
-
-<!-- Create Notification Form -->
-<div class="form-container">
-    <form method="post" action="/notifications/create" class="notification-form">
-        <div class="form-group">
-            <label for="message">Message:</label>
-            <input type="text" name="message" id="message" required>
+<div class="container mx-auto px-4 py-1 max-w-7xl">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <i class="fas fa-bell text-blue-600"></i>
+                Notifications & Events
+            </h2>
+            <p class="text-gray-600 mt-1">Stay updated with events and system notifications</p>
         </div>
-        <button type="submit" class="btn-primary">Send Notification</button>
-    </form>
+        <div class="flex gap-2">
+            <button onclick="openPreferencesModal()" class="btn btn-sm btn-outline">
+                <i class="fas fa-cog"></i>
+                Preferences
+            </button>
+            <button onclick="markAllRead()" class="btn btn-sm btn-primary">
+                <i class="fas fa-check-double"></i>
+                Mark All Read
+            </button>
+        </div>
+    </div>
+
+    <!-- Notification Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-blue-600">
+                <i class="fas fa-calendar-alt text-3xl"></i>
+            </div>
+            <div class="stat-title">Upcoming Events</div>
+            <div class="stat-value text-blue-600">{{ upcoming_events|length }}</div>
+        </div>
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-green-600">
+                <i class="fas fa-check-circle text-3xl"></i>
+            </div>
+            <div class="stat-title">Past Events</div>
+            <div class="stat-value text-green-600">{{ past_events|length }}</div>
+        </div>
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-orange-600">
+                <i class="fas fa-envelope text-3xl"></i>
+            </div>
+            <div class="stat-title">Notifications</div>
+            <div class="stat-value text-orange-600">{{ notifications|length }}</div>
+        </div>
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-red-600">
+                <i class="fas fa-exclamation-circle text-3xl"></i>
+            </div>
+            <div class="stat-title">Unread</div>
+            <div class="stat-value text-red-600" id="unread-count">{{ unread_count }}</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <!-- Mobile-Responsive Tabs -->
+            <div class="tabs tabs-boxed mb-6 w-full">
+                <a class="tab tab-active text-red-600 flex-1 sm:flex-none" data-tab="events"
+                    onclick="showTab('events')">
+                    <i class="fas fa-calendar-alt mr-2"></i>
+                    <span class="hidden sm:inline">Events</span>
+                    <span class="sm:hidden">Events</span>
+                </a>
+                <a class="tab flex-1 sm:flex-none" data-tab="activity" onclick="showTab('activity')">
+                    <i class="fas fa-history mr-2"></i>
+                    <span class="hidden sm:inline">Activity Feed</span>
+                    <span class="sm:hidden">Activity</span>
+                </a>
+                <a class="tab flex-1 sm:flex-none" data-tab="notifications" onclick="showTab('notifications')">
+                    <i class="fas fa-bell mr-2"></i>
+                    <span class="hidden sm:inline">Notifications</span>
+                    <span class="sm:hidden">Alerts</span>
+                    {% if unread_count > 0 %}
+                    <span class="badge badge-sm badge-error ml-1">{{ unread_count }}</span>
+                    {% endif %}
+                </a>
+            </div>
+
+            <!-- Events Tab -->
+            <div id="events-tab" class="tab-content">
+                <!-- Event Filters -->
+                <div class="flex flex-wrap gap-2 mb-4 filter-events">
+                    <button class="btn btn-sm btn-active" data-filter="all" onclick="filterEvents('all')">All
+                        Events</button>
+                    <button class="btn btn-sm" data-filter="upcoming"
+                        onclick="filterEvents('upcoming')">Upcoming</button>
+                    <button class="btn btn-sm" data-filter="past" onclick="filterEvents('past')">Past</button>
+                </div>
+
+                <div id="events-container">
+                    {% if upcoming_events|length == 0 and past_events|length == 0 %}
+                    <div class="text-center py-16 bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                        <div class="mx-auto mb-4 w-24 h-24 rounded-full bg-blue-100 flex items-center justify-center">
+                            <i class="fas fa-calendar-times text-3xl text-blue-600"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">No events available</h3>
+                        <p class="text-gray-600 mb-4">There are no approved events in the system right now.</p>
+                        <button class="btn btn-primary" onclick="window.location.href='/events'">
+                            <i class="fas fa-calendar-plus mr-2"></i>
+                            Create or review events
+                        </button>
+                    </div>
+                    {% else %}
+                    <!-- All Events -->
+                    <div id="all-events-section">
+                        <h3 class="text-lg font-semibold mb-4 flex items-center gap-2">
+                            <i class="fas fa-calendar-alt text-blue-600"></i>
+                            All Events ({{ upcoming_events|length + past_events|length }} total)
+                        </h3>
+                        <div class="space-y-4" id="all-events-list">
+                            {% for event in upcoming_events %}
+                            <div class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200"
+                                data-event-type="upcoming">
+                                <div class="card-body p-6">
+                                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <div
+                                                    class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                                    {{ event.event_name[0]|upper }}
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-xl font-semibold text-gray-900">{{ event.event_name
+                                                        }}</h3>
+                                                    <p class="text-sm text-gray-600">{{ event.event_type }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-600">
+                                                <span class="flex items-center gap-1">
+                                                    <i class="fas fa-calendar text-blue-500"></i>
+                                                    {{ event.date_from|format_datetime('%b %d, %Y') }} - {{
+                                                    event.date_to|format_datetime('%b %d, %Y') }}
+                                                </span>
+                                                <span class="flex items-center gap-1">
+                                                    <i class="fas fa-map-marker-alt text-red-500"></i>
+                                                    {{ event.actual_venue }}
+                                                </span>
+                                                <span class="flex items-center gap-1">
+                                                    <i class="fas fa-users text-green-500"></i>
+                                                    {{ event.target_group }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="badge badge-primary badge-lg">Upcoming</div>
+                                    </div>
+                                    {% if event.description %}
+                                    <p class="text-gray-600 mb-4 leading-relaxed">{{ event.description }}</p>
+                                    {% endif %}
+                                    <div
+                                        class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+                                        <div class="flex items-center gap-4">
+                                            <button onclick="toggleLike('{{ event.id }}', this)"
+                                                class="btn btn-sm btn-ghost gap-2 hover:bg-red-50 hover:text-red-600 transition-colors">
+                                                <i class="far fa-heart"></i>
+                                                <span class="like-count">0</span>
+                                            </button>
+                                            <button onclick="toggleComments('{{ event.id }}')"
+                                                class="btn btn-sm btn-ghost gap-2 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                                <i class="fas fa-comment"></i>
+                                                <span class="comment-count">0</span>
+                                            </button>
+                                            <button onclick="shareEvent('{{ event.id }}', '{{ event.event_name }}')"
+                                                class="btn btn-sm btn-ghost gap-2 hover:bg-green-50 hover:text-green-600 transition-colors">
+                                                <i class="fas fa-share"></i>
+                                                Share
+                                            </button>
+                                        </div>
+                                        <button class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye mr-2"></i>
+                                            View Details
+                                        </button>
+                                    </div>
+                                    <div id="comments-{{ event.id }}" class="mt-4 pt-4 border-t border-gray-100 hidden">
+                                        <div class="space-y-3 mb-4" id="comments-list-{{ event.id }}"></div>
+                                        <div class="flex gap-3">
+                                            <input type="text" id="comment-input-{{ event.id }}"
+                                                placeholder="Write a comment..."
+                                                class="input input-bordered flex-1 text-sm">
+                                            <button onclick="addComment('{{ event.id }}')"
+                                                class="btn btn-primary btn-sm">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% for event in past_events %}
+                            <div class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200 opacity-75"
+                                data-event-type="past">
+                                <div class="card-body p-6">
+                                    <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-3 mb-2">
+                                                <div
+                                                    class="w-12 h-12 bg-gradient-to-r from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                                                    {{ event.event_name[0]|upper }}
+                                                </div>
+                                                <div>
+                                                    <h3 class="text-xl font-semibold text-gray-700">{{ event.event_name
+                                                        }}</h3>
+                                                    <p class="text-sm text-gray-500">{{ event.event_type }}</p>
+                                                </div>
+                                            </div>
+                                            <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+                                                <span class="flex items-center gap-1">
+                                                    <i class="fas fa-calendar text-gray-400"></i>
+                                                    {{ event.date_from|format_datetime('%b %d, %Y') }} - {{
+                                                    event.date_to|format_datetime('%b %d, %Y') }}
+                                                </span>
+                                                <span class="flex items-center gap-1">
+                                                    <i class="fas fa-map-marker-alt text-gray-400"></i>
+                                                    {{ event.actual_venue }}
+                                                </span>
+                                                <span class="flex items-center gap-1">
+                                                    <i class="fas fa-users text-gray-400"></i>
+                                                    {{ event.target_group }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div class="badge badge-secondary badge-lg">Completed</div>
+                                    </div>
+                                    {% if event.description %}
+                                    <p class="text-gray-600 mb-4 leading-relaxed">{{ event.description }}</p>
+                                    {% endif %}
+                                    <div
+                                        class="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-gray-100">
+                                        <div class="flex items-center gap-4">
+                                            <button onclick="toggleLike('{{ event.id }}', this)"
+                                                class="btn btn-sm btn-ghost gap-2 hover:bg-red-50 hover:text-red-600 transition-colors">
+                                                <i class="far fa-heart"></i>
+                                                <span class="like-count">0</span>
+                                            </button>
+                                            <button onclick="toggleComments('{{ event.id }}')"
+                                                class="btn btn-sm btn-ghost gap-2 hover:bg-blue-50 hover:text-blue-600 transition-colors">
+                                                <i class="fas fa-comment"></i>
+                                                <span class="comment-count">0</span>
+                                            </button>
+                                            <button onclick="shareEvent('{{ event.id }}', '{{ event.event_name }}')"
+                                                class="btn btn-sm btn-ghost gap-2 hover:bg-green-50 hover:text-green-600 transition-colors">
+                                                <i class="fas fa-share"></i>
+                                                Share
+                                            </button>
+                                        </div>
+                                        <button class="btn btn-outline btn-sm">
+                                            <i class="fas fa-eye mr-2"></i>
+                                            View Details
+                                        </button>
+                                    </div>
+                                    <div id="comments-{{ event.id }}" class="mt-4 pt-4 border-t border-gray-100 hidden">
+                                        <div class="space-y-3 mb-4" id="comments-list-{{ event.id }}"></div>
+                                        <div class="flex gap-3">
+                                            <input type="text" id="comment-input-{{ event.id }}"
+                                                placeholder="Write a comment..."
+                                                class="input input-bordered flex-1 text-sm">
+                                            <button onclick="addComment('{{ event.id }}')"
+                                                class="btn btn-primary btn-sm">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Activity Feed Tab -->
+            <div id="activity-tab" class="tab-content hidden">
+                <div class="space-y-4">
+                    <!-- Activity Feed Items -->
+                    <div class="card bg-white shadow">
+                        <div class="card-body">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-user-plus text-blue-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm">
+                                        <span class="font-semibold">John Doe</span> joined the church community
+                                    </p>
+                                    <p class="text-xs text-gray-500">2 hours ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card bg-white shadow">
+                        <div class="card-body">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-calendar-check text-green-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm">
+                                        <span class="font-semibold">Youth Conference 2024</span> has been approved
+                                    </p>
+                                    <p class="text-xs text-gray-500">1 day ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card bg-white shadow">
+                        <div class="card-body">
+                            <div class="flex items-start gap-4">
+                                <div class="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                    <i class="fas fa-heart text-purple-600"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <p class="text-sm">
+                                        <span class="font-semibold">Sarah Johnson</span> liked your event post
+                                    </p>
+                                    <p class="text-xs text-gray-500">3 days ago</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Empty State for Activity Feed -->
+                    <div class="text-center py-12 bg-gray-50 rounded-lg">
+                        <div
+                            class="w-24 h-24 bg-gradient-to-r from-purple-100 to-pink-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <i class="fas fa-stream text-3xl text-purple-500"></i>
+                        </div>
+                        <h3 class="text-xl font-semibold text-gray-900 mb-2">Activity Feed Coming Soon</h3>
+                        <p class="text-gray-600">Real-time activity updates will be available here.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications Tab -->
+            <div id="notifications-tab" class="tab-content hidden">
+                <div class="space-y-4" id="notifications-list">
+                    {% for notification in notifications %}
+                    <div
+                        class="card bg-white shadow {% if not notification.is_read %}border-l-4 border-l-blue-500{% endif %}">
+                        <div class="card-body">
+                            <div class="flex items-start justify-between gap-4">
+                                <div class="flex items-start gap-4 flex-1">
+                                    <div
+                                        class="w-10 h-10 {% if notification.type == 'event_created' %}bg-blue-100{% elif notification.type == 'system_announcement' %}bg-yellow-100{% else %}bg-gray-100{% endif %} rounded-full flex items-center justify-center">
+                                        {% if notification.type == 'event_created' %}
+                                        <i class="fas fa-calendar-plus text-blue-600"></i>
+                                        {% elif notification.type == 'event_liked' %}
+                                        <i class="fas fa-heart text-red-600"></i>
+                                        {% elif notification.type == 'system_announcement' %}
+                                        <i class="fas fa-bullhorn text-yellow-600"></i>
+                                        {% else %}
+                                        <i class="fas fa-bell text-gray-600"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="flex-1">
+                                        <h4 class="font-semibold text-sm">{{ notification.title }}</h4>
+                                        <p class="text-sm text-gray-600 mt-1">{{ notification.message }}</p>
+                                        <p class="text-xs text-gray-500 mt-2">{{
+                                            notification.created_at|format_datetime('%b %d, %Y %I:%M %p') }}</p>
+                                    </div>
+                                </div>
+                                {% if not notification.is_read %}
+                                <button onclick="markAsRead('{{ notification.id }}')"
+                                    class="btn btn-sm btn-ghost text-blue-600">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Empty State for Notifications -->
+                {% if notifications|length == 0 %}
+                <div class="text-center py-12 bg-gray-50 rounded-lg">
+                    <div
+                        class="w-24 h-24 bg-gradient-to-r from-blue-100 to-indigo-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <i class="fas fa-bell-slash text-3xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-xl font-semibold text-gray-900 mb-2">No Notifications</h3>
+                    <p class="text-gray-600">You're all caught up! New notifications will appear here.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- Quick Actions -->
+            <div class="card bg-white shadow mb-6">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="fas fa-bolt mr-2"></i>
+                        Quick Actions
+                    </h3>
+                    <div class="space-y-2">
+                        <button class="btn btn-block btn-outline">
+                            <i class="fas fa-plus mr-2"></i>
+                            Create Event
+                        </button>
+                        <button onclick="openPreferencesModal()" class="btn btn-block btn-outline">
+                            <i class="fas fa-cog mr-2"></i>
+                            Notification Settings
+                        </button>
+                        <button class="btn btn-block btn-outline">
+                            <i class="fas fa-users mr-2"></i>
+                            Invite Members
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Events Summary -->
+            <div class="card bg-white shadow mb-6">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="fas fa-calendar-alt mr-2"></i>
+                        This Week
+                    </h3>
+                    <div class="space-y-3">
+                        {% for event in upcoming_events[:3] %}
+                        <div class="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-calendar text-blue-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <p class="text-sm font-medium truncate">{{ event.event_name }}</p>
+                                <p class="text-xs text-gray-500">{{ event.date_from|format_datetime('%b %d') }}</p>
+                            </div>
+                        </div>
+                        {% endfor %}
+                        {% if upcoming_events|length == 0 %}
+                        <p class="text-sm text-gray-500 text-center py-4">No events this week</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card bg-white shadow">
+                <div class="card-body">
+                    <h3 class="card-title">
+                        <i class="fas fa-clock mr-2"></i>
+                        Recent Activity
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-heart text-green-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm">3 new likes on events</p>
+                                <p class="text-xs text-gray-500">Today</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-comment text-blue-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm">2 new comments</p>
+                                <p class="text-xs text-gray-500">Yesterday</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+                                <i class="fas fa-user-plus text-purple-600 text-sm"></i>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm">1 new member joined</p>
+                                <p class="text-xs text-gray-500">2 days ago</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
-<!-- Notifications List -->
-<div class="table-container">
-    <table class="styled-table">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Message</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for note in notifications %}
-            <tr>
-                <td>{{ note.id }}</td>
-                <td>{{ note.message }}</td>
-                <td>
-                    <a href="/notifications/delete/{{ note.id }}" class="btn-danger">Delete</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<!-- Notification Preferences Modal -->
+<div id="preferences-modal" class="modal">
+    <div class="modal-box max-w-md">
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-cog mr-2"></i>
+            Notification Preferences
+        </h3>
+        <form id="preferences-form">
+            <div class="space-y-4">
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Event Created</span>
+                        <input type="checkbox" name="event_created" class="toggle toggle-primary" {% if
+                            preferences.event_created %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Event Updated</span>
+                        <input type="checkbox" name="event_updated" class="toggle toggle-primary" {% if
+                            preferences.event_updated %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Event Cancelled</span>
+                        <input type="checkbox" name="event_cancelled" class="toggle toggle-primary" {% if
+                            preferences.event_cancelled %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Event Liked</span>
+                        <input type="checkbox" name="event_liked" class="toggle toggle-primary" {% if
+                            preferences.event_liked %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Event Commented</span>
+                        <input type="checkbox" name="event_commented" class="toggle toggle-primary" {% if
+                            preferences.event_commented %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">System Announcements</span>
+                        <input type="checkbox" name="system_announcements" class="toggle toggle-primary" {% if
+                            preferences.system_announcements %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="divider"></div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Email Notifications</span>
+                        <input type="checkbox" name="email_notifications" class="toggle toggle-primary" {% if
+                            preferences.email_notifications %}checked{% endif %}>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        <span class="label-text">Push Notifications</span>
+                        <input type="checkbox" name="push_notifications" class="toggle toggle-primary" {% if
+                            preferences.push_notifications %}checked{% endif %}>
+                    </label>
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="closePreferencesModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Preferences</button>
+            </div>
+        </form>
+    </div>
 </div>
+
+<script>
+    // Tab switching functionality
+    function showTab(tabName) {
+        const tabs = ['events', 'activity', 'notifications'];
+        const tabElements = tabs.map(tab => document.getElementById(tab + '-tab'));
+        const tabButtons = Array.from(document.querySelectorAll('.tabs .tab'));
+
+        // Hide all tabs and reset button styles
+        tabElements.forEach(el => el.classList.add('hidden'));
+        tabButtons.forEach(btn => {
+            btn.classList.remove('tab-active');
+            btn.classList.remove('text-red-600');
+            btn.classList.add('text-gray-600');
+        });
+
+        // Show selected tab and style active button
+        document.getElementById(tabName + '-tab').classList.remove('hidden');
+        const activeButton = tabButtons.find(btn => btn.dataset.tab === tabName);
+        if (activeButton) {
+            activeButton.classList.add('tab-active');
+            activeButton.classList.add('text-red-600');
+            activeButton.classList.remove('text-gray-600');
+        }
+    }
+
+    // Filter events
+    function filterEvents(filter) {
+        const allEvents = document.querySelectorAll('#all-events-list [data-event-type]');
+        const filterButtons = document.querySelectorAll('.filter-events button');
+
+        // Update active button
+        filterButtons.forEach(btn => {
+            btn.classList.remove('btn-active');
+            if (btn.dataset.filter === filter) {
+                btn.classList.add('btn-active');
+            }
+        });
+
+        // Show/hide events based on filter
+        allEvents.forEach(eventCard => {
+            const eventType = eventCard.dataset.eventType;
+
+            if (filter === 'all' || filter === eventType) {
+                eventCard.style.display = 'block';
+            } else {
+                eventCard.style.display = 'none';
+            }
+        });
+    }
+
+    // Like functionality
+    async function toggleLike(eventId, button) {
+        try {
+            const response = await fetch(`/notifications/events/${eventId}/like`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                const likeCount = button.querySelector('.like-count');
+                likeCount.textContent = data.likes_count;
+
+                if (data.liked) {
+                    button.classList.add('text-red-600');
+                    button.querySelector('i').classList.add('fas');
+                    button.querySelector('i').classList.remove('far');
+                } else {
+                    button.classList.remove('text-red-600');
+                    button.querySelector('i').classList.add('far');
+                    button.querySelector('i').classList.remove('fas');
+                }
+            }
+        } catch (error) {
+            console.error('Error toggling like:', error);
+            showToast('Failed to update like', 'error');
+        }
+    }
+
+    // Comments functionality
+    function toggleComments(eventId) {
+        const commentsSection = document.getElementById(`comments-${eventId}`);
+        const isVisible = !commentsSection.classList.contains('hidden');
+
+        if (isVisible) {
+            commentsSection.classList.add('hidden');
+        } else {
+            commentsSection.classList.remove('hidden');
+            loadComments(eventId);
+        }
+    }
+
+    async function loadComments(eventId) {
+        try {
+            const response = await fetch(`/notifications/events/${eventId}/comments`);
+            const data = await response.json();
+
+            const commentsList = document.getElementById(`comments-list-${eventId}`);
+            commentsList.innerHTML = '';
+
+            data.comments.forEach(comment => {
+                const commentElement = document.createElement('div');
+                commentElement.className = 'flex gap-3 p-3 bg-gray-50 rounded-lg';
+                commentElement.innerHTML = `
+                <div class="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                    ${comment.user.first_name[0]}${comment.user.last_name[0]}
+                </div>
+                <div class="flex-1">
+                    <div class="flex items-center gap-2 mb-1">
+                        <span class="font-semibold text-sm">${comment.user.first_name} ${comment.user.last_name}</span>
+                        <span class="text-xs text-gray-500">${new Date(comment.created_at).toLocaleDateString()}</span>
+                    </div>
+                    <p class="text-sm text-gray-700">${comment.comment}</p>
+                </div>
+            `;
+                commentsList.appendChild(commentElement);
+            });
+
+            // Update comment count
+            const commentButton = document.querySelector(`[onclick="toggleComments('${eventId}')"]`);
+            if (commentButton) {
+                const commentCount = commentButton.querySelector('.comment-count');
+                if (commentCount) {
+                    commentCount.textContent = data.comments.length;
+                }
+            }
+
+        } catch (error) {
+            console.error('Error loading comments:', error);
+            showToast('Failed to load comments', 'error');
+        }
+    }
+
+    async function addComment(eventId) {
+        const input = document.getElementById(`comment-input-${eventId}`);
+        const comment = input.value.trim();
+
+        if (!comment) {
+            showToast('Please enter a comment', 'warning');
+            return;
+        }
+
+        try {
+            const formData = new FormData();
+            formData.append('comment', comment);
+
+            const response = await fetch(`/notifications/events/${eventId}/comment`, {
+                method: 'POST',
+                body: formData
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                input.value = '';
+                loadComments(eventId);
+                showToast('Comment added successfully', 'success');
+            }
+        } catch (error) {
+            console.error('Error adding comment:', error);
+            showToast('Failed to add comment', 'error');
+        }
+    }
+
+    // Share functionality
+    function shareEvent(eventId, eventName) {
+        const text = `Check out this event: ${eventName}`;
+
+        if (navigator.share) {
+            navigator.share({
+                title: 'Event Share',
+                text: text,
+                url: window.location.href
+            }).catch(err => console.log('Share failed:', err));
+        } else {
+            // Fallback: copy to clipboard
+            navigator.clipboard.writeText(`${text} - ${window.location.href}`).then(() => {
+                showToast('Event link copied to clipboard!', 'success');
+            }).catch(err => {
+                showToast('Failed to copy link', 'error');
+            });
+        }
+    }
+
+    // Notification functionality
+    async function markAsRead(notificationId) {
+        try {
+            const response = await fetch(`/notifications/mark-read/${notificationId}`, {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                // Remove the notification from the list or update its appearance
+                const notificationCard = document.querySelector(`[onclick="markAsRead('${notificationId}')"]`).closest('.card');
+                notificationCard.classList.remove('border-l-4', 'border-l-blue-500');
+                notificationCard.querySelector('[onclick*="markAsRead"]').remove();
+                updateUnreadCount();
+                showToast('Notification marked as read', 'success');
+            }
+        } catch (error) {
+            console.error('Error marking notification as read:', error);
+            showToast('Failed to mark notification as read', 'error');
+        }
+    }
+
+    async function markAllRead() {
+        try {
+            const response = await fetch('/notifications/mark-all-read', {
+                method: 'POST'
+            });
+
+            if (response.ok) {
+                // Update all notification cards
+                document.querySelectorAll('.card.border-l-4').forEach(card => {
+                    card.classList.remove('border-l-4', 'border-l-blue-500');
+                    const markReadBtn = card.querySelector('[onclick*="markAsRead"]');
+                    if (markReadBtn) markReadBtn.remove();
+                });
+                document.getElementById('unread-count').textContent = '0';
+                showToast('All notifications marked as read', 'success');
+            }
+        } catch (error) {
+            console.error('Error marking all notifications as read:', error);
+            showToast('Failed to mark notifications as read', 'error');
+        }
+    }
+
+    async function updateUnreadCount() {
+        try {
+            const response = await fetch('/notifications/api/unread-count');
+            const data = await response.json();
+            document.getElementById('unread-count').textContent = data.unread_count;
+        } catch (error) {
+            console.error('Error updating unread count:', error);
+        }
+    }
+
+    // Preferences modal
+    function openPreferencesModal() {
+        document.getElementById('preferences-modal').classList.add('modal-open');
+    }
+
+    function closePreferencesModal() {
+        document.getElementById('preferences-modal').classList.remove('modal-open');
+    }
+
+    // Handle preferences form submission
+    document.getElementById('preferences-form').addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData(this);
+        const preferences = {};
+
+        for (let [key, value] of formData.entries()) {
+            preferences[key] = true; // All checked boxes are included
+        }
+
+        // Include unchecked boxes as false
+        const allToggles = this.querySelectorAll('input[type="checkbox"]');
+        allToggles.forEach(toggle => {
+            if (!preferences[toggle.name]) {
+                preferences[toggle.name] = false;
+            }
+        });
+
+        try {
+            const response = await fetch('/notifications/preferences', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(preferences)
+            });
+
+            if (response.ok) {
+                closePreferencesModal();
+                showToast('Preferences updated successfully', 'success');
+            } else {
+                showToast('Failed to update preferences', 'error');
+            }
+        } catch (error) {
+            console.error('Error updating preferences:', error);
+            showToast('Failed to update preferences', 'error');
+        }
+    });
+
+    // Load event stats (likes and comments count)
+    async function loadEventStats(eventId) {
+        try {
+            // Load likes count
+            const likeResponse = await fetch(`/notifications/events/${eventId}/like`, { method: 'GET' });
+            if (likeResponse.ok) {
+                const likeData = await likeResponse.json();
+                const likeButton = document.querySelector(`[onclick="toggleLike('${eventId}', this)"]`);
+                if (likeButton) {
+                    const likeCountSpan = likeButton.querySelector('.like-count');
+                    if (likeCountSpan) {
+                        likeCountSpan.textContent = likeData.likes_count || 0;
+                    }
+                }
+            }
+
+            // Load comments count
+            const commentsResponse = await fetch(`/notifications/events/${eventId}/comments`);
+            if (commentsResponse.ok) {
+                const commentsData = await commentsResponse.json();
+                const commentButton = document.querySelector(`[onclick="toggleComments('${eventId}')"]`);
+                if (commentButton) {
+                    const commentCountSpan = commentButton.querySelector('.comment-count');
+                    if (commentCountSpan) {
+                        commentCountSpan.textContent = commentsData.comments.length || 0;
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Error loading event stats for', eventId, error);
+        }
+    }
+
+    // Toast notification function
+    function showToast(message, type = 'info') {
+        console.log(`${type.toUpperCase()}: ${message}`);
+    }
+
+    // Initialize page on load
+    function initializePage() {
+        console.log('🔵 Page initialization starting...');
+
+        // Hide activity and notifications tabs
+        const activityTab = document.getElementById('activity-tab');
+        const notificationsTab = document.getElementById('notifications-tab');
+        if (activityTab) activityTab.style.display = 'none';
+        if (notificationsTab) notificationsTab.style.display = 'none';
+
+        // Show events tab - force display with inline style
+        const eventsTab = document.getElementById('events-tab');
+        if (eventsTab) {
+            eventsTab.style.display = 'block';
+            eventsTab.classList.remove('hidden');
+            console.log('✅ Events tab shown - forced display:block');
+        }
+
+        // Update tab buttons
+        const tabButtons = document.querySelectorAll('.tabs .tab');
+        tabButtons.forEach(btn => {
+            btn.classList.remove('tab-active', 'text-red-600');
+            btn.classList.add('text-gray-600');
+        });
+
+        const eventsButton = Array.from(tabButtons).find(btn => btn.dataset.tab === 'events');
+        if (eventsButton) {
+            eventsButton.classList.add('tab-active', 'text-red-600');
+            eventsButton.classList.remove('text-gray-600');
+        }
+
+        // Apply all events filter
+        filterEvents('all');
+        console.log('✅ Events filter applied');
+
+        // Check for events
+        const eventCards = document.querySelectorAll('#all-events-section [data-event-type]');
+        console.log('📊 Found', eventCards.length, 'event cards');
+
+        // Load initial data for all event cards
+        eventCards.forEach(card => {
+            const likeButton = card.querySelector('[onclick*="toggleLike"]');
+            const eventId = likeButton?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
+            if (eventId) {
+                console.log('📥 Loading stats for event:', eventId);
+                loadEventStats(eventId);
+            }
+        });
+        console.log('✅ Page initialization complete');
+    }
+
+    // Call on DOM ready
+    if (document.readyState === 'loading') {
+        console.log('⏳ DOM still loading, waiting for DOMContentLoaded...');
+        document.addEventListener('DOMContentLoaded', initializePage);
+    } else {
+        console.log('⚡ DOM already loaded, initializing now...');
+        initializePage();
+    }
+</script>
 {% endblock %}

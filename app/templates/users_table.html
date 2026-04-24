@@ -51,15 +51,21 @@
                             data-first="{{ user.first_name }}" data-last="{{ user.last_name }}"
                             data-lccrole="{{ user.lcc_role or '' }}" data-dccrole="{{ user.dcc_role or '' }}"
                             data-rccrole="{{ user.rcc_role or '' }}" data-phone="{{ user.phone_no }}"
-                            data-title="{{ user.title or '' }}" data-region="{{ user.region.id or '' }}"
-                            data-district="{{ user.district.id or '' }}" data-church="{{ user.local_church_id or '' }}">
-                            ✏️ Edit
+                            data-email="{{ user.email }}" data-title="{{ user.title or '' }}"
+                            data-region="{{ user.region.id or '' }}" data-district="{{ user.district.id or '' }}"
+                            data-church="{{ user.local_church_id or '' }}">
+                            <i class="fas fa-user-edit"></i>Edit
                         </label>
                         <label for="userStatusModal"
                             class="btn btn-sm {{ 'btn-success' if not user.is_active else 'btn-error' }} statusBtn"
                             data-id="{{ user.id }}" data-name="{{ user.first_name }} {{ user.last_name }}"
                             data-status="{{ 'Activate' if not user.is_active else 'Deactivate' }}">
-                            {{ 'Activate' if not user.is_active else 'Deactivate' }}
+
+                            {% if not user.is_active %}
+                            <i class="fas fa-user-check"></i> Activate
+                            {% else %}
+                            <i class="fas fa-user-slash"></i> Deactivate
+                            {% endif %}
                         </label>
                     </div>
                 </td>

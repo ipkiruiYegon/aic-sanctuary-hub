@@ -6,7 +6,10 @@ from dotenv import load_dotenv
 from sqlmodel import SQLModel
 
 # Import your models here to register them with Alembic
-from app.db import models
+import app.users.models
+import app.events.models
+import app.council.models
+import app.notifications.models
 
 # Load environment variables
 load_dotenv()

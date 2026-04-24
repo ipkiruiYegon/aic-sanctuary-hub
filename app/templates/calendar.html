@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-4 max-w-7xl">
+    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+        <div>
+            <h1 class="text-3xl font-bold">Calendar</h1>
+            <p class="text-gray-600 mt-2">Browse events by month and view national holidays.</p>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="prevMonth" class="btn btn-sm btn-outline">Previous</button>
+            <button id="nextMonth" class="btn btn-sm btn-outline">Next</button>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-[280px_1fr] gap-6">
+        <div class="space-y-4">
+            <div class="card bg-white shadow rounded-lg p-4">
+                <h2 class="text-lg font-semibold mb-3">Legend</h2>
+                <div class="space-y-2 text-sm">
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-blue-500"></span>
+                        <span>Regional / RCC Event</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-green-500"></span>
+                        <span>DCC Event</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-yellow-500"></span>
+                        <span>Local Church Event</span>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                        <span>National Holiday</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card bg-white shadow rounded-lg p-4 h-fit">
+                <h2 class="text-lg font-semibold mb-3">Events This Month</h2>
+                <div id="calendarEventList" class="space-y-3 max-h-[420px] overflow-y-auto"></div>
+            </div>
+        </div>
+
+        <div class="card bg-white shadow rounded-lg p-4">
+            <div class="flex items-center justify-between mb-4">
+                <div>
+                    <h2 id="calendarMonthLabel" class="text-xl font-semibold"></h2>
+                    <p id="calendarYearLabel" class="text-sm text-gray-500"></p>
+                </div>
+                <div class="text-sm text-gray-600">Scroll months with buttons</div>
+            </div>
+            <div class="grid grid-cols-7 gap-1 text-center text-xs font-semibold text-gray-500 mb-2">
+                <div>Sun</div>
+                <div>Mon</div>
+                <div>Tue</div>
+                <div>Wed</div>
+                <div>Thu</div>
+                <div>Fri</div>
+                <div>Sat</div>
+            </div>
+            <div id="calendarGrid" class="grid grid-cols-7 gap-1"></div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const calendarGrid = document.getElementById('calendarGrid');
+    const calendarMonthLabel = document.getElementById('calendarMonthLabel');
+    const calendarYearLabel = document.getElementById('calendarYearLabel');
+    const calendarEventList = document.getElementById('calendarEventList');
+    const prevMonth = document.getElementById('prevMonth');
+    const nextMonth = document.getElementById('nextMonth');
+
+    let currentDate = new Date();
+
+    function formatDay(day) {
+        return day < 10 ? `0${day}` : day;
+    }
+
+    function getEventTypeColor(type) {
+        if (!type) return 'bg-slate-100';
+        if (type.toLowerCase().includes('rcc') || type.toLowerCase().includes('regional')) return 'bg-blue-500';
+        if (type.toLowerCase().includes('dcc')) return 'bg-green-500';
+        return 'bg-yellow-500';
+    }
+
+    function pad(value) {
+        return value.toString().padStart(2, '0');
+    }
+
+    function getKey(year, month, day) {
+        return `${year}-${pad(month)}-${pad(day)}`;
+    }
+
+    function renderCalendar(events, holidays) {
+        calendarGrid.innerHTML = '';
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth();
+        const firstDay = new Date(year, month, 1).getDay();
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+        calendarMonthLabel.textContent = currentDate.toLocaleString('default', { month: 'long' });
+        calendarYearLabel.textContent = year;
+
+        const eventMap = {};
+        events.forEach(event => {
+            const start = new Date(event.date_from).getDate();
+            const end = new Date(event.date_to).getDate();
+            for (let day = start; day <= end; day++) {
+                const key = getKey(year, month + 1, day);
+                eventMap[key] = eventMap[key] || [];
+                eventMap[key].push(event);
+            }
+        });
+
+        const holidayMap = holidays.reduce((acc, holiday) => {
+            acc[getKey(new Date(holiday.date).getFullYear(), new Date(holiday.date).getMonth() + 1, new Date(holiday.date).getDate())] = holiday;
+            return acc;
+        }, {});
+
+        for (let i = 0; i < firstDay; i++) {
+            const placeholder = document.createElement('div');
+            placeholder.className = 'h-24 rounded-lg bg-base-200';
+            calendarGrid.appendChild(placeholder);
+        }
+
+        for (let day = 1; day <= daysInMonth; day++) {
+            const cell = document.createElement('div');
+            const key = getKey(year, month + 1, day);
+            const holiday = holidayMap[key];
+            const cellEvents = eventMap[key] || [];
+
+            const dotColors = cellEvents.slice(0, 3).map(event => getEventTypeColor(event.event_type));
+            cell.className = 'min-h-[96px] bg-base-200 rounded-lg p-2 text-left overflow-hidden';
+            cell.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-sm font-semibold">${day}</span>
+                    ${holiday ? '<span class="text-red-500 text-[10px] font-bold">Holiday</span>' : ''}
+                </div>
+                <div class="space-y-1">
+                    ${holiday ? `<div class="rounded px-1 py-0.5 bg-red-100 text-red-700 text-[11px]">${holiday.name}</div>` : ''}
+                    ${dotColors.map(color => `<span class="inline-block w-2 h-2 rounded-full ${color}"></span>`).join(' ')}
+                </div>
+            `;
+            calendarGrid.appendChild(cell);
+        }
+
+        renderEventList(events, holidays);
+    }
+
+    function renderEventList(events, holidays) {
+        calendarEventList.innerHTML = '';
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+
+        const dayEvents = events.map(event => {
+            const start = new Date(event.date_from).toLocaleDateString('default', { month: 'short', day: 'numeric' });
+            const end = new Date(event.date_to).toLocaleDateString('default', { month: 'short', day: 'numeric' });
+            return `
+                <div class="border rounded-lg p-3 bg-slate-50">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-sm font-semibold">${event.event_name}</span>
+                        <span class="text-[11px] uppercase ${getEventTypeColor(event.event_type).replace('bg-', 'text-')}">${event.event_type}</span>
+                    </div>
+                    <p class="text-xs text-gray-500 mt-1">${start} — ${end}</p>
+                </div>
+            `;
+        });
+
+        const monthHolidays = holidays.map(holiday => `
+            <div class="border rounded-lg p-3 bg-red-50">
+                <div class="flex items-center justify-between gap-2">
+                    <span class="text-sm font-semibold">${holiday.name}</span>
+                    <span class="text-[11px] uppercase text-red-500">Holiday</span>
+                </div>
+                <p class="text-xs text-gray-500 mt-1">${holiday.date}</p>
+            </div>
+        `);
+
+        calendarEventList.innerHTML = dayEvents.concat(monthHolidays).join('') || '<div class="text-sm text-gray-500">No calendar events for this month.</div>';
+    }
+
+    async function loadCalendarData() {
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        const response = await fetch(`/calendar/api/month?year=${year}&month=${month}`);
+        if (!response.ok) {
+            console.error('Failed to load calendar data');
+            return;
+        }
+        const data = await response.json();
+        renderCalendar(data.events, data.holidays);
+    }
+
+    prevMonth.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() - 1);
+        loadCalendarData();
+    });
+
+    nextMonth.addEventListener('click', () => {
+        currentDate.setMonth(currentDate.getMonth() + 1);
+        loadCalendarData();
+    });
+
+    document.addEventListener('DOMContentLoaded', loadCalendarData);
+</script>
+{% endblock %}

@@ -1,305 +1,323 @@
 {% extends "base.html" %}
 
 {% block content %}
-<h2 class="text-2xl font-bold mb-6">Manage Users</h2>
+<div class="users-container ">
+    <div class="flex justify-between items-center mb-6">
+        <h2 class="text-2xl font-bold mb-6">Manage Users</h2>
 
-<!-- Button to open modal for creating user -->
-<label for="createUserModal" class="btn btn-outline btn-success mb-4">➕ Add User</label>
-
-<!-- Users Table -->
-<div id="usersTableContainer" hx-get="/users/table" hx-trigger="load">
-    {% include "users_table.html" %}
-</div>
-
-<!-- Create User Modal -->
-<input type="checkbox" id="createUserModal" class="modal-toggle" />
-<div class="modal">
-    <div class="modal-box max-w-lg">
-        <h3 class="text-xl font-bold mb-4">Create New User</h3>
-
-        <form method="post" action="/users/create" class="grid gap-4">
-            <!-- Error box -->
-            <div id="formErrorBox" class="text-red-600 text-sm mb-2 hidden"></div>
-
-            <!-- Tabs -->
-            <div role="tablist" class="tabs tabs-bordered w-full justify-start border-b-2 border-gray-200 mb-4">
-                <a role="tab"
-                    class="tab tab-active px-4 py-2 font-semibold text-red-600 border-b-4 border-red-600 hover:bg-red-50 transition-colors"
-                    data-target="panel-create-personal">Personal</a>
-                <a role="tab"
-                    class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
-                    data-target="panel-create-roles">Roles</a>
-                <a role="tab"
-                    class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
-                    data-target="panel-create-council">Council</a>
-            </div>
-
-            <!-- Panels -->
-            <div id="panel-create-personal" class="tab-panel block grid grid-cols-1 gap-4">
-                <!-- Title -->
-                <div>
-                    <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-                    <select name="title" id="title" required class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Title --</option>
-                        <option>Mr</option>
-                        <option>Mrs</option>
-                        <option>Miss</option>
-                        <option>Dr</option>
-                        <option>Pastor</option>
-                        <option>Reverend</option>
-                        <option>Bishop</option>
-                    </select>
-                </div>
-
-                <!-- First Name -->
-                <div>
-                    <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                    <input type="text" name="first_name" id="first_name" required class="input input-bordered w-full">
-                </div>
-
-                <!-- Last Name -->
-                <div>
-                    <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                    <input type="text" name="last_name" id="last_name" required class="input input-bordered w-full">
-                </div>
-
-                <!-- Phone -->
-                <div>
-                    <label for="phone_no" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" name="phone_no" id="phone_no" required class="input input-bordered w-full">
-                </div>
-            </div>
-
-            <div id="panel-create-roles" class="tab-panel hidden grid grid-cols-1 gap-4">
-                <!-- Church Role -->
-                <div>
-                    <label for="role" class="block text-sm font-medium text-gray-700">Church Role</label>
-                    <select name="role" id="role" required class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Role --</option>
-                        {% for role in roles %}
-                        <option value="{{ role.id }}">{{ role.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-
-            <div id="panel-create-council" class="tab-panel hidden grid grid-cols-1 gap-4">
-                <!-- Region -->
-                <div>
-                    <label for="district_region" class="block text-sm font-medium text-gray-700">Region - RCC</label>
-                    <select name="region_id" id="district_region" required class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Region --</option>
-                        <option value="{{ region.id }}">{{ region.name }}</option>
-                    </select>
-                </div>
-
-                <!-- District -->
-                <div>
-                    <label for="local_district" class="block text-sm font-medium text-gray-700">District - DCC</label>
-                    <select name="district_id" id="local_district" required hx-get="/council/get-churches"
-                        hx-target="#local_church_id" hx-trigger="change" class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select District --</option>
-                        {% for district in region.districts %}
-                        <option value="{{ district.id }}">{{ district.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Local Church -->
-                <div>
-                    <label for="local_church_id" class="block text-sm font-medium text-gray-700">Church - LCC</label>
-                    <select name="local_church_id" id="local_church_id" required class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Church --</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="flex flex-col sm:flex-row justify-end gap-2 mt-3">
-                <button type="submit" class="btn btn-primary w-full sm:w-auto">Save User</button>
-                <label for="createUserModal" class="btn w-full sm:w-auto">Cancel</label>
-            </div>
-        </form>
+        <!-- Button to open modal for creating user -->
+        <label for="createUserModal" class="btn btn-primary"><i class="fas fa-user-plus"></i>Create
+            User</label>
     </div>
-</div>
-
-<!-- Edit User Modal -->
-<input type="checkbox" id="editUserModal" class="modal-toggle" />
-<div class="modal">
-    <div class="modal-box max-w-lg">
-        <h3 class="text-xl font-bold mb-4">Edit User</h3>
-
-        <!-- One form wrapping all tabs -->
-        <form method="post" action="/users/update" class="grid gap-4">
-            <input type="hidden" name="edit_id" id="edit_id">
-            <!-- Tabs -->
-            <div role="tablist" class="tabs tabs-bordered w-full justify-start border-b-2 border-gray-200 mb-4">
-                <a role="tab"
-                    class="tab tab-active px-4 py-2 font-semibold text-red-600 border-b-4 border-red-600 hover:bg-red-50 transition-colors"
-                    data-target="panel-personal">Personal</a>
-                <a role="tab"
-                    class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
-                    data-target="panel-roles">Roles</a>
-                <a role="tab"
-                    class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
-                    data-target="panel-council">Council</a>
-            </div>
-
-            <!-- Panels -->
-            <div id="panel-personal" class="tab-panel block grid grid-cols-1 gap-4">
-                <!-- Personal Info form fields -->
-                <!-- Title -->
-                <div>
-                    <label for="edit_title" class="block text-sm font-medium text-gray-700">Title</label>
-                    <select name="update_title" id="edit_title" required class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Title --</option>
-                        <option>Mr</option>
-                        <option>Mrs</option>
-                        <option>Miss</option>
-                        <option>Dr</option>
-                        <option>Pastor</option>
-                        <option>Reverend</option>
-                        <option>Bishop</option>
-                    </select>
-                </div>
-
-                <!-- First Name -->
-                <div>
-                    <label for="edit_first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                    <input type="text" name="update_first_name" id="edit_first_name" required
-                        class="input input-bordered w-full">
-                </div>
-
-                <!-- Last Name -->
-                <div>
-                    <label for="edit_last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                    <input type="text" name="update_last_name" id="edit_last_name" required
-                        class="input input-bordered w-full">
-                </div>
-
-                <!-- Phone -->
-                <div>
-                    <label for="edit_phone_no" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                    <input type="tel" name="update_phone_no" id="edit_phone_no" required
-                        class="input input-bordered w-full">
-                </div>
-            </div>
-
-            <div id="panel-roles" class="tab-panel hidden grid grid-cols-1 gap-4">
-                <!-- Roles form fields -->
-                <!-- LCC Role -->
-                <div>
-                    <label for="edit_lcc_role" class="block text-sm font-medium text-gray-700">Church Role</label>
-                    <select name="update_lcc_role" id="edit_lcc_role" required class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Role --</option>
-                        {% for role in roles %}
-                        <option value="{{ role.name }}">{{ role.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- DCC Role -->
-                <div>
-                    <label for="edit_dcc_role" class="block text-sm font-medium text-gray-700">DCC Role</label>
-                    <select name="update_dcc_role" id="edit_dcc_role" class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Role --</option>
-                        {% for dcc_role in dcc_roles %}
-                        <option value="{{ dcc_role.name }}">{{ dcc_role.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- RCC Role -->
-                <div>
-                    <label for="edit_rcc_role" class="block text-sm font-medium text-gray-700">RCC Role</label>
-                    <select name="update_rcc_role" id="edit_rcc_role" class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Role --</option>
-                        {% for rcc_role in rcc_roles %}
-                        <option value="{{ rcc_role.name }}">{{ rcc_role.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-
-            <div id="panel-council" class="tab-panel hidden grid grid-cols-1 gap-4">
-                <!-- Council form fields -->
-                <!-- Region -->
-                <div>
-                    <label for="edit_district_region" class="block text-sm font-medium text-gray-700">Region -
-                        RCC</label>
-                    <select name="update_region_id" id="edit_district_region" required
-                        class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Region --</option>
-                        <option value="{{ region.id }}">{{ region.name }}</option>
-                    </select>
-                </div>
-
-                <!-- District -->
-                <div>
-                    <label for="edit_local_district" class="block text-sm font-medium text-gray-700">District -
-                        DCC</label>
-                    <select name="district_id" id="edit_local_district" required hx-get="/council/get-churches"
-                        hx-target="#edit_local_church" hx-trigger="change" class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select District --</option>
-                        {% for district in region.districts %}
-                        <option value="{{ district.id }}">{{ district.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-
-                <!-- Local Church -->
-                <div>
-                    <label for="edit_local_church" class="block text-sm font-medium text-gray-700">Church - LCC</label>
-                    <select name="update_local_church_id" id="edit_local_church" required
-                        class="select select-bordered w-full">
-                        <option value="" disabled selected>-- Select Church --</option>
-                    </select>
-                </div>
-            </div>
-            <!-- Actions -->
-            <div class="flex flex-col sm:flex-row justify-end gap-2 mt-3">
-                <button type="submit" class="btn btn-primary w-full sm:w-auto">Update User</button>
-                <label for="editUserModal" class="btn w-full sm:w-auto">Cancel</label>
-            </div>
-        </form>
+    <!-- Users Table -->
+    <div id="usersTableContainer" hx-get="/users/table" hx-trigger="load, reloadUsersTable from:body">
+        {% include "users_table.html" %}
     </div>
 
-</div>
+    <!-- Create User Modal -->
+    <input type="checkbox" id="createUserModal" class="modal-toggle" />
+    <div class="modal">
+        <div class="modal-box max-w-lg">
+            <h3 class="text-xl font-bold mb-4">Create New User</h3>
 
-<!-- Modal toggle -->
-<input type="checkbox" id="userStatusModal" class="modal-toggle" />
+            <form method="post" action="/users/create" class="grid gap-4">
+                <!-- Error box -->
+                <div id="formErrorBox" class="text-red-600 text-sm mb-2 hidden"></div>
 
-<!-- Modal -->
-<div class="modal">
-    <div class="modal-box max-w-md">
-        <form id="statusForm" method="post" action="" class="space-y-4">
+                <!-- Tabs -->
+                <div role="tablist" class="tabs tabs-bordered w-full justify-start border-b-2 border-gray-200 mb-4">
+                    <a role="tab"
+                        class="tab tab-active px-4 py-2 font-semibold text-red-600 border-b-4 border-red-600 hover:bg-red-50 transition-colors"
+                        data-target="panel-create-personal">Personal</a>
+                    <a role="tab"
+                        class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
+                        data-target="panel-create-roles">Roles</a>
+                    <a role="tab"
+                        class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
+                        data-target="panel-create-council">Council</a>
+                </div>
 
-            <!-- Title -->
-            <h2 id="modalTitle" class="text-xl font-bold text-center text-gray-800">User Status</h2>
+                <!-- Panels -->
+                <div id="panel-create-personal" class="tab-panel block grid grid-cols-1 gap-4">
+                    <!-- Title -->
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
+                        <select name="title" id="title" required class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Title --</option>
+                            <option>Mr</option>
+                            <option>Mrs</option>
+                            <option>Miss</option>
+                            <option>Dr</option>
+                            <option>Pastor</option>
+                            <option>Reverend</option>
+                            <option>Bishop</option>
+                        </select>
+                    </div>
 
-            <!-- Message -->
-            <p id="statusMessage" class="text-gray-600 text-center"></p>
+                    <!-- First Name -->
+                    <div>
+                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" name="first_name" id="first_name" required
+                            class="input input-bordered w-full">
+                    </div>
 
-            <!-- Hidden user ID -->
-            <input type="hidden" id="userIdInput" name="user_id" />
+                    <!-- Last Name -->
+                    <div>
+                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" name="last_name" id="last_name" required class="input input-bordered w-full">
+                    </div>
 
-            <!-- Reason field -->
-            <div id="reasonContainer" class="hidden">
-                <label id="reasonLabel" for="statusReason" class="block text-sm font-medium text-gray-700 mb-1">
-                    Reason
-                </label>
-                <textarea id="statusReason" name="reason" placeholder="Please provide a clear reason..."
-                    class="textarea textarea-bordered w-full"></textarea>
-            </div>
+                    <!-- Phone -->
+                    <div>
+                        <label for="phone_no" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" name="phone_no" id="phone_no" required class="input input-bordered w-full">
+                    </div>
+                </div>
 
-            <!-- Actions -->
-            <div class="flex justify-end gap-2 pt-4">
-                <!-- Submit button styled dynamically in JS -->
-                <button type="submit" id="statusSubmitBtn" class="btn btn-primary">Confirm</button>
-                <!-- Cancel closes modal automatically -->
-                <label for="userStatusModal" id="cancelStatusBtn" class="btn btn-secondary">Cancel</label>
-            </div>
-        </form>
+                <div id="panel-create-roles" class="tab-panel hidden grid grid-cols-1 gap-4">
+                    <!-- Church Role -->
+                    <div>
+                        <label for="role" class="block text-sm font-medium text-gray-700">Church Role</label>
+                        <select name="role" id="role" required class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Role --</option>
+                            {% for role in roles %}
+                            <option value="{{ role.id }}">{{ role.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="panel-create-council" class="tab-panel hidden grid grid-cols-1 gap-4">
+                    <!-- Region -->
+                    <div>
+                        <label for="district_region" class="block text-sm font-medium text-gray-700">Region -
+                            RCC</label>
+                        <select name="region_id" id="district_region" required class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Region --</option>
+                            <option value="{{ region.id }}">{{ region.name }}</option>
+                        </select>
+                    </div>
+
+                    <!-- District -->
+                    <div>
+                        <label for="local_district" class="block text-sm font-medium text-gray-700">District -
+                            DCC</label>
+                        <select name="district_id" id="local_district" required hx-get="/council/get-churches"
+                            hx-target="#local_church_id" hx-trigger="change" class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select District --</option>
+                            {% for district in region.districts %}
+                            <option value="{{ district.id }}">{{ district.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Local Church -->
+                    <div>
+                        <label for="local_church_id" class="block text-sm font-medium text-gray-700">Church -
+                            LCC</label>
+                        <select name="local_church_id" id="local_church_id" required
+                            class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Church --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row justify-end gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary w-full sm:w-auto">Save User</button>
+                    <label for="createUserModal" class="btn btn-secondary w-full sm:w-auto">Cancel</label>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Edit User Modal -->
+    <input type="checkbox" id="editUserModal" class="modal-toggle" />
+    <div class="modal">
+        <div class="modal-box max-w-lg">
+            <h3 class="text-xl font-bold mb-4">Edit User</h3>
+
+            <!-- One form wrapping all tabs -->
+            <form method="post" action="/users/update" class="grid gap-4">
+                <input type="hidden" name="edit_id" id="edit_id">
+                <!-- Tabs -->
+                <div role="tablist" class="tabs tabs-bordered w-full justify-start border-b-2 border-gray-200 mb-4">
+                    <a role="tab"
+                        class="tab tab-active px-4 py-2 font-semibold text-red-600 border-b-4 border-red-600 hover:bg-red-50 transition-colors"
+                        data-target="panel-personal">Personal</a>
+                    <a role="tab"
+                        class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
+                        data-target="panel-roles">Roles</a>
+                    <a role="tab"
+                        class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
+                        data-target="panel-council">Council</a>
+                </div>
+
+                <!-- Panels -->
+                <div id="panel-personal" class="tab-panel block grid grid-cols-1 gap-4">
+                    <!-- Personal Info form fields -->
+                    <!-- Title -->
+                    <div>
+                        <label for="edit_title" class="block text-sm font-medium text-gray-700">Title</label>
+                        <select name="update_title" id="edit_title" required class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Title --</option>
+                            <option>Mr</option>
+                            <option>Mrs</option>
+                            <option>Miss</option>
+                            <option>Dr</option>
+                            <option>Pastor</option>
+                            <option>Reverend</option>
+                            <option>Bishop</option>
+                        </select>
+                    </div>
+
+                    <!-- First Name -->
+                    <div>
+                        <label for="edit_first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <input type="text" name="update_first_name" id="edit_first_name" required
+                            class="input input-bordered w-full">
+                    </div>
+
+                    <!-- Last Name -->
+                    <div>
+                        <label for="edit_last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <input type="text" name="update_last_name" id="edit_last_name" required
+                            class="input input-bordered w-full">
+                    </div>
+
+                    <!-- Phone -->
+                    <div>
+                        <label for="edit_phone_no" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <input type="tel" name="update_phone_no" id="edit_phone_no" required
+                            class="input input-bordered w-full">
+                    </div>
+
+                    <!-- Email -->
+                    <div>
+                        <label for="edit_email" class="block text-sm font-medium text-gray-700">Email</label>
+                        <input type="email" name="update_email" id="edit_email" required
+                            class="input input-bordered w-full">
+                    </div>
+                </div>
+
+                <div id="panel-roles" class="tab-panel hidden grid grid-cols-1 gap-4">
+                    <!-- Roles form fields -->
+                    <!-- LCC Role -->
+                    <div>
+                        <label for="edit_lcc_role" class="block text-sm font-medium text-gray-700">Church Role</label>
+                        <select name="update_lcc_role" id="edit_lcc_role" required
+                            class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Role --</option>
+                            {% for role in roles %}
+                            <option value="{{ role.name }}">{{ role.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- DCC Role -->
+                    <div>
+                        <label for="edit_dcc_role" class="block text-sm font-medium text-gray-700">DCC Role</label>
+                        <select name="update_dcc_role" id="edit_dcc_role" class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Role --</option>
+                            {% for dcc_role in dcc_roles %}
+                            <option value="{{ dcc_role.name }}">{{ dcc_role.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- RCC Role -->
+                    <div>
+                        <label for="edit_rcc_role" class="block text-sm font-medium text-gray-700">RCC Role</label>
+                        <select name="update_rcc_role" id="edit_rcc_role" class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Role --</option>
+                            {% for rcc_role in rcc_roles %}
+                            <option value="{{ rcc_role.name }}">{{ rcc_role.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div id="panel-council" class="tab-panel hidden grid grid-cols-1 gap-4">
+                    <!-- Council form fields -->
+                    <!-- Region -->
+                    <div>
+                        <label for="edit_district_region" class="block text-sm font-medium text-gray-700">Region -
+                            RCC</label>
+                        <select name="update_region_id" id="edit_district_region" required
+                            class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Region --</option>
+                            <option value="{{ region.id }}">{{ region.name }}</option>
+                        </select>
+                    </div>
+
+                    <!-- District -->
+                    <div>
+                        <label for="edit_local_district" class="block text-sm font-medium text-gray-700">District -
+                            DCC</label>
+                        <select name="district_id" id="edit_local_district" required hx-get="/council/get-churches"
+                            hx-target="#edit_local_church" hx-trigger="change" class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select District --</option>
+                            {% for district in region.districts %}
+                            <option value="{{ district.id }}">{{ district.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Local Church -->
+                    <div>
+                        <label for="edit_local_church" class="block text-sm font-medium text-gray-700">Church -
+                            LCC</label>
+                        <select name="update_local_church_id" id="edit_local_church" required
+                            class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Church --</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Actions -->
+                <div class="flex flex-col sm:flex-row justify-end gap-2 mt-3">
+                    <button type="submit" class="btn btn-primary w-full sm:w-auto">Update User</button>
+                    <label for="editUserModal" class="btn btn-secondary w-full sm:w-auto">Cancel</label>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Modal toggle -->
+    <input type="checkbox" id="userStatusModal" class="modal-toggle" />
+
+    <!-- Modal -->
+    <div class="modal">
+        <div class="modal-box max-w-md">
+            <form id="statusForm" method="post" action="" class="space-y-4">
+
+                <!-- Title -->
+                <h2 id="modalTitle" class="text-xl font-bold text-center text-gray-800">User Status</h2>
+
+                <!-- Message -->
+                <p id="statusMessage" class="text-gray-600 text-center"></p>
+
+                <!-- Hidden user ID -->
+                <input type="hidden" id="userIdInput" name="user_id" />
+
+                <!-- Reason field -->
+                <div id="reasonContainer" class="hidden">
+                    <label id="reasonLabel" for="statusReason" class="block text-sm font-medium text-gray-700 mb-1">
+                        Reason
+                    </label>
+                    <textarea id="statusReason" name="reason" placeholder="Please provide a clear reason..."
+                        class="textarea textarea-bordered w-full"></textarea>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex justify-end gap-2 pt-4">
+                    <!-- Submit button styled dynamically in JS -->
+                    <button type="submit" id="statusSubmitBtn" class="btn btn-primary">Confirm</button>
+                    <!-- Cancel closes modal automatically -->
+                    <label for="userStatusModal" id="cancelStatusBtn" class="btn btn-secondary">Cancel</label>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -320,6 +338,7 @@
         const statusForm = document.getElementById("statusForm");
 
         const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         function validateFName(name, message) {
             if (!name || !/^[A-Za-z]{3,}$/.test(name.trim())) {
@@ -340,6 +359,14 @@
         function validatePhone(phone) {
             if (!phone || !/^0\d{9}$/.test(phone.trim())) {
                 showToast("Phone number must be 10 digits, start with 0, and contain only numbers.", "error");
+                return false;
+            }
+            return true;
+        }
+
+        function validateEmail(value, message) {
+            if (!value || !emailRegex.test(value.trim())) {
+                showToast(message, "error");
                 return false;
             }
             return true;
@@ -385,12 +412,14 @@
                         return;
                     }
 
-                    const result = await response.json().catch(() => ({}));
+                    const result = await response.json();
+
                     if (result.success) {
                         showToast("User created successfully!", "success");
                         userCreateForm.reset();
                         document.getElementById("createUserModal").checked = false;
-                        window.location.reload();
+
+                        htmx.trigger("body", "reloadUsersTable");
                     } else {
                         showToast(result.message || result.detail || "Unknown error occurred.", "error");
                     }
@@ -408,6 +437,7 @@
                 const firstName = userUpdateForm.querySelector("[name='update_first_name']").value;
                 const lastName = userUpdateForm.querySelector("[name='update_last_name']").value;
                 const phoneNo = userUpdateForm.querySelector("[name='update_phone_no']").value;
+                const email = userUpdateForm.querySelector("[name='update_email']").value;
                 const region = userUpdateForm.querySelector("[name='update_region_id']").value;
                 const district = userUpdateForm.querySelector("[name='district_id']").value;
                 const localChurch = userUpdateForm.querySelector("[name='update_local_church_id']").value;
@@ -416,16 +446,18 @@
                 if (!validateFName(firstName, "First name must be at least 3 letters and no spaces.")) return;
                 if (!validateLName(lastName, "Last name must be at least 3 letters and no spaces.")) return;
                 if (!validatePhone(phoneNo)) return;
+                if (!validateEmail(email, "Enter a valid email.")) return;
                 if (!validateUUID(region, "Region ID must be a valid UUID.")) return;
                 if (!validateUUID(district, "District ID must be a valid UUID.")) return;
                 if (!validateUUID(localChurch, "Local Church ID must be a valid UUID.")) return;
 
                 const payload = {
-                    user_id: userId,
+                    id: userId,
                     title: userUpdateForm.querySelector("[name='update_title']").value || null,
                     first_name: firstName,
                     last_name: lastName,
                     phone_no: phoneNo,
+                    email: email,
                     rcc_role: userUpdateForm.querySelector("[name='update_rcc_role']").value || null,
                     dcc_role: userUpdateForm.querySelector("[name='update_dcc_role']").value || null,
                     lcc_role: userUpdateForm.querySelector("[name='update_lcc_role']").value || null,
@@ -443,16 +475,19 @@
 
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
+                        console.log(errorData)
                         showToast(errorData.detail || "Submission failed.", "error");
                         return;
                     }
 
                     const result = await response.json().catch(() => ({}));
+
                     if (result.success) {
                         showToast("User updated successfully!", "success");
                         userUpdateForm.reset();
                         document.getElementById("editUserModal").checked = false;
-                        window.location.reload();
+
+                        htmx.trigger("body", "reloadUsersTable");
                     } else {
                         showToast(result.message || result.detail || "Unknown error occurred.", "error");
                     }
@@ -467,11 +502,12 @@
             usersTableContainer.addEventListener("click", (event) => {
                 const editBtn = event.target.closest(".editBtn");
                 if (editBtn) {
-                    console.debug("Edit button clicked", editBtn.dataset);
+
                     const editIdInput = document.getElementById("edit_id");
                     const editFirstName = document.getElementById("edit_first_name");
                     const editLastName = document.getElementById("edit_last_name");
                     const editPhoneNo = document.getElementById("edit_phone_no");
+                    const editEmail = document.getElementById("edit_email");
                     const editTitle = document.getElementById("edit_title");
                     const editLccRole = document.getElementById("edit_lcc_role");
                     const editDccRole = document.getElementById("edit_dcc_role");
@@ -483,6 +519,7 @@
                     if (editFirstName) editFirstName.value = editBtn.dataset.first || "";
                     if (editLastName) editLastName.value = editBtn.dataset.last || "";
                     if (editPhoneNo) editPhoneNo.value = editBtn.dataset.phone || "";
+                    if (editEmail) editEmail.value = editBtn.dataset.email || "";
                     if (editTitle) editTitle.value = editBtn.dataset.title || "";
                     if (editLccRole) editLccRole.value = editBtn.dataset.lccrole || "";
                     if (editDccRole) editDccRole.value = editBtn.dataset.dccrole || "";
@@ -507,7 +544,7 @@
 
                 const statusBtn = event.target.closest(".statusBtn");
                 if (statusBtn) {
-                    console.debug("Status button clicked", statusBtn.dataset);
+
                     const userId = statusBtn.dataset.id;
                     const userName = statusBtn.dataset.name;
                     const action = statusBtn.dataset.status;
@@ -534,12 +571,10 @@
         if (statusForm) {
             statusForm.addEventListener("submit", async (e) => {
                 e.preventDefault();
-                console.debug("Status form submitted");
+
                 const userId = userIdInput.value;
                 const reason = document.getElementById("statusReason").value.trim();
                 const isDeactivate = statusSubmitBtn.textContent === "Deactivate";
-
-                console.debug("Status submission - userId:", userId, "reason:", reason, "isDeactivate:", isDeactivate);
 
                 if (isDeactivate && !reason) {
                     showToast("Please provide a reason for deactivation.", "error");
@@ -553,27 +588,28 @@
                         body: JSON.stringify({ user_id: userId, reason: reason || null })
                     });
 
-                    console.debug("Status response status:", response.status);
 
                     if (!response.ok) {
                         const errorData = await response.json().catch(() => ({}));
-                        console.error("Status update error:", errorData);
+
                         showToast(errorData.detail || 'Failed to update user status.', 'error');
                         return;
                     }
 
                     const result = await response.json().catch(() => ({}));
-                    console.debug("Status update result:", result);
+
 
                     if (result.success) {
                         showToast(result.message || 'User status updated successfully.', 'success');
+                        statusForm.reset()
                         document.getElementById('userStatusModal').checked = false;
-                        window.location.reload();
+
+                        htmx.trigger("body", "reloadUsersTable");
                     } else {
                         showToast(result.detail || result.message || 'Failed to update user status.', 'error');
                     }
                 } catch (error) {
-                    console.error("Status update exception:", error);
+
                     showToast('Failed to update user status: ' + error.message, 'error');
                 }
             });

@@ -3,7 +3,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 from sqlalchemy.orm import selectinload
 
-from app.db.models import Region, District, Church
+from app.council.models import Region, District, Church
 
 
 class CouncilService:
@@ -62,6 +62,11 @@ class CouncilService:
 
     async def get_churches(self, session: AsyncSession):
         statement = select(Church).options(selectinload(Church.district))
+        result = await session.exec(statement)
+        return result.all()
+
+    async def get_all_churches(self, session: AsyncSession):
+        statement = select(Church)
         result = await session.exec(statement)
         return result.all()
 
