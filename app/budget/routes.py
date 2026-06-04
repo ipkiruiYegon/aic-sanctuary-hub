@@ -17,7 +17,8 @@ from app.budget.models import (
     BudgetPaymentCreate, BudgetPaymentUpdate, BudgetPaymentRead,
     VoteHeadCreate, VoteHeadRead,
     DCCVoteHeadBudgetCreate, DCCVoteHeadBudgetRead,
-    LocalChurchVoteHeadBudgetCreate, LocalChurchVoteHeadBudgetRead
+    LocalChurchVoteHeadBudgetCreate, LocalChurchVoteHeadBudgetRead,
+    BudgetIncomeSourceCreate, BudgetIncomeSourceRead
 )
 from app.budget.services import BudgetService
 
@@ -188,6 +189,93 @@ async def list_dcc_vote_head_allocations(request: Request,
     """Get vote head allocations for a DCC budget"""
     current_user = request.state.user["user"]["user_id"]
     return await BudgetService.get_dcc_vote_head_budgets(session, dcc_budget_id)
+
+
+@router.post("/income/yearly", response_model=BudgetIncomeSourceRead)
+async def create_yearly_income_source(request: Request,
+                                      income_data: BudgetIncomeSourceCreate,
+                                      session: Session = Depends(get_session),
+
+                                      ):
+    """Record an income source for the RCC/yearly budget"""
+    current_user = request.state.user["user"]["user_id"]
+    return await BudgetService.create_budget_income_source(
+        session,
+        source_type=income_data.source_type,
+        amount=income_data.amount,
+        description=income_data.description,
+        received_date=income_data.received_date,
+        yearly_budget_id=income_data.yearly_budget_id,
+    )
+
+
+@router.get("/income/yearly/{yearly_budget_id}", response_model=List[BudgetIncomeSourceRead])
+async def get_yearly_income_sources(request: Request,
+                                    yearly_budget_id: UUID,
+                                    session: Session = Depends(get_session),
+
+                                    ):
+    """Get income sources for a yearly budget"""
+    current_user = request.state.user["user"]["user_id"]
+    return await BudgetService.get_yearly_budget_income_sources(session, yearly_budget_id)
+
+
+@router.post("/income/dcc", response_model=BudgetIncomeSourceRead)
+async def create_dcc_income_source(request: Request,
+                                   income_data: BudgetIncomeSourceCreate,
+                                   session: Session = Depends(get_session),
+
+                                   ):
+    """Record an income source for a DCC budget"""
+    current_user = request.state.user["user"]["user_id"]
+    return await BudgetService.create_budget_income_source(
+        session,
+        source_type=income_data.source_type,
+        amount=income_data.amount,
+        description=income_data.description,
+        received_date=income_data.received_date,
+        dcc_budget_id=income_data.dcc_budget_id,
+    )
+
+
+@router.get("/income/dcc/{dcc_budget_id}", response_model=List[BudgetIncomeSourceRead])
+async def get_dcc_income_sources(request: Request,
+                                 dcc_budget_id: UUID,
+                                 session: Session = Depends(get_session),
+
+                                 ):
+    """Get income sources for a DCC budget"""
+    current_user = request.state.user["user"]["user_id"]
+    return await BudgetService.get_dcc_budget_income_sources(session, dcc_budget_id)
+
+
+@router.post("/income/church", response_model=BudgetIncomeSourceRead)
+async def create_church_income_source(request: Request,
+                                      income_data: BudgetIncomeSourceCreate,
+                                      session: Session = Depends(get_session),
+
+                                      ):
+    """Record an income source for a local church budget"""
+    current_user = request.state.user["user"]["user_id"]
+    return await BudgetService.create_budget_income_source(
+        session,
+        source_type=income_data.source_type,
+        amount=income_data.amount,
+        description=income_data.description,
+        received_date=income_data.received_date,
+        local_church_budget_id=income_data.local_church_budget_id,
+    )
+
+
+@router.get("/income/church/{local_church_budget_id}", response_model=List[BudgetIncomeSourceRead])
+async def get_church_income_sources(request: Request,
+                                    local_church_budget_id: UUID,
+                                    session: Session = Depends(get_session),
+
+                                    ):
+    """Get income sources for a local church budget"""
+    current_user = request.state.user["user"]["user_id"]
+    return await BudgetService.get_local_church_budget_income_sources(session, local_church_budget_id)
 
 
 @router.get("/vote-heads", response_model=List[VoteHeadRead])

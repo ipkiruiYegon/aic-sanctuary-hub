@@ -53,6 +53,8 @@ class YearlyBudget(SQLModel, table=True):
 
     dcc_budgets: List["DCCBudget"] = Relationship(
         back_populates="yearly_budget")
+    income_sources: List["BudgetIncomeSource"] = Relationship(
+        back_populates="yearly_budget")
 
 
 # -----------------------------
@@ -103,6 +105,8 @@ class DCCBudget(SQLModel, table=True):
     local_church_budgets: List["LocalChurchBudget"] = Relationship(
         back_populates="dcc_budget")
     vote_head_budgets: List["DCCVoteHeadBudget"] = Relationship(
+        back_populates="dcc_budget")
+    income_sources: List["BudgetIncomeSource"] = Relationship(
         back_populates="dcc_budget")
 
 
@@ -156,6 +160,8 @@ class LocalChurchBudget(SQLModel, table=True):
     vote_head_budgets: List["LocalChurchVoteHeadBudget"] = Relationship(
         back_populates="local_church_budget"
     )
+    income_sources: List["BudgetIncomeSource"] = Relationship(
+        back_populates="local_church_budget")
 
 
 # -----------------------------
@@ -267,6 +273,63 @@ class BudgetReport(SQLModel, table=True):
         DateTime, server_default=func.now()))
 
     generated_by: "User" = Relationship(back_populates="budget_reports")
+
+
+# =============================
+# Budget Income Sources
+# =============================
+class BudgetIncomeSourceBase(SQLModel):
+    yearly_budget_id: Optional[UUID] = None
+    dcc_budget_id: Optional[UUID] = None
+    local_church_budget_id: Optional[UUID] = None
+    source_type: str
+    amount: Decimal = Field(decimal_places=2, max_digits=15)
+    description: Optional[str] = None
+    received_date: datetime = Field(default_factory=datetime.now)
+
+
+class BudgetIncomeSourceCreate(BudgetIncomeSourceBase):
+    pass
+
+
+class BudgetIncomeSourceUpdate(SQLModel):
+    source_type: Optional[str] = None
+    amount: Optional[Decimal] = None
+    description: Optional[str] = None
+    received_date: Optional[datetime] = None
+
+
+class BudgetIncomeSourceRead(BudgetIncomeSourceBase):
+    id: UUID
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class BudgetIncomeSource(SQLModel, table=True):
+    __tablename__ = "budget_income_sources"
+
+    id: UUID = Field(default_factory=uuid4, primary_key=True)
+    yearly_budget_id: Optional[UUID] = Field(
+        default=None, foreign_key="yearly_budgets.id", index=True)
+    dcc_budget_id: Optional[UUID] = Field(
+        default=None, foreign_key="dcc_budgets.id", index=True)
+    local_church_budget_id: Optional[UUID] = Field(
+        default=None, foreign_key="local_church_budgets.id", index=True)
+    source_type: str = Field(nullable=False)
+    amount: Decimal = Field(decimal_places=2, max_digits=15)
+    description: Optional[str] = None
+    received_date: datetime = Field(default_factory=datetime.now)
+    created_at: datetime = Field(sa_column=Column(
+        DateTime, server_default=func.now()))
+
+    yearly_budget: Optional["YearlyBudget"] = Relationship(
+        back_populates="income_sources")
+    dcc_budget: Optional["DCCBudget"] = Relationship(
+        back_populates="income_sources")
+    local_church_budget: Optional["LocalChurchBudget"] = Relationship(
+        back_populates="income_sources")
 
 
 # =============================

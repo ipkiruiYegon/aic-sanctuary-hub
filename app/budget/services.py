@@ -6,7 +6,8 @@ from typing import List, Optional
 from app.budget.models import (
     YearlyBudget, DCCBudget, LocalChurchBudget,
     BudgetPayment, BudgetReport,
-    VoteHead, DCCVoteHeadBudget, LocalChurchVoteHeadBudget
+    VoteHead, DCCVoteHeadBudget, LocalChurchVoteHeadBudget,
+    BudgetIncomeSource
 )
 
 
@@ -195,6 +196,63 @@ class BudgetService:
         """Get vote head allocations for a local church budget"""
         statement = select(LocalChurchVoteHeadBudget).where(
             LocalChurchVoteHeadBudget.local_church_budget_id == local_church_budget_id
+        )
+        result = await session.exec(statement)
+        return result.all()
+
+    @staticmethod
+    async def create_budget_income_source(
+        session: Session,
+        source_type: str,
+        amount: Decimal,
+        description: Optional[str] = None,
+        received_date: Optional[datetime] = None,
+        yearly_budget_id: Optional[UUID] = None,
+        dcc_budget_id: Optional[UUID] = None,
+        local_church_budget_id: Optional[UUID] = None,
+    ) -> BudgetIncomeSource:
+        """Create an income source entry for a budget level"""
+        if sum(bool(x) for x in [yearly_budget_id, dcc_budget_id, local_church_budget_id]) != 1:
+            raise ValueError(
+                "Exactly one budget level must be specified for an income source")
+
+        source = BudgetIncomeSource(
+            source_type=source_type,
+            amount=amount,
+            description=description,
+            received_date=received_date or datetime.now(),
+            yearly_budget_id=yearly_budget_id,
+            dcc_budget_id=dcc_budget_id,
+            local_church_budget_id=local_church_budget_id,
+        )
+        session.add(source)
+        await session.commit()
+        await session.refresh(source)
+        return source
+
+    @staticmethod
+    async def get_yearly_budget_income_sources(session: Session, yearly_budget_id: UUID) -> List[BudgetIncomeSource]:
+        """Get income sources for a yearly budget"""
+        statement = select(BudgetIncomeSource).where(
+            BudgetIncomeSource.yearly_budget_id == yearly_budget_id
+        )
+        result = await session.exec(statement)
+        return result.all()
+
+    @staticmethod
+    async def get_dcc_budget_income_sources(session: Session, dcc_budget_id: UUID) -> List[BudgetIncomeSource]:
+        """Get income sources for a DCC budget"""
+        statement = select(BudgetIncomeSource).where(
+            BudgetIncomeSource.dcc_budget_id == dcc_budget_id
+        )
+        result = await session.exec(statement)
+        return result.all()
+
+    @staticmethod
+    async def get_local_church_budget_income_sources(session: Session, local_church_budget_id: UUID) -> List[BudgetIncomeSource]:
+        """Get income sources for a local church budget"""
+        statement = select(BudgetIncomeSource).where(
+            BudgetIncomeSource.local_church_budget_id == local_church_budget_id
         )
         result = await session.exec(statement)
         return result.all()

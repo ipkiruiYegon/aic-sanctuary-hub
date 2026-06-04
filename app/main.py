@@ -132,7 +132,8 @@ async def dashboard(request: Request, session: AsyncSession = Depends(get_sessio
 
 @app.get("/budget")
 async def budget_page(request: Request, session: AsyncSession = Depends(get_session)):
-    return templates.TemplateResponse("budget.html", {"request": request})
+    region = await council_services.get_region_with_hierarchy(session)
+    return templates.TemplateResponse("budget.html", {"request": request, "region": region})
 
 
 @app.get("/login")

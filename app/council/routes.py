@@ -5,7 +5,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import Session, select
 from app.db.database import get_session
 from app.council.service import CouncilService
-from app.council.models import Church, District
+from app.council.models import Church, District, Region
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
 from typing import List
@@ -36,7 +36,29 @@ async def get_local_churches_api(district_id: uuid.UUID, request: Request, sessi
     return [{"id": str(church.id), "name": church.name} for church in churches]
 
 
-# ==================== HTML Routes ====================
+@council_router.get("/api/regions", response_model=List[dict])
+async def get_regions_api(request: Request, session: AsyncSession = Depends(get_session)):
+    """Get all regions"""
+    statement = select(Region)
+    result = await session.exec(statement)
+    regions = result.all()
+    return [{"id": str(region.id), "name": region.name} for region in regions]
+
+
+@council_router.get("/api/churches/dcc/{dcc_id}/local", response_model=List[dict])
+async def get_local_churches_for_dcc_api(dcc_id: uuid.UUID, request: Request, session: AsyncSession = Depends(get_session)):
+    """Get local churches for a specific DCC by matching district."""
+    church = await session.get(Church, dcc_id)
+    if church is None:
+        return []
+    statement = select(Church).where(Church.district_id ==
+                                     church.district_id, Church.id != dcc_id)
+    result = await session.exec(statement)
+    churches = result.all()
+    return [{"id": str(church.id), "name": church.name} for church in churches]
+
+
+# ==================== HTML Routes ====
 
 
 @council_router.get("/get-churches", response_class=HTMLResponse)
@@ -44,11 +66,12 @@ async def get_churches(request: Request, session: AsyncSession = Depends(get_ses
     # Find the specific district from your 'region' object
     # (Assuming 'region' is available or fetched from DB)
     params = dict(request.query_params)
+
     district_id = next((v for k, v in params.items()
                        if "district" in k), None)
     if not district_id:
         return None
-
+    print(district_id)
     selected_district = await council_services.get_churches_by_district(
         uuid.UUID(district_id), session)
 
