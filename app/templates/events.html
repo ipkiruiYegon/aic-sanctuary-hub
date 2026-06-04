@@ -1,12 +1,22 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="event-container">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold">Event Management</h2>
-        <button class="btn btn-primary" onclick="document.getElementById('eventModal').showModal()">
-            <i class="fas fa-plus"></i> New Event
-        </button>
+<div class="container mx-auto px-4 py-1 max-w-7xl">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <i class="fas fa-calendar text-blue-600"></i>
+                Manage Events
+            </h2>
+
+            <p class="text-gray-600 mt-2">Create and approve Area, Regional, DCC and Local church events.</p>
+        </div>
+        <div class="flex gap-2">
+            <button class="btn btn-primary" onclick="document.getElementById('eventModal').showModal()">
+                <i class="fas fa-plus"></i> New Event
+            </button>
+        </div>
     </div>
 
     <!-- Calendar -->
@@ -40,10 +50,10 @@
                             <option value="">-- Select Type --</option>
                             <option value="LCC Event">Local Church Event</option>
                             <option value="DCC Event">DCC Event</option>
-                            <option value="RCC Event">Regional Event</option>
+                            <option value="RCC Event">RCC Event</option>
                             <option value="ACC Event">Area Event</option>
                             <option value="DCC Common Event">DCC Common Event All Churches</option>
-                            <option value="RCC common Event">Regional Common Event All DCC's</option>
+                            <option value="RCC Common Event">RCC Common Event All DCC's</option>
                         </select>
                     </div>
 
@@ -61,21 +71,23 @@
 
                     <!-- Venue Region -->
                     <div class="flex flex-col">
-                        <label for="venueRegion" class="block text-sm font-medium text-gray-700">Region (if
-                            regional)</label>
-                        <select name="venueRegion" id="venueRegion" required class="select select-bordered w-full">
+                        <label for="venueRegion" class="block text-sm font-medium text-gray-700">Host Region - RCC
+                        </label>
+                        <select name="venueRegion" id="venueRegion" class="select select-bordered w-full" required>
+                            <option value="" disabled selected>-- Select host DCC --</option>
                             <option value="{{ region.id }}">{{ region.name }}</option>
                         </select>
                     </div>
 
                     <!-- Venue DCC -->
                     <div class="flex flex-col">
-                        <label for="district_id" class="block text-sm font-medium text-gray-700">District - DCC</label>
-                        <select name="district_id" id="district_id" required hx-get="/council/get-churches"
+                        <label for="district_id" class="block text-sm font-medium text-gray-700">Host District -
+                            DCC</label>
+                        <select name="district_id" id="district_id" hx-get="/council/get-churches"
                             hx-target="#venueChurch" hx-trigger="change" class="select select-bordered w-full">
                             <option value="" disabled selected>-- Select host DCC --</option>
                             {% for district in region.districts %}
-                            <option value="{{ district.id }}">{{ district.name }}</option>
+                            <option value="{{ district.id }}">{{ district.name }}</option>`
                             {% endfor %}
                         </select>
                     </div>
@@ -83,8 +95,8 @@
                     <!-- Venue Church -->
                     <div class="flex flex-col">
                         <label for="venueChurch" class="block text-sm font-medium text-gray-700">Host Local
-                            Church</label>
-                        <select name="venueChurch" id="venueChurch" required class="select select-bordered w-full">
+                            Church - LCC</label>
+                        <select name="venueChurch" id="venueChurch" class="select select-bordered w-full">
                             <option value="" disabled selected>-- Select host Church --</option>
                         </select>
                     </div>
@@ -97,7 +109,7 @@
 
                     <!-- Target Group -->
                     <div class="flex flex-col">
-                        <label for="targetGroup" class="text-sm font-medium mb-1">Target Group</label>
+                        <label for="targetGroup" class="text-sm font-medium">Target Group</label>
                         <select id="targetGroup" name="targetGroup" class="select select-bordered w-full" required>
                             <option value="">-- Select Group --</option>
                             <option value="leaders">Leaders</option>
@@ -107,6 +119,17 @@
                             <option value="men">Men</option>
                             <option value="all">All</option>
                         </select>
+                    </div>
+                    <!-- Event Programmer  -->
+                    <div class="flex flex-col">
+                        <label for="eventProgrammer" class="text-sm font-medium">Event Programmer</label>
+                        <input type="text" id="eventProgrammer" name="eventProgrammer"
+                            class="input input-bordered w-full">
+                    </div>
+                    <!-- Event Speaker  -->
+                    <div class="flex flex-col">
+                        <label for="eventSpeaker" class="text-sm font-medium">Event Speaker</label>
+                        <input type="text" id="eventSpeaker" name="eventSpeaker" class="input input-bordered w-full">
                     </div>
                 </div>
 
@@ -151,8 +174,10 @@
                             <option value="">-- Select Type --</option>
                             <option value="LCC Event">Local Church Event</option>
                             <option value="DCC Event">DCC Event</option>
-                            <option value="RCC Event">Regional Event</option>
+                            <option value="RCC Event">RCC Event</option>
                             <option value="ACC Event">Area Event</option>
+                            <option value="DCC Common Event">DCC Common Event All Churches</option>
+                            <option value="RCC Common Event">RCC Common Event All DCC's</option>
                         </select>
                     </div>
 
@@ -169,20 +194,21 @@
                     </div>
 
                     <div class="flex flex-col">
-                        <label for="approveVenueRegion" class="block text-sm font-medium text-gray-700">Region (if
-                            regional)</label>
+                        <label for="approveVenueRegion" class="block text-sm font-medium text-gray-700">Host Region -
+                            RCC</label>
                         <select name="venue_region_id" id="approveVenueRegion" class="select select-bordered w-full"
                             required>
+                            <option value="" disabled selected>-- Select host DCC --</option>
                             <option value="{{ region.id }}">{{ region.name }}</option>
                         </select>
                     </div>
 
                     <div class="flex flex-col">
-                        <label for="approveVenueDistrict" class="block text-sm font-medium text-gray-700">District -
+                        <label for="approveVenueDistrict" class="block text-sm font-medium text-gray-700">Host District
+                            -
                             DCC</label>
-                        <select name="venue_district_id" id="approveVenueDistrict" required
-                            hx-get="/council/get-churches" hx-target="#approveVenueChurch" hx-trigger="change"
-                            class="select select-bordered w-full">
+                        <select name="venue_district_id" id="approveVenueDistrict" hx-get="/council/get-churches"
+                            hx-target="#approveVenueChurch" hx-trigger="change" class="select select-bordered w-full">
                             <option value="" disabled>-- Select host DCC --</option>
                             {% for district in region.districts %}
                             <option value="{{ district.id }}">{{ district.name }}</option>
@@ -193,30 +219,41 @@
                     <div class="flex flex-col">
                         <label for="approveVenueChurch" class="block text-sm font-medium text-gray-700">Host Local
                             Church</label>
-                        <select name="venue_church_id" id="approveVenueChurch" required
-                            class="select select-bordered w-full">
+                        <select name="venue_church_id" id="approveVenueChurch" class="select select-bordered w-full">
                             <option value="" disabled>-- Select host Church --</option>
                         </select>
                     </div>
 
                     <div class="flex flex-col">
-                        <label for="approveActualVenue" class="text-sm font-medium mb-1">Actual Venue</label>
+                        <label for="approveActualVenue" class="text-sm font-medium">Actual Venue</label>
                         <input type="text" id="approveActualVenue" name="actual_venue"
                             class="input input-bordered w-full">
                     </div>
 
                     <div class="flex flex-col">
-                        <label for="approveTargetGroup" class="text-sm font-medium mb-1">Target Group</label>
+                        <label for="approveTargetGroup" class="text-sm font-medium">Target Group</label>
                         <select id="approveTargetGroup" name="target_group" class="select select-bordered w-full"
                             required>
                             <option value="">-- Select Group --</option>
-                            <option value="leaders">Leaders</option>
-                            <option value="youth">Youth</option>
-                            <option value="women">Women</option>
-                            <option value="widows">Widows</option>
-                            <option value="men">Men</option>
-                            <option value="all">All</option>
+                            <option value="Leaders">Leaders</option>
+                            <option value="Youth">Youth</option>
+                            <option value="Women">Women</option>
+                            <option value="Widows">Widows</option>
+                            <option value="Men">Men</option>
+                            <option value="All">All</option>
                         </select>
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveEventProgrammer" class="text-sm font-medium">Event Programmer</label>
+                        <input type="text" id="approveEventProgrammer" name="approveEventProgrammer"
+                            class="input input-bordered w-full">
+                    </div>
+
+                    <div class="flex flex-col">
+                        <label for="approveEventSpeaker" class="text-sm font-medium">Event Speaker</label>
+                        <input type="text" id="approveEventSpeaker" name="approveEventSpeaker"
+                            class="input input-bordered w-full">
                     </div>
                 </div>
 
@@ -270,6 +307,7 @@
     </dialog>
     <!-- Pending Events for Checker -->
     {% if request.state.user['user']['staff'] == True %}
+    {% if pending_events %}
     <h3 class="text-xl font-semibold mt-8 mb-4">Pending Events</h3>
 
     <!-- Desktop Table -->
@@ -308,6 +346,17 @@
                         <span class="font-semibold">DCC:</span> {{ event.venue_district.name }}<br>
                         <span class="font-semibold">Host Church:</span> {{ event.venue_church.name }}<br>
                         <span class="font-semibold">Venue:</span> {{ event.actual_venue }}
+                        {% elif event.event_type == 'ACC Event' %}
+                        <span class="font-semibold">RCC:</span> {{ event.venue_region.name }}<br>
+                        <span class="font-semibold">DCC:</span> {{ event.venue_district.name }}<br>
+                        <span class="font-semibold">Host Church:</span> {{ event.venue_church.name }}<br>
+                        <span class="font-semibold">Venue:</span> {{ event.actual_venue }}
+                        {% elif event.event_type == 'RCC Common Event' %}
+                        <span class="font-semibold">Common:</span> All {{ event.venue_region.name }} Region DCC's.
+                        {% elif event.event_type == 'DCC Common Event' %}
+                        <span class="font-semibold">Common:</span> All {{ event.venue_district.name }} DCC Local
+                        Churches.
+
                         {% else %}
                         <span class="font-semibold">Host Church:</span> {{ event.venue_church.name }}<br>
                         <span class="font-semibold">Venue:</span> {{ event.actual_venue }}
@@ -335,6 +384,8 @@
                                 data-venue-church-name="{{ event.venue_church.name if event.venue_church else '' }}"
                                 data-actual-venue="{{ event.actual_venue }}"
                                 data-target-group="{{ event.target_group }}"
+                                data-event-programmer="{{ event.event_programmer }}"
+                                data-event-speaker="{{ event.event_speaker }}"
                                 data-description="{{ event.description | default('') | e }}" {% if event.created_by |
                                 string==current_user['user_id'] | string %} disabled
                                 title="You cannot approve your own event" {% endif %}>Approve</button>
@@ -365,8 +416,15 @@
                 {% if event.event_type == 'RCC Event' %}
                 DCC: {{ event.venue_district.name }} | Church: {{
                 event.venue_church.name }}
-                {% elif event.type == 'dcc' %}
+                {% elif event.event_type == 'DCC Event' %}
                 DCC: {{ event.venue_district.name }} | Church: {{ event.venue_church.name }}
+                {% elif event.event_type == 'RCC Common Event' %}
+                All {{event.venue_region.name}} Region DCC's.
+                {% elif event.event_type == 'DCC Common Event' %}
+                All {{event.venue_district.name}} DCC Local Churches.
+                {% elif event.event_type == 'ACC Event' %}
+                DCC: {{ event.venue_district.name }} | Venue: {{
+                event.actual_venue }}
                 {% else %}
                 Church: {{ event.venue_church.name }}
                 {% endif %}
@@ -383,6 +441,7 @@
                     data-venue-region-id="{{ event.venue_region_id }}"
                     data-venue-district-id="{{ event.venue_district_id }}"
                     data-venue-church-id="{{ event.venue_church_id }}"
+                    data-event-programmer="{{ event.event_programmer }}" data-event-speaker="{{ event.event_speaker }}"
                     data-venue-church-name="{{ event.venue_church.name if event.venue_church else '' }}"
                     data-actual-venue="{{ event.actual_venue }}" data-target-group="{{ event.target_group }}"
                     data-description="{{ event.description | default('') | e }}" {% if event.created_by |
@@ -396,17 +455,86 @@
         </div>
         {% endfor %}
     </div>
+    {% else %}
+    <div class="text-center py-8 text-gray-500">
+        <i class="fas fa-calendar-alt text-4xl mb-2"></i>
+        <p>No pending events to be approved.</p>
+    </div>
+    {% endif %}
     {% endif %}
 </div>
 
 <script>
+    function updateVenueFields(type, prefix = 'approve') {
+        console.log(`Updating venue fields for type: ${type} with prefix: ${prefix}`);
+        // Determine IDs based on prefix (e.g., 'approveVenueRegion' or 'venueRegion')
+        const regionEl = document.getElementById(`${prefix}VenueRegion`);
+        const districtEl = document.getElementById(`${prefix}VenueDistrict`) || document.getElementById('district_id'); // handle naming diffs
+        const churchEl = document.getElementById(`${prefix}VenueChurch`);
+        const venueEl = document.getElementById(`${prefix}ActualVenue`);
+
+        const toggleField = (element, shouldShow) => {
+            if (!element) return;
+            element.parentElement.style.display = shouldShow ? 'block' : 'none';
+        };
+
+        const isCommon = type.includes('Common');
+        const isRegionalCommon = type.includes('RCC Common');
+        const isStandardEvent = (type === 'LCC Event' || type === 'DCC Event' || type === 'RCC Event');
+
+        toggleField(regionEl, true);
+        toggleField(districtEl, !isRegionalCommon);
+        toggleField(churchEl, isStandardEvent);
+        toggleField(venueEl, !isCommon);
+    }
+
+    // Handle event type changes to show/hide venue fields
+    function handleEventTypeChange(eventTypeElement) {
+        let type = eventTypeElement.value;
+
+        const venueRegion = document.getElementById('venueRegion');
+        const district = document.getElementById('district_id');
+        const venueChurch = document.getElementById('venueChurch');
+        const actualVenue = document.getElementById('actualVenue');
+
+        // Helper to toggle visibility AND clear value if hidden
+        const toggleField = (element, shouldShow) => {
+            if (!element) return;
+            const container = element.parentElement;
+            if (shouldShow) {
+                container.style.display = 'block';
+            } else {
+                container.style.display = 'none';
+                element.value = ''; // Reset the value when hidden
+            }
+        };
+
+        const isCommon = type.includes('Common');
+        const isRegionalCommon = type.includes('RCC Common');
+        const isStandardEvent = (type === 'LCC Event' || type === 'DCC Event' || type === 'RCC Event');
+
+        // 1. Region: Always shown
+        toggleField(venueRegion, true);
+
+        // 2. District: Hide for Regional Common, show for others (including Local/RCC Common)
+        toggleField(district, !isRegionalCommon);
+
+        // 3. Church: Show only for standard LCC, DCC, RCC Events
+        toggleField(venueChurch, isStandardEvent);
+
+        // 4. Actual Venue: Hide for all Common types, show for standard Events
+        toggleField(actualVenue, !isCommon);
+    }
+
     document.getElementById('eventType').addEventListener('change', function () {
-        let type = this.value;
-        console.log(type)
-        document.getElementById('venueRegion').parentElement.style.display = (type === 'regional') ? 'block' : 'none';
-        document.getElementById('venueDcc').parentElement.style.display = (type === 'regional' || type === 'dcc') ? 'block' : 'none';
-        document.getElementById('venueChurch').parentElement.style.display = (type === 'local' || type === 'dcc') ? 'block' : 'none';
+        handleEventTypeChange(this);
     });
+
+    // Handle approve modal event type change
+    document.getElementById('approveEventType')?.addEventListener?.('change', function () {
+        updateVenueFields(this.value, 'approve');
+    });
+
 
     function openApproveModal(button) {
         const eventId = button.dataset.eventId;
@@ -419,6 +547,13 @@
         document.getElementById('approveEndDate').value = button.dataset.dateTo || '';
         document.getElementById('approveVenueRegion').value = button.dataset.venueRegionId || document.getElementById('approveVenueRegion').value;
         document.getElementById('approveVenueDistrict').value = button.dataset.venueDistrictId || '';
+        document.getElementById('approveTargetGroup').value = button.dataset.targetGroup || '';
+        document.getElementById('approveEventProgrammer').value = button.dataset.eventProgrammer || '';
+        document.getElementById('approveEventSpeaker').value = button.dataset.eventSpeaker || '';
+
+        // 1. UPDATE VISIBILITY IMMEDIATELY
+        const eventTypeDropdown = document.getElementById('approveEventType');
+        updateVenueFields(eventTypeDropdown.value, 'approve');
 
         // Trigger HTMX to load churches for the selected district
         document.getElementById('approveVenueDistrict').dispatchEvent(new Event('change'));
@@ -455,11 +590,29 @@
                 const event_type = eventCreateForm.querySelector("[name='eventType']").value;
                 const date_from = eventCreateForm.querySelector("[name='startDate']").value;
                 const date_to = eventCreateForm.querySelector("[name='endDate']").value;
-                const venue_church_id = eventCreateForm.querySelector("[name='venueChurch']").value;
-                const venue_district_id = eventCreateForm.querySelector("[name='district_id']").value;
                 const venue_region_id = eventCreateForm.querySelector("[name='venueRegion']").value;
-                const actual_venue = eventCreateForm.querySelector("[name='actualVenue']").value;
                 const target_group = eventCreateForm.querySelector("[name='targetGroup']").value;
+                const event_programmer = eventCreateForm.querySelector("[name='eventProgrammer']").value;
+                const event_speaker = eventCreateForm.querySelector("[name='eventSpeaker']").value;
+
+                const isCommon = event_type.includes('Common Event');
+                const isDCCCommon = event_type === 'DCC Common Event';
+
+                let venue_church_id = null;
+                let venue_district_id = null;
+                let actual_venue = null;
+
+                // venue fields should have none values if event_type includes 'Common Event' and backend should handle it accordingly
+                if (!isCommon) {
+                    venue_church_id = eventCreateForm.querySelector("[name='venueChurch']").value || null;
+                    venue_district_id = eventCreateForm.querySelector("[name='district_id']").value || null;
+                    actual_venue = eventCreateForm.querySelector("[name='actualVenue']").value || null;
+
+                } else if (isDCCCommon) {
+                    venue_district_id = eventCreateForm.querySelector("[name='district_id']").value || null;
+                }
+
+
 
                 const payload = {
                     event_name,
@@ -470,7 +623,9 @@
                     venue_district_id,
                     venue_region_id,
                     actual_venue,
-                    target_group
+                    target_group,
+                    event_programmer,
+                    event_speaker
                 };
 
                 try {
@@ -501,6 +656,12 @@
                     showToast("Network error: " + error.message, "error");
                 }
             });
+        }
+
+        // Initialize event type visibility on page load
+        const eventTypeElement = document.getElementById('eventType');
+        if (eventTypeElement && eventTypeElement.value) {
+            handleEventTypeChange(eventTypeElement);
         }
     })
 </script>

@@ -15,6 +15,7 @@ from .auth.routes import auth_router      # Import the auth routes
 from .events.routes import events_router
 from .notifications.routes import notifications_router
 from .calendar.routes import calendar_router
+from .budget.routes import router as budget_router  # Import the budget router
 from .core.templates import templates  # Import the templates object
 from app.db.database import get_session  # Import the async session dependency
 from app.db.database import async_session
@@ -112,6 +113,7 @@ app.include_router(events_router, prefix="/events", tags=["events"])
 app.include_router(notifications_router,
                    prefix="/notifications", tags=["notifications"])
 app.include_router(calendar_router, prefix="/calendar", tags=["calendar"])
+app.include_router(budget_router)
 
 
 @app.get("/")
@@ -126,6 +128,11 @@ async def dashboard(request: Request, session: AsyncSession = Depends(get_sessio
         "request": request,
         "upcoming_events": upcoming_events
     })
+
+
+@app.get("/budget")
+async def budget_page(request: Request, session: AsyncSession = Depends(get_session)):
+    return templates.TemplateResponse("budget.html", {"request": request})
 
 
 @app.get("/login")

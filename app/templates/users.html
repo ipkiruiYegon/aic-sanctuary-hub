@@ -1,135 +1,24 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="users-container ">
-    <div class="flex justify-between items-center mb-6">
-        <h2 class="text-2xl font-bold mb-6">Manage Users</h2>
-
-        <!-- Button to open modal for creating user -->
-        <label for="createUserModal" class="btn btn-primary"><i class="fas fa-user-plus"></i>Create
-            User</label>
+<div class="container mx-auto px-4 py-1 max-w-7xl">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <i class="fas fa-users text-blue-600"></i>
+                Manage Users
+            </h2>
+            <p class="text-gray-600 mt-2">View, edit user system roles and update user status.</p>
+        </div>
     </div>
+
     <!-- Users Table -->
     <div id="usersTableContainer" hx-get="/users/table" hx-trigger="load, reloadUsersTable from:body">
         {% include "users_table.html" %}
     </div>
 
-    <!-- Create User Modal -->
-    <input type="checkbox" id="createUserModal" class="modal-toggle" />
-    <div class="modal">
-        <div class="modal-box max-w-lg">
-            <h3 class="text-xl font-bold mb-4">Create New User</h3>
 
-            <form method="post" action="/users/create" class="grid gap-4">
-                <!-- Error box -->
-                <div id="formErrorBox" class="text-red-600 text-sm mb-2 hidden"></div>
-
-                <!-- Tabs -->
-                <div role="tablist" class="tabs tabs-bordered w-full justify-start border-b-2 border-gray-200 mb-4">
-                    <a role="tab"
-                        class="tab tab-active px-4 py-2 font-semibold text-red-600 border-b-4 border-red-600 hover:bg-red-50 transition-colors"
-                        data-target="panel-create-personal">Personal</a>
-                    <a role="tab"
-                        class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
-                        data-target="panel-create-roles">Roles</a>
-                    <a role="tab"
-                        class="tab px-4 py-2 font-semibold text-gray-600 border-b-4 border-transparent hover:bg-gray-50 transition-colors"
-                        data-target="panel-create-council">Council</a>
-                </div>
-
-                <!-- Panels -->
-                <div id="panel-create-personal" class="tab-panel block grid grid-cols-1 gap-4">
-                    <!-- Title -->
-                    <div>
-                        <label for="title" class="block text-sm font-medium text-gray-700">Title</label>
-                        <select name="title" id="title" required class="select select-bordered w-full">
-                            <option value="" disabled selected>-- Select Title --</option>
-                            <option>Mr</option>
-                            <option>Mrs</option>
-                            <option>Miss</option>
-                            <option>Dr</option>
-                            <option>Pastor</option>
-                            <option>Reverend</option>
-                            <option>Bishop</option>
-                        </select>
-                    </div>
-
-                    <!-- First Name -->
-                    <div>
-                        <label for="first_name" class="block text-sm font-medium text-gray-700">First Name</label>
-                        <input type="text" name="first_name" id="first_name" required
-                            class="input input-bordered w-full">
-                    </div>
-
-                    <!-- Last Name -->
-                    <div>
-                        <label for="last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
-                        <input type="text" name="last_name" id="last_name" required class="input input-bordered w-full">
-                    </div>
-
-                    <!-- Phone -->
-                    <div>
-                        <label for="phone_no" class="block text-sm font-medium text-gray-700">Phone Number</label>
-                        <input type="tel" name="phone_no" id="phone_no" required class="input input-bordered w-full">
-                    </div>
-                </div>
-
-                <div id="panel-create-roles" class="tab-panel hidden grid grid-cols-1 gap-4">
-                    <!-- Church Role -->
-                    <div>
-                        <label for="role" class="block text-sm font-medium text-gray-700">Church Role</label>
-                        <select name="role" id="role" required class="select select-bordered w-full">
-                            <option value="" disabled selected>-- Select Role --</option>
-                            {% for role in roles %}
-                            <option value="{{ role.id }}">{{ role.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <div id="panel-create-council" class="tab-panel hidden grid grid-cols-1 gap-4">
-                    <!-- Region -->
-                    <div>
-                        <label for="district_region" class="block text-sm font-medium text-gray-700">Region -
-                            RCC</label>
-                        <select name="region_id" id="district_region" required class="select select-bordered w-full">
-                            <option value="" disabled selected>-- Select Region --</option>
-                            <option value="{{ region.id }}">{{ region.name }}</option>
-                        </select>
-                    </div>
-
-                    <!-- District -->
-                    <div>
-                        <label for="local_district" class="block text-sm font-medium text-gray-700">District -
-                            DCC</label>
-                        <select name="district_id" id="local_district" required hx-get="/council/get-churches"
-                            hx-target="#local_church_id" hx-trigger="change" class="select select-bordered w-full">
-                            <option value="" disabled selected>-- Select District --</option>
-                            {% for district in region.districts %}
-                            <option value="{{ district.id }}">{{ district.name }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-
-                    <!-- Local Church -->
-                    <div>
-                        <label for="local_church_id" class="block text-sm font-medium text-gray-700">Church -
-                            LCC</label>
-                        <select name="local_church_id" id="local_church_id" required
-                            class="select select-bordered w-full">
-                            <option value="" disabled selected>-- Select Church --</option>
-                        </select>
-                    </div>
-                </div>
-
-                <!-- Actions -->
-                <div class="flex flex-col sm:flex-row justify-end gap-2 mt-3">
-                    <button type="submit" class="btn btn-primary w-full sm:w-auto">Save User</button>
-                    <label for="createUserModal" class="btn btn-secondary w-full sm:w-auto">Cancel</label>
-                </div>
-            </form>
-        </div>
-    </div>
 
     <!-- Edit User Modal -->
     <input type="checkbox" id="editUserModal" class="modal-toggle" />
@@ -173,21 +62,24 @@
 
                     <!-- First Name -->
                     <div>
-                        <label for="edit_first_name" class="block text-sm font-medium text-gray-700">First Name</label>
+                        <label for="edit_first_name" class="block text-sm font-medium text-gray-700">First
+                            Name</label>
                         <input type="text" name="update_first_name" id="edit_first_name" required
                             class="input input-bordered w-full">
                     </div>
 
                     <!-- Last Name -->
                     <div>
-                        <label for="edit_last_name" class="block text-sm font-medium text-gray-700">Last Name</label>
+                        <label for="edit_last_name" class="block text-sm font-medium text-gray-700">Last
+                            Name</label>
                         <input type="text" name="update_last_name" id="edit_last_name" required
                             class="input input-bordered w-full">
                     </div>
 
                     <!-- Phone -->
                     <div>
-                        <label for="edit_phone_no" class="block text-sm font-medium text-gray-700">Phone Number</label>
+                        <label for="edit_phone_no" class="block text-sm font-medium text-gray-700">Phone
+                            Number</label>
                         <input type="tel" name="update_phone_no" id="edit_phone_no" required
                             class="input input-bordered w-full">
                     </div>
@@ -204,7 +96,8 @@
                     <!-- Roles form fields -->
                     <!-- LCC Role -->
                     <div>
-                        <label for="edit_lcc_role" class="block text-sm font-medium text-gray-700">Church Role</label>
+                        <label for="edit_lcc_role" class="block text-sm font-medium text-gray-700">Church
+                            Role</label>
                         <select name="update_lcc_role" id="edit_lcc_role" required
                             class="select select-bordered w-full">
                             <option value="" disabled selected>-- Select Role --</option>
@@ -326,7 +219,7 @@
 {% block scripts %}
 <script>
     document.addEventListener('DOMContentLoaded', () => {
-        const userCreateForm = document.querySelector("form[action='/users/create']");
+
         const userUpdateForm = document.querySelector("form[action='/users/update']");
         const editBtns = document.querySelectorAll(".editBtn");
         const statusBtns = document.querySelectorAll(".statusBtn");
@@ -380,54 +273,6 @@
             return true;
         }
 
-        if (userCreateForm) {
-            userCreateForm.addEventListener("submit", async (event) => {
-                event.preventDefault();
-
-                const firstName = userCreateForm.querySelector("[name='first_name']").value;
-                const lastName = userCreateForm.querySelector("[name='last_name']").value;
-                const phoneNo = userCreateForm.querySelector("[name='phone_no']").value;
-                const region = userCreateForm.querySelector("[name='region_id']").value;
-                const district = userCreateForm.querySelector("[name='district_id']").value;
-                const localChurch = userCreateForm.querySelector("[name='local_church_id']").value;
-
-                if (!validateFName(firstName, "First name must be at least 3 letters and no spaces.")) return;
-                if (!validateLName(lastName, "Last name must be at least 3 letters and no spaces.")) return;
-                if (!validatePhone(phoneNo)) return;
-                if (!validateUUID(region, "Region must be a valid UUID.")) return;
-                if (!validateUUID(district, "District must be a valid UUID.")) return;
-                if (!validateUUID(localChurch, "Local Church must be a valid UUID.")) return;
-
-                const formData = new FormData(userCreateForm);
-
-                try {
-                    const response = await fetch(userCreateForm.action, {
-                        method: userCreateForm.method,
-                        body: formData
-                    });
-
-                    if (!response.ok) {
-                        const errorData = await response.json().catch(() => ({}));
-                        showToast(errorData.detail || "Submission failed.", "error");
-                        return;
-                    }
-
-                    const result = await response.json();
-
-                    if (result.success) {
-                        showToast("User created successfully!", "success");
-                        userCreateForm.reset();
-                        document.getElementById("createUserModal").checked = false;
-
-                        htmx.trigger("body", "reloadUsersTable");
-                    } else {
-                        showToast(result.message || result.detail || "Unknown error occurred.", "error");
-                    }
-                } catch (error) {
-                    showToast("Network error: " + error.message, "error");
-                }
-            });
-        }
 
         if (userUpdateForm) {
             userUpdateForm.addEventListener("submit", async (event) => {

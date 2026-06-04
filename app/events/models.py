@@ -16,20 +16,20 @@ class EventBase(SQLModel):
     event_type: str
     date_from: datetime
     date_to: datetime
-    actual_venue: str
+    actual_venue: Optional[str]
     target_group: str
 
 
 class EventSchema(EventBase):
-    venue_church_id: uuid.UUID
-    venue_district_id: uuid.UUID
+    venue_church_id: Optional[uuid.UUID]
+    venue_district_id: Optional[uuid.UUID]
     venue_region_id: uuid.UUID
+    event_programmer: Optional[str] = None
+    event_speaker: Optional[str] = None
 
 
-class EventPublic(EventBase):
-    venue_church_id: uuid.UUID
-    venue_district_id: uuid.UUID
-    venue_region_id: uuid.UUID
+class EventPublic(EventSchema):
+    pass
 
 
 class Event(EventBase, table=True):
@@ -67,6 +67,8 @@ class Event(EventBase, table=True):
     venue_church: Optional["Church"] = Relationship()
     venue_district: Optional["District"] = Relationship()
     venue_region: Optional["Region"] = Relationship()
+    event_programmer: Optional[str] = None
+    event_speaker: Optional[str] = None
 
     # Notification relationships
     likes: list["EventLike"] = Relationship(back_populates="event")

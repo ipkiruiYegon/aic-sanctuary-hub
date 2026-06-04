@@ -156,3 +156,8 @@ class User(UserBase, table=True):
     notifications: list["Notification"] = Relationship(back_populates="user")
     notification_preferences: Optional["NotificationPreference"] = Relationship(
         back_populates="user")
+    # Budget relationships
+    budget_payments: list["BudgetPayment"] = Relationship(
+        back_populates="recorded_by")
+    budget_reports: list["BudgetReport"] = Relationship(
+        back_populates="generated_by")

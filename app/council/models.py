@@ -42,3 +42,7 @@ class Church(SQLModel, table=True):
     district: Optional["District"] = Relationship(back_populates="churches")
     # Ensure back_populates matches User model
     users: List["User"] = Relationship(back_populates="local_church")
+    # Budget relationships
+    dcc_budgets: List["DCCBudget"] = Relationship(back_populates="dcc")
+    church_budgets: List["LocalChurchBudget"] = Relationship(
+        back_populates="local_church")

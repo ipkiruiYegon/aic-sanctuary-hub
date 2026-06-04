@@ -6,29 +6,38 @@ function showToast(message, type = "error") {
     info: "alert-info"
   };
 
+  // Use fa-lg to make the icon size naturally fill the container
   const icons = {
-    error: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm-1-5a1 1 0 112 0v2a1 1 0 11-2 0v-2zm0-6a1 1 0 012 0v3a1 1 0 11-2 0V7z" clip-rule="evenodd" />
-            </svg>`,
-    success: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.707a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414L8.586 13l4.121-4.707z" clip-rule="evenodd" />
-            </svg>`,
-    info: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-white" viewBox="0 0 20 20" fill="currentColor">
-              <path fill-rule="evenodd" d="M18 10c0 4.418-3.582 8-8 8s-8-3.582-8-8 3.582-8 8-8 8 3.582 8 8zm-9-3a1 1 0 011-1h.01a1 1 0 110 2H10a1 1 0 01-1-1zm1 4a1 1 0 00-1 1v3a1 1 0 102 0v-3a1 1 0 00-1-1z" clip-rule="evenodd" />
-            </svg>`
+    error: `<i class="fa-solid fa-circle-exclamation fa-lg"></i>`,
+    success: `<i class="fa-solid fa-circle-check fa-lg"></i>`,
+    info: `<i class="fa-solid fa-circle-info fa-lg"></i>`
   };
 
   const toast = document.createElement("div");
-  toast.className = `alert ${colors[type]} shadow-lg 
-                   w-full sm:w-auto sm:max-w-sm 
-                   flex items-center justify-between text-white px-4`;
+  toast.className = `alert ${colors[type]} shadow-xl border-none
+                   pointer-events-auto flex items-center 
+                   w-full sm:w-[28rem] p-0 min-h-0 overflow-hidden`;
+
   toast.innerHTML = `
-  <div class="flex items-center text-white w-full">
-    <span class="flex-shrink-0 mr-6">${icons[type]}</span>
-    <span class="flex-1 break-words">${message}</span>
+  <div class="flex items-center gap-3 py-3 px-4 w-full text-white">
+    <!-- Clean Icon -->
+    <div class="flex-shrink-0 flex items-center justify-center">
+      ${icons[type]}
+    </div>
+    
+    <!-- Message -->
+    <div class="flex-1 text-sm font-medium leading-snug">
+      ${message}
+    </div>
+
+    <!-- Minimal Close Button -->
+    <button class="flex-shrink-0 opacity-70 hover:opacity-100 transition-opacity ml-2" 
+            onclick="this.closest('.alert').remove()">
+      <i class="fa-solid fa-xmark text-sm"></i>
+    </button>
   </div>
-  <button class="btn btn-sm btn-ghost text-white" onclick="this.parentElement.remove()">✕</button>
 `;
+
 
 
   document.getElementById("toastContainer").appendChild(toast);

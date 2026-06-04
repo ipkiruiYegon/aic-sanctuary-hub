@@ -63,20 +63,20 @@
 
                     <!-- Region -->
                     <div>
-                        <label for="region" class="block text-sm font-medium text-gray-700">Region</label>
+                        <label for="region" class="block text-sm font-medium text-gray-700">Region - RCC</label>
                         <select id="region" name="region_id" class="select select-bordered w-full" required>
-                            <option value="" disabled selected>-- Select your church Region --</option>
+                            <option value="" disabled selected>-- Select your Region --</option>
                             <option value="{{ region.id }}">{{ region.name }}</option>
                         </select>
                     </div>
 
                     <!-- District -->
                     <div>
-                        <label for="district" class="block text-sm font-medium text-gray-700">District</label>
+                        <label for="district" class="block text-sm font-medium text-gray-700">District - DCC</label>
                         <select id="district" name="district_id" class="select select-bordered w-full" required
                             hx-get="/council/get-churches" hx-target="#local_church" hx-trigger="change"
                             class="select select-bordered w-full">
-                            <option value="" disabled selected>-- Select District --</option>
+                            <option value="" disabled selected>-- Select your DCC --</option>
                             {% for district in region.districts %}
                             <option value="{{ district.id }}">{{ district.name }}</option>
                             {% endfor %}

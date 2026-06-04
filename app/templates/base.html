@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='fontawesome/css/all.css')}}">
+    <link rel="stylesheet" href="{{ url_for('static', path='fontawesome/css/solid.css')}}">
 </head>
 
 <body class="bg-base-100 min-h-screen drawer drawer-mobile">
@@ -129,6 +130,12 @@
                     <a href="/events"
                         class="flex items-center gap-2 w-full {% if request.url.path == '/events' %}active-menu{% endif %}">
                         <i class="fas fa-calendar-alt"></i> Events Management
+                    </a>
+                </li>
+                <li>
+                    <a href="/budget"
+                        class="flex items-center gap-2 w-full {% if request.url.path == '/budget' %}active-menu{% endif %}">
+                        <i class="fas fa-wallet"></i> Budget Management
                     </a>
                 </li>
             </ul>

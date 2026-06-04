@@ -10,7 +10,7 @@ import app.users.models
 import app.events.models
 import app.council.models
 import app.notifications.models
-
+import app.budget.models
 # Load environment variables
 load_dotenv()
 

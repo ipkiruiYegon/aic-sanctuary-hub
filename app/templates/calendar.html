@@ -1,10 +1,15 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-4 max-w-7xl">
-    <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
+<div class="container mx-auto px-4 py-1 max-w-7xl">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
         <div>
-            <h1 class="text-3xl font-bold">Calendar</h1>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <i class="fas fa-calendar text-blue-600"></i>
+                Calendar
+            </h2>
+
             <p class="text-gray-600 mt-2">Browse events by month and view national holidays.</p>
         </div>
         <div class="flex items-center gap-2">

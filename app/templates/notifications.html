@@ -137,7 +137,13 @@
                                                 </span>
                                                 <span class="flex items-center gap-1">
                                                     <i class="fas fa-map-marker-alt text-red-500"></i>
+                                                    {% if event.event_type == 'RCC Common Event' %}
+                                                    All {{event.venue_region.name}} Region DCC's.
+                                                    {% elif event.event_type == 'DCC Common Event' %}
+                                                    All {{event.venue_district.name}} DCC Local Churches.
+                                                    {% else %}
                                                     {{ event.actual_venue }}
+                                                    {% endif %}
                                                 </span>
                                                 <span class="flex items-center gap-1">
                                                     <i class="fas fa-users text-green-500"></i>
@@ -214,7 +220,13 @@
                                                 </span>
                                                 <span class="flex items-center gap-1">
                                                     <i class="fas fa-map-marker-alt text-gray-400"></i>
+                                                    {% if event.event_type == 'RCC Common Event' %}
+                                                    All {{event.venue_region.name}} Region DCC's.
+                                                    {% elif event.event_type == 'DCC Common Event' %}
+                                                    All {{event.venue_district.name}} DCC Local Churches.
+                                                    {% else %}
                                                     {{ event.actual_venue }}
+                                                    {% endif %}
                                                 </span>
                                                 <span class="flex items-center gap-1">
                                                     <i class="fas fa-users text-gray-400"></i>
@@ -634,7 +646,7 @@
                 }
             }
         } catch (error) {
-            console.error('Error toggling like:', error);
+            //console.error('Error toggling like:', error);
             showToast('Failed to update like', 'error');
         }
     }
@@ -688,7 +700,7 @@
             }
 
         } catch (error) {
-            console.error('Error loading comments:', error);
+            //console.error('Error loading comments:', error);
             showToast('Failed to load comments', 'error');
         }
     }
@@ -719,7 +731,7 @@
                 showToast('Comment added successfully', 'success');
             }
         } catch (error) {
-            console.error('Error adding comment:', error);
+            //console.error('Error adding comment:', error);
             showToast('Failed to add comment', 'error');
         }
     }
@@ -760,7 +772,7 @@
                 showToast('Notification marked as read', 'success');
             }
         } catch (error) {
-            console.error('Error marking notification as read:', error);
+            //console.error('Error marking notification as read:', error);
             showToast('Failed to mark notification as read', 'error');
         }
     }
@@ -782,7 +794,7 @@
                 showToast('All notifications marked as read', 'success');
             }
         } catch (error) {
-            console.error('Error marking all notifications as read:', error);
+            //console.error('Error marking all notifications as read:', error);
             showToast('Failed to mark notifications as read', 'error');
         }
     }
@@ -793,7 +805,8 @@
             const data = await response.json();
             document.getElementById('unread-count').textContent = data.unread_count;
         } catch (error) {
-            console.error('Error updating unread count:', error);
+            //console.error('Error updating unread count:', error);
+            showToast('Error updating unread count:', error, "error")
         }
     }
 
@@ -839,7 +852,7 @@
                 showToast('Failed to update preferences', 'error');
             }
         } catch (error) {
-            console.error('Error updating preferences:', error);
+            //console.error('Error updating preferences:', error);
             showToast('Failed to update preferences', 'error');
         }
     });
@@ -877,14 +890,9 @@
         }
     }
 
-    // Toast notification function
-    function showToast(message, type = 'info') {
-        console.log(`${type.toUpperCase()}: ${message}`);
-    }
-
     // Initialize page on load
     function initializePage() {
-        console.log('🔵 Page initialization starting...');
+        //console.log('🔵 Page initialization starting...');
 
         // Hide activity and notifications tabs
         const activityTab = document.getElementById('activity-tab');
@@ -897,7 +905,7 @@
         if (eventsTab) {
             eventsTab.style.display = 'block';
             eventsTab.classList.remove('hidden');
-            console.log('✅ Events tab shown - forced display:block');
+            //console.log('✅ Events tab shown - forced display:block');
         }
 
         // Update tab buttons
@@ -915,30 +923,30 @@
 
         // Apply all events filter
         filterEvents('all');
-        console.log('✅ Events filter applied');
+        //console.log('✅ Events filter applied');
 
         // Check for events
         const eventCards = document.querySelectorAll('#all-events-section [data-event-type]');
-        console.log('📊 Found', eventCards.length, 'event cards');
+        //console.log('📊 Found', eventCards.length, 'event cards');
 
         // Load initial data for all event cards
         eventCards.forEach(card => {
             const likeButton = card.querySelector('[onclick*="toggleLike"]');
             const eventId = likeButton?.getAttribute('onclick')?.match(/'([^']+)'/)?.[1];
             if (eventId) {
-                console.log('📥 Loading stats for event:', eventId);
+                //console.log('📥 Loading stats for event:', eventId);
                 loadEventStats(eventId);
             }
         });
-        console.log('✅ Page initialization complete');
+        //console.log('✅ Page initialization complete');
     }
 
     // Call on DOM ready
     if (document.readyState === 'loading') {
-        console.log('⏳ DOM still loading, waiting for DOMContentLoaded...');
+        //console.log('⏳ DOM still loading, waiting for DOMContentLoaded...');
         document.addEventListener('DOMContentLoaded', initializePage);
     } else {
-        console.log('⚡ DOM already loaded, initializing now...');
+        //console.log('⚡ DOM already loaded, initializing now...');
         initializePage();
     }
 </script>

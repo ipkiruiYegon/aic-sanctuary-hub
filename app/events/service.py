@@ -15,8 +15,12 @@ class EventService:
         # Logic to create a new event in the database
         new_event = Event(**event_data.model_dump())
         new_event.event_name = clean_and_title(event_data.event_name)
-        new_event.actual_venue = event_data.actual_venue.title()
+        new_event.actual_venue = event_data.actual_venue.title(
+        ) if event_data.actual_venue else None
         new_event.target_group = event_data.target_group.title()
+        new_event.event_programmer = clean_and_title(
+            event_data.event_programmer)
+        new_event.event_speaker = clean_and_title(event_data.event_speaker)
         new_event.created_by = current_user
 
         session.add(new_event)
@@ -51,8 +55,10 @@ class EventService:
         if str(event.created_by) == str(approver_id):
             raise ValueError("You cannot approve your own event")
 
-        event.event_name = update_data.get("event_name", event.event_name)
-        event.event_type = update_data.get("event_type", event.event_type)
+        event.event_name = clean_and_title(
+            update_data.get("event_name", event.event_name))
+        event.event_type = clean_and_title(
+            update_data.get("event_type", event.event_type))
         event.date_from = update_data.get("date_from", event.date_from)
         event.date_to = update_data.get("date_to", event.date_to)
         event.venue_region_id = update_data.get(
@@ -61,11 +67,16 @@ class EventService:
             "venue_district_id", event.venue_district_id)
         event.venue_church_id = update_data.get(
             "venue_church_id", event.venue_church_id)
-        event.actual_venue = update_data.get(
-            "actual_venue", event.actual_venue)
+        event.actual_venue = clean_and_title(update_data.get(
+            "actual_venue", event.actual_venue))
         event.target_group = update_data.get(
             "target_group", event.target_group)
-        event.description = update_data.get("description", event.description)
+        event.description = clean_and_title(
+            update_data.get("description", event.description))
+        event.event_programmer = clean_and_title(update_data.get(
+            "event_programmer", event.event_programmer))
+        event.event_speaker = clean_and_title(
+            update_data.get("event_speaker", event.event_speaker))
         event.approved = True
         event.approved_by = approver_id
         event.status = "Approved"
@@ -100,7 +111,12 @@ class EventService:
             Event.approved == True,
             Event.date_to >= current_time,
             Event.status != "Cancelled"
+        ).options(
+            # This pre-loads the relationships so they are available in the Jinja template
+            selectinload(Event.venue_region),
+            selectinload(Event.venue_district)
         ).order_by(Event.date_from).limit(limit)
+
         results = await session.exec(sql)
         events = results.all()
         return events

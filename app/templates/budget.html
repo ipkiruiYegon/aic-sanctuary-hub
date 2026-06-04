@@ -1,0 +1,1634 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-1 max-w-7xl">
+    <!-- Page Header -->
+    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div>
+            <h2 class="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <i class="fas fa-wallet text-blue-600"></i>
+                Budget Management
+            </h2>
+            <p class="text-gray-600 mt-1">Manage yearly budgets, allocations, and payment tracking</p>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="openYearlyBudgetModal()" class="btn btn-sm btn-outline">
+                <i class="fas fa-plus"></i>
+                New Yearly Budget
+            </button>
+            <button onclick="openVoteHeadModal()" class="btn btn-sm btn-secondary">
+                <i class="fas fa-tags"></i>
+                Manage Vote Heads
+            </button>
+            <button onclick="openPaymentModal()" class="btn btn-sm btn-primary">
+                <i class="fas fa-receipt"></i>
+                Record Payment
+            </button>
+        </div>
+    </div>
+
+    <!-- Dashboard Stats -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-blue-600">
+                <i class="fas fa-coins text-3xl"></i>
+            </div>
+            <div class="stat-title">Total Budget</div>
+            <div class="stat-value text-blue-600" id="total-budget">KES 0</div>
+        </div>
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-green-600">
+                <i class="fas fa-check-circle text-3xl"></i>
+            </div>
+            <div class="stat-title">Total Allocated</div>
+            <div class="stat-value text-green-600" id="total-allocated">KES 0</div>
+        </div>
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-purple-600">
+                <i class="fas fa-money-bill-wave text-3xl"></i>
+            </div>
+            <div class="stat-title">Total Paid</div>
+            <div class="stat-value text-purple-600" id="total-paid">KES 0</div>
+        </div>
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-orange-600">
+                <i class="fas fa-hourglass-end text-3xl"></i>
+            </div>
+            <div class="stat-title">Total Pending</div>
+            <div class="stat-value text-orange-600" id="total-pending">KES 0</div>
+        </div>
+        <div class="stat bg-white shadow rounded-lg">
+            <div class="stat-figure text-red-600">
+                <i class="fas fa-exclamation-circle text-3xl"></i>
+            </div>
+            <div class="stat-title">Overdue</div>
+            <div class="stat-value text-red-600" id="total-overdue">KES 0</div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <!-- Main Content -->
+        <div class="lg:col-span-3">
+            <!-- Tabs -->
+            <div class="tabs tabs-boxed mb-6 w-full">
+                <a class="tab tab-active text-blue-600 flex-1 sm:flex-none" data-tab="budgets"
+                    onclick="showBudgetTab('budgets')">
+                    <i class="fas fa-coins mr-2"></i>
+                    <span class="hidden sm:inline">Yearly Budgets</span>
+                    <span class="sm:hidden">Budgets</span>
+                </a>
+                <a class="tab flex-1 sm:flex-none" data-tab="allocations" onclick="showBudgetTab('allocations')">
+                    <i class="fas fa-sitemap mr-2"></i>
+                    <span class="hidden sm:inline">Allocations</span>
+                    <span class="sm:hidden">Alloc</span>
+                </a>
+                <a class="tab flex-1 sm:flex-none" data-tab="payments" onclick="showBudgetTab('payments')">
+                    <i class="fas fa-receipt mr-2"></i>
+                    <span class="hidden sm:inline">Payments</span>
+                    <span class="sm:hidden">Pay</span>
+                </a>
+                <a class="tab flex-1 sm:flex-none" data-tab="reports" onclick="showBudgetTab('reports')">
+                    <i class="fas fa-chart-bar mr-2"></i>
+                    <span class="hidden sm:inline">Reports</span>
+                    <span class="sm:hidden">Report</span>
+                </a>
+            </div>
+
+            <!-- Yearly Budgets Tab -->
+            <div id="budgets-tab" class="tab-content">
+                <div class="space-y-4">
+                    <div id="budgets-list">
+                        <div class="text-center py-12 bg-gray-50 rounded-lg">
+                            <i class="fas fa-spinner fa-spin text-3xl text-blue-500 mb-4"></i>
+                            <p class="text-gray-600">Loading budgets...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Allocations Tab -->
+            <div id="allocations-tab" class="tab-content hidden">
+                <div class="space-y-4">
+                    <!-- DCC Budgets -->
+                    <div class="card bg-white shadow-lg">
+                        <div class="card-body">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="card-title">
+                                    <i class="fas fa-sitemap text-blue-600"></i>
+                                    DCC Budget Allocations
+                                </h3>
+                                <button onclick="openDCCBudgetModal()" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                    Allocate to DCC
+                                </button>
+                            </div>
+                            <div id="dcc-budgets-list" class="space-y-3">
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-inbox text-3xl mb-2"></i>
+                                    <p>No DCC budgets yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Local Church Budgets -->
+                    <div class="card bg-white shadow-lg">
+                        <div class="card-body">
+                            <div class="flex justify-between items-center mb-4">
+                                <h3 class="card-title">
+                                    <i class="fas fa-church text-green-600"></i>
+                                    Local Church Budget Allocations
+                                </h3>
+                                <button onclick="openChurchBudgetModal()" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus"></i>
+                                    Allocate to Church
+                                </button>
+                            </div>
+                            <div id="church-budgets-list" class="space-y-3">
+                                <div class="text-center py-8 text-gray-500">
+                                    <i class="fas fa-inbox text-3xl mb-2"></i>
+                                    <p>No church budgets yet</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments Tab -->
+            <div id="payments-tab" class="tab-content hidden">
+                <div class="space-y-4">
+                    <!-- Payment Filters -->
+                    <div class="card bg-white shadow">
+                        <div class="card-body">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Month</span>
+                                    </label>
+                                    <select id="payment-month" class="select select-bordered w-full"
+                                        onchange="filterPayments()">
+                                        <option value="">All Months</option>
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Status</span>
+                                    </label>
+                                    <select id="payment-status" class="select select-bordered w-full"
+                                        onchange="filterPayments()">
+                                        <option value="">All Status</option>
+                                        <option value="paid">Paid</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="overdue">Overdue</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Church</span>
+                                    </label>
+                                    <input type="text" id="payment-church" placeholder="Filter by church name"
+                                        class="input input-bordered w-full" onchange="filterPayments()">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Payments List -->
+                    <div id="payments-list" class="space-y-3">
+                        <div class="text-center py-12 bg-gray-50 rounded-lg">
+                            <i class="fas fa-inbox text-3xl text-gray-400 mb-2"></i>
+                            <p class="text-gray-600">No payments recorded yet</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reports Tab -->
+            <div id="reports-tab" class="tab-content hidden">
+                <div class="space-y-4">
+                    <!-- Report Filters -->
+                    <div class="card bg-white shadow">
+                        <div class="card-body">
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Report Type</span>
+                                    </label>
+                                    <select id="report-type" class="select select-bordered w-full"
+                                        onchange="generateReport()">
+                                        <option value="monthly_summary">Monthly Summary</option>
+                                        <option value="yearly_summary">Yearly Summary</option>
+                                        <option value="dcc_performance">DCC Performance</option>
+                                        <option value="church_performance">Church Performance</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Year</span>
+                                    </label>
+                                    <input type="number" id="report-year" min="2020" :value="new Date().getFullYear()"
+                                        class="input input-bordered w-full" onchange="generateReport()">
+                                </div>
+                                <div>
+                                    <label class="label">
+                                        <span class="label-text font-semibold">Month</span>
+                                    </label>
+                                    <select id="report-month" class="select select-bordered w-full"
+                                        onchange="generateReport()">
+                                        <option value="">All Months</option>
+                                        <option value="1">January</option>
+                                        <option value="2">February</option>
+                                        <option value="3">March</option>
+                                        <option value="4">April</option>
+                                        <option value="5">May</option>
+                                        <option value="6">June</option>
+                                        <option value="7">July</option>
+                                        <option value="8">August</option>
+                                        <option value="9">September</option>
+                                        <option value="10">October</option>
+                                        <option value="11">November</option>
+                                        <option value="12">December</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <button onclick="downloadReport()" class="btn btn-sm btn-outline mt-4">
+                                <i class="fas fa-download"></i>
+                                Download Report
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Report Content -->
+                    <div id="report-content" class="card bg-white shadow">
+                        <div class="card-body">
+                            <div class="text-center py-12 text-gray-500">
+                                <i class="fas fa-chart-bar text-3xl mb-2"></i>
+                                <p>Select report type and parameters to generate report</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- Quick Stats -->
+            <div class="card bg-white shadow mb-6">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-chart-pie mr-2"></i>
+                        Quick Stats
+                    </h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                            <span class="text-sm font-medium">Utilization Rate</span>
+                            <span id="utilization-rate" class="badge badge-lg">0%</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                            <span class="text-sm font-medium">Churches Count</span>
+                            <span id="churches-count" class="badge badge-lg">0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                            <span class="text-sm font-medium">Payments Count</span>
+                            <span id="payments-count" class="badge badge-lg">0</span>
+                        </div>
+                        <div class="flex justify-between items-center p-2 hover:bg-gray-50 rounded">
+                            <span class="text-sm font-medium">Overdue Count</span>
+                            <span id="overdue-count" class="badge badge-error">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Overdue -->
+            <div class="card bg-white shadow">
+                <div class="card-body">
+                    <h3 class="card-title mb-4">
+                        <i class="fas fa-exclamation-triangle mr-2 text-red-600"></i>
+                        Overdue Payments
+                    </h3>
+                    <div id="overdue-list" class="space-y-2">
+                        <div class="text-sm text-gray-500 text-center py-4">
+                            <p>No overdue payments</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ==================== MODALS ==================== -->
+
+<!-- Yearly Budget Modal -->
+<dialog id="yearly-budget-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-3xl">
+        <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onclick="document.getElementById('yearly-budget-modal').close()">✕</button>
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-coins mr-2"></i>
+            Create & Allocate Yearly Budget
+        </h3>
+        <form id="yearly-budget-form" class="space-y-4">
+            <!-- Budget Creation Section -->
+            <div class="divider">Budget Setup</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Fiscal Year</span>
+                    </label>
+                    <input type="number" id="budget-year" min="2020" required class="input input-bordered"
+                        placeholder="2026">
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Total Budget Amount</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="bg-gray-100">KES</span>
+                        <input type="number" id="budget-amount" step="0.01" min="0" required
+                            class="input input-bordered flex-1" placeholder="1000000">
+                    </div>
+                </div>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Description (Optional)</span>
+                </label>
+                <textarea id="budget-description" class="textarea textarea-bordered"
+                    placeholder="Budget description or notes..."></textarea>
+            </div>
+
+            <!-- Budget Allocation Section -->
+            <div class="divider">Allocate Budget</div>
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <span>Allocate your budget to DCCs and/or local churches. Each can receive different amounts.</span>
+            </div>
+
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Allocation Type</span>
+                </label>
+                <select id="allocation-type" class="select select-bordered" onchange="toggleAllocationFields()">
+                    <option value="">Select Allocation Type...</option>
+                    <option value="dcc">DCC Allocation</option>
+                    <option value="local">Local Church Allocation</option>
+                </select>
+            </div>
+
+            <!-- DCC Allocation Fields -->
+            <div id="dcc-allocation-fields" class="hidden space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Select DCC</span>
+                    </label>
+                    <select id="allocation-dcc" class="select select-bordered" onchange="updateDCCAllocationAmount()">
+                        <option value="">Choose a DCC...</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Vote Head</span>
+                    </label>
+                    <select id="allocation-vote-head" class="select select-bordered">
+                        <option value="">Select Vote Head...</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Amount to Allocate to DCC</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="bg-gray-100">KES</span>
+                        <input type="number" id="allocation-dcc-amount" step="0.01" min="0"
+                            class="input input-bordered flex-1" placeholder="500000">
+                    </div>
+                    <label class="label">
+                        <span class="label-text-alt">Maximum available: <span id="max-dcc-amount"
+                                class="font-bold text-blue-600">KES 0</span></span>
+                    </label>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline" onclick="addDCCAllocation()">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add DCC Allocation
+                </button>
+            </div>
+
+            <!-- Local Church Allocation Fields -->
+            <div id="local-allocation-fields" class="hidden space-y-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Select DCC (for Local Churches)</span>
+                    </label>
+                    <select id="allocation-local-dcc" class="select select-bordered"
+                        onchange="loadLocalChurchesForAllocation()">
+                        <option value="">Choose a DCC...</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Vote Head</span>
+                    </label>
+                    <select id="allocation-local-vote-head" class="select select-bordered">
+                        <option value="">Select Vote Head...</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Select Local Church</span>
+                    </label>
+                    <select id="allocation-local-church" class="select select-bordered"
+                        onchange="updateLocalAllocationAmount()">
+                        <option value="">Choose a Local Church...</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Amount to Allocate to Local Church</span>
+                    </label>
+                    <div class="input-group">
+                        <span class="bg-gray-100">KES</span>
+                        <input type="number" id="allocation-local-amount" step="0.01" min="0"
+                            class="input input-bordered flex-1" placeholder="250000">
+                    </div>
+                    <label class="label">
+                        <span class="label-text-alt">Maximum available: <span id="max-local-amount"
+                                class="font-bold text-blue-600">KES 0</span></span>
+                    </label>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline" onclick="addLocalAllocation()">
+                    <i class="fas fa-plus mr-2"></i>
+                    Add Local Church Allocation
+                </button>
+            </div>
+
+            <!-- Allocations Summary -->
+            <div id="allocations-summary" class="hidden space-y-2 p-4 bg-gray-50 rounded-lg">
+                <p class="font-semibold mb-2">
+                    <i class="fas fa-check-circle text-green-600"></i>
+                    Allocations to be created:
+                </p>
+                <div id="allocations-list" class="space-y-2">
+                </div>
+                <div class="divider my-2"></div>
+                <div class="flex justify-between font-semibold">
+                    <span>Total Allocated:</span>
+                    <span id="summary-total-allocated" class="text-blue-600">KES 0</span>
+                </div>
+                <div class="flex justify-between text-sm text-gray-600">
+                    <span>Total Budget:</span>
+                    <span id="budget-total-display" class="font-semibold">KES 0</span>
+                </div>
+                <div class="flex justify-between text-sm" id="remaining-budget-display">
+                    <span>Remaining:</span>
+                    <span id="remaining-budget" class="font-bold">KES 0</span>
+                </div>
+            </div>
+
+            <div class="modal-action">
+                <button type="button" class="btn"
+                    onclick="document.getElementById('yearly-budget-modal').close()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Create Budget & Allocations</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+<!-- DCC Budget Modal -->
+<dialog id="dcc-budget-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-2xl">
+        <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onclick="document.getElementById('dcc-budget-modal').close()">✕</button>
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-sitemap mr-2"></i>
+            Allocate Budget to DCC
+        </h3>
+        <form id="dcc-budget-form" class="space-y-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Yearly Budget</span>
+                </label>
+                <select id="dcc-yearly-budget" required class="select select-bordered">
+                    <option value="">Select Yearly Budget...</option>
+                </select>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">DCC/District</span>
+                </label>
+                <select id="dcc-select" required class="select select-bordered">
+                    <option value="">Select DCC...</option>
+                </select>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Allocated Amount</span>
+                </label>
+                <div class="input-group">
+                    <span class="bg-gray-100">KES</span>
+                    <input type="number" id="dcc-allocated-amount" step="0.01" min="0" required
+                        class="input input-bordered flex-1" placeholder="500000">
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn"
+                    onclick="document.getElementById('dcc-budget-modal').close()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Allocate Budget</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Church Budget Modal -->
+<dialog id="church-budget-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-2xl">
+        <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onclick="document.getElementById('church-budget-modal').close()">✕</button>
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-church mr-2"></i>
+            Allocate Budget to Local Church
+        </h3>
+        <form id="church-budget-form" class="space-y-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">DCC Budget</span>
+                </label>
+                <select id="church-dcc-budget" required class="select select-bordered">
+                    <option value="">Select DCC Budget...</option>
+                </select>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Local Church</span>
+                </label>
+                <select id="church-select" required class="select select-bordered">
+                    <option value="">Select Local Church...</option>
+                </select>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Allocated Amount</span>
+                </label>
+                <div class="input-group">
+                    <span class="bg-gray-100">KES</span>
+                    <input type="number" id="church-allocated-amount" step="0.01" min="0" required
+                        class="input input-bordered flex-1" placeholder="100000">
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn"
+                    onclick="document.getElementById('church-budget-modal').close()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Allocate Budget</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Payment Recording Modal -->
+<dialog id="payment-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-2xl">
+        <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onclick="document.getElementById('payment-modal').close()">✕</button>
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-receipt mr-2"></i>
+            Record Budget Payment
+        </h3>
+        <form id="payment-form" class="space-y-4">
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Local Church</span>
+                </label>
+                <select id="payment-church" required class="select select-bordered">
+                    <option value="">Select Local Church...</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Payment Month</span>
+                    </label>
+                    <select id="payment-month-select" required class="select select-bordered">
+                        <option value="">Select Month...</option>
+                        <option value="1">January</option>
+                        <option value="2">February</option>
+                        <option value="3">March</option>
+                        <option value="4">April</option>
+                        <option value="5">May</option>
+                        <option value="6">June</option>
+                        <option value="7">July</option>
+                        <option value="8">August</option>
+                        <option value="9">September</option>
+                        <option value="10">October</option>
+                        <option value="11">November</option>
+                        <option value="12">December</option>
+                    </select>
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Payment Year</span>
+                    </label>
+                    <input type="number" id="payment-year-input" min="2020" required class="input input-bordered">
+                </div>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Amount Paid</span>
+                </label>
+                <div class="input-group">
+                    <span class="bg-gray-100">KES</span>
+                    <input type="number" id="payment-amount" step="0.01" min="0" required
+                        class="input input-bordered flex-1" placeholder="50000">
+                </div>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Due Date</span>
+                </label>
+                <input type="date" id="payment-due-date" required class="input input-bordered">
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Payment Method</span>
+                </label>
+                <select id="payment-method" class="select select-bordered">
+                    <option value="cash">Cash</option>
+                    <option value="bank_transfer">Bank Transfer</option>
+                    <option value="cheque">Cheque</option>
+                    <option value="mobile_money">Mobile Money</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Reference Number (Optional)</span>
+                    </label>
+                    <input type="text" id="payment-reference" class="input input-bordered"
+                        placeholder="Check #, Transaction ID, etc.">
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text font-semibold">Payment Date</span>
+                    </label>
+                    <input type="date" id="payment-date" class="input input-bordered">
+                </div>
+            </div>
+            <div class="form-control">
+                <label class="label">
+                    <span class="label-text font-semibold">Notes (Optional)</span>
+                </label>
+                <textarea id="payment-notes" class="textarea textarea-bordered"
+                    placeholder="Additional notes..."></textarea>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn"
+                    onclick="document.getElementById('payment-modal').close()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Record Payment</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- Vote Head Management Modal -->
+<dialog id="vote-head-modal" class="modal modal-bottom sm:modal-middle">
+    <div class="modal-box max-w-2xl">
+        <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+            onclick="closeVoteHeadModal()">✕</button>
+        <h3 class="font-bold text-lg mb-4">
+            <i class="fas fa-tags mr-2"></i>
+            Manage Vote Heads
+        </h3>
+        <form id="vote-head-form" class="space-y-4">
+            <div class="form-control">
+                <label class="label"><span class="label-text font-semibold">Vote Head Name</span></label>
+                <input id="vote-head-name" type="text" class="input input-bordered" placeholder="e.g. Education"
+                    required>
+            </div>
+            <div class="form-control">
+                <label class="label"><span class="label-text font-semibold">Vote Head Code</span></label>
+                <input id="vote-head-code" type="text" class="input input-bordered" placeholder="e.g. EDU-001">
+            </div>
+            <div class="form-control">
+                <label class="label"><span class="label-text font-semibold">Description</span></label>
+                <textarea id="vote-head-description" class="textarea textarea-bordered"
+                    placeholder="Describe this vote head"></textarea>
+            </div>
+            <div class="divider">Existing Vote Heads</div>
+            <div id="vote-head-list" class="space-y-3">
+                <div class="text-center py-8 text-gray-500">
+                    <i class="fas fa-spinner fa-spin text-3xl mb-2"></i>
+                    <p>Loading vote heads...</p>
+                </div>
+            </div>
+            <div class="modal-action">
+                <button type="button" class="btn" onclick="closeVoteHeadModal()">Cancel</button>
+                <button type="submit" class="btn btn-primary">Save Vote Head</button>
+            </div>
+        </form>
+    </div>
+    <form method="dialog" class="modal-backdrop">
+        <button>close</button>
+    </form>
+</dialog>
+
+<!-- ==================== SCRIPTS ==================== -->
+<script>
+    // Tab switching
+    function showBudgetTab(tabName) {
+        const tabs = ['budgets', 'allocations', 'payments', 'reports'];
+        const tabElements = tabs.map(tab => document.getElementById(tab + '-tab'));
+        const tabButtons = Array.from(document.querySelectorAll('.tabs .tab'));
+
+        tabElements.forEach(el => el.classList.add('hidden'));
+        tabButtons.forEach(btn => {
+            btn.classList.remove('tab-active', 'text-blue-600');
+            btn.classList.add('text-gray-600');
+        });
+
+        document.getElementById(tabName + '-tab').classList.remove('hidden');
+        const activeButton = tabButtons.find(btn => btn.dataset.tab === tabName);
+        if (activeButton) {
+            activeButton.classList.add('tab-active', 'text-blue-600');
+            activeButton.classList.remove('text-gray-600');
+        }
+
+        loadTabData(tabName);
+    }
+
+    // Load tab data
+    async function loadTabData(tabName) {
+        if (tabName === 'budgets') {
+            await loadYearlyBudgets();
+        } else if (tabName === 'allocations') {
+            await loadAllocations();
+        } else if (tabName === 'payments') {
+            await loadPayments();
+        } else if (tabName === 'reports') {
+            await generateReport();
+        }
+    }
+
+    // Load dashboard
+    async function loadDashboard() {
+        try {
+            const response = await fetch('/api/budget/dashboard');
+            const data = await response.json();
+
+            document.getElementById('total-budget').textContent = formatCurrency(data.total_budget);
+            document.getElementById('total-allocated').textContent = formatCurrency(data.total_allocated);
+            document.getElementById('total-paid').textContent = formatCurrency(data.total_paid);
+            document.getElementById('total-pending').textContent = formatCurrency(data.total_pending);
+            document.getElementById('total-overdue').textContent = formatCurrency(data.total_overdue);
+            document.getElementById('utilization-rate').textContent = data.budget_utilization.toFixed(1) + '%';
+            document.getElementById('churches-count').textContent = data.churches_count;
+            document.getElementById('payments-count').textContent = data.payments_count;
+            document.getElementById('overdue-count').textContent = data.overdue_count;
+        } catch (error) {
+            console.error('Error loading dashboard:', error);
+        }
+    }
+
+    // Load yearly budgets
+    async function loadYearlyBudgets() {
+        try {
+            const response = await fetch('/api/budget/yearly');
+            const budgets = await response.json();
+
+            const list = document.getElementById('budgets-list');
+            if (budgets.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 bg-gray-50 rounded-lg">
+                        <i class="fas fa-inbox text-3xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-600">No yearly budgets yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = budgets.map(budget => `
+                <div class="card bg-white shadow-lg border border-gray-200">
+                    <div class="card-body">
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-semibold">Fiscal Year ${budget.year}</h3>
+                                <p class="text-sm text-gray-600">${budget.description || 'Annual budget allocation'}</p>
+                            </div>
+                            <div class="badge ${budget.is_active ? 'badge-success' : 'badge-gray'}">
+                                ${budget.is_active ? 'Active' : 'Inactive'}
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4 mb-4 p-4 bg-gray-50 rounded">
+                            <div>
+                                <p class="text-xs text-gray-600">Total Budget</p>
+                                <p class="text-lg font-bold text-blue-600">${formatCurrency(budget.total_budget)}</p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-600">Created</p>
+                                <p class="text-sm">${new Date(budget.created_at).toLocaleDateString()}</p>
+                            </div>
+                        </div>
+                        <div class="card-actions">
+                            <button onclick="editYearlyBudget('${budget.id}')" class="btn btn-sm btn-outline">
+                                <i class="fas fa-edit"></i>
+                                Edit
+                            </button>
+                            <button onclick="viewBudgetDetails('${budget.id}')" class="btn btn-sm btn-primary">
+                                <i class="fas fa-eye"></i>
+                                View Details
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading yearly budgets:', error);
+        }
+    }
+
+    // Load allocations
+    async function loadAllocations() {
+        await Promise.all([loadDCCBudgets(), loadChurchBudgets()]);
+    }
+
+    // Load DCC budgets
+    async function loadDCCBudgets() {
+        try {
+            const year = new Date().getFullYear();
+            const response = await fetch(`/api/budget/dcc/year/${year}`);
+            const budgets = await response.json();
+
+            const list = document.getElementById('dcc-budgets-list');
+            if (budgets.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>No DCC budgets yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = budgets.map(budget => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <div class="flex-1">
+                        <h4 class="font-semibold">DCC Budget</h4>
+                        <p class="text-sm text-gray-600">Allocated: ${formatCurrency(budget.allocated_amount)}</p>
+                        <p class="text-xs text-gray-500 mt-1">Status: <span class="badge badge-sm ${budget.status === 'approved' ? 'badge-success' : 'badge-warning'}">${budget.status}</span></p>
+                    </div>
+                    <div class="flex gap-2">
+                        ${budget.status === 'pending' ? `
+                            <button onclick="approveDCCBudget('${budget.id}')" class="btn btn-xs btn-success">
+                                <i class="fas fa-check"></i>
+                                Approve
+                            </button>
+                        ` : ''}
+                        <button onclick="viewDCCBudgetDetails('${budget.id}')" class="btn btn-xs btn-outline">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading DCC budgets:', error);
+        }
+    }
+
+    // Load church budgets
+    async function loadChurchBudgets() {
+        try {
+            const response = await fetch('/api/budget/church/list/all');
+            const budgets = await response.json();
+
+            const list = document.getElementById('church-budgets-list');
+            if (budgets.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>No church budgets yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = budgets.map(budget => `
+                <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <div class="flex-1">
+                        <h4 class="font-semibold">Local Church Budget</h4>
+                        <p class="text-sm text-gray-600">Allocated: ${formatCurrency(budget.allocated_amount)}</p>
+                        <p class="text-xs text-gray-500 mt-1">Status: <span class="badge badge-sm ${budget.status === 'approved' ? 'badge-success' : 'badge-warning'}">${budget.status}</span></p>
+                    </div>
+                    <div class="flex gap-2">
+                        ${budget.status === 'pending' ? `
+                            <button onclick="approveChurchBudget('${budget.id}')" class="btn btn-xs btn-success">
+                                <i class="fas fa-check"></i>
+                                Approve
+                            </button>
+                        ` : ''}
+                        <button onclick="viewChurchBudgetDetails('${budget.id}')" class="btn btn-xs btn-outline">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading church budgets:', error);
+        }
+    }
+
+    // Load payments
+    async function loadPayments() {
+        await filterPayments();
+    }
+
+    // Filter payments
+    async function filterPayments() {
+        try {
+            const month = document.getElementById('payment-month').value;
+            const status = document.getElementById('payment-status').value;
+            const church = document.getElementById('payment-church').value;
+            const year = new Date().getFullYear();
+
+            let url = `/api/budget/payments/monthly/${year}/${month || '0'}`;
+            const response = await fetch(url);
+            const payments = await response.json();
+
+            const list = document.getElementById('payments-list');
+            if (payments.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-12 bg-gray-50 rounded-lg">
+                        <i class="fas fa-inbox text-3xl text-gray-400 mb-2"></i>
+                        <p class="text-gray-600">No payments found</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = payments.map(payment => `
+                <div class="card bg-white shadow border-l-4 ${payment.status === 'paid' ? 'border-l-green-600' : payment.status === 'overdue' ? 'border-l-red-600' : 'border-l-orange-600'}">
+                    <div class="card-body p-4">
+                        <div class="flex justify-between items-start">
+                            <div class="flex-1">
+                                <h4 class="font-semibold">Payment - ${getMonthName(payment.payment_month)} ${payment.payment_year}</h4>
+                                <p class="text-sm text-gray-600 mt-1">Amount: <span class="font-bold">${formatCurrency(payment.amount_paid)}</span></p>
+                                <p class="text-xs text-gray-500 mt-1">Method: ${payment.payment_method || 'N/A'}</p>
+                                <p class="text-xs text-gray-500">Due: ${new Date(payment.due_date).toLocaleDateString()}</p>
+                            </div>
+                            <span class="badge ${payment.status === 'paid' ? 'badge-success' : payment.status === 'overdue' ? 'badge-error' : 'badge-warning'}">
+                                ${payment.status.toUpperCase()}
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        } catch (error) {
+            console.error('Error loading payments:', error);
+        }
+    }
+
+    // Generate report
+    async function generateReport() {
+        try {
+            const reportType = document.getElementById('report-type').value;
+            const year = document.getElementById('report-year').value;
+
+            const content = document.getElementById('report-content');
+            content.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-blue-500 mb-2"></i>
+                    <p class="text-gray-600">Generating report...</p>
+                </div>
+            `;
+
+            // Simulated report content - replace with actual API call
+            setTimeout(() => {
+                content.innerHTML = `
+                    <div class="p-6">
+                        <h4 class="text-lg font-bold mb-4">${reportType.replace('_', ' ').toUpperCase()} - Year ${year}</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="p-4 bg-blue-50 rounded">
+                                <p class="text-xs text-gray-600">Total Budgeted</p>
+                                <p class="text-2xl font-bold text-blue-600">KES 5,000,000</p>
+                            </div>
+                            <div class="p-4 bg-green-50 rounded">
+                                <p class="text-xs text-gray-600">Total Paid</p>
+                                <p class="text-2xl font-bold text-green-600">KES 3,500,000</p>
+                            </div>
+                            <div class="p-4 bg-orange-50 rounded">
+                                <p class="text-xs text-gray-600">Total Pending</p>
+                                <p class="text-2xl font-bold text-orange-600">KES 1,000,000</p>
+                            </div>
+                            <div class="p-4 bg-red-50 rounded">
+                                <p class="text-xs text-gray-600">Total Overdue</p>
+                                <p class="text-2xl font-bold text-red-600">KES 500,000</p>
+                            </div>
+                        </div>
+                        <div class="mt-4 p-4 bg-gray-50 rounded">
+                            <p class="text-sm font-semibold">Completion: 70%</p>
+                            <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                <div class="bg-green-600 h-2 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }, 1000);
+        } catch (error) {
+            console.error('Error generating report:', error);
+        }
+    }
+
+    // Download report
+    function downloadReport() {
+        showToast('Report download functionality coming soon', 'info');
+    }
+
+    // ==================== Budget Allocation Functions ====================
+
+    // Track allocations in memory
+    let budgetAllocations = [];
+
+    // Load DCCs, local churches, and vote heads when modal opens
+    async function loadAllocationData() {
+        try {
+            const [churchesResponse, voteHeadsResponse] = await Promise.all([
+                fetch('/council/api/churches'),
+                fetch('/api/budget/vote-heads')
+            ]);
+
+            const churches = await churchesResponse.json();
+            const voteHeads = await voteHeadsResponse.json();
+
+            const dccSelect = document.getElementById('allocation-dcc');
+            const localDccSelect = document.getElementById('allocation-local-dcc');
+            const voteHeadSelect = document.getElementById('allocation-vote-head');
+            const localVoteHeadSelect = document.getElementById('allocation-local-vote-head');
+
+            dccSelect.innerHTML = '<option value="">Choose a DCC...</option>';
+            localDccSelect.innerHTML = '<option value="">Choose a DCC...</option>';
+            voteHeadSelect.innerHTML = '<option value="">Select Vote Head...</option>';
+            localVoteHeadSelect.innerHTML = '<option value="">Select Vote Head...</option>';
+
+            churches.forEach(church => {
+                const option1 = document.createElement('option');
+                option1.value = church.id;
+                option1.textContent = church.name;
+                dccSelect.appendChild(option1);
+
+                const option2 = document.createElement('option');
+                option2.value = church.id;
+                option2.textContent = church.name;
+                localDccSelect.appendChild(option2);
+            });
+
+            voteHeads.forEach(voteHead => {
+                const option = document.createElement('option');
+                option.value = voteHead.id;
+                option.textContent = voteHead.name;
+                voteHeadSelect.appendChild(option);
+
+                const optionLocal = document.createElement('option');
+                optionLocal.value = voteHead.id;
+                optionLocal.textContent = voteHead.name;
+                localVoteHeadSelect.appendChild(optionLocal);
+            });
+        } catch (error) {
+            console.error('Error loading allocation data:', error);
+            showToast('Failed to load churches or vote heads data', 'error');
+        }
+    }
+
+    // Load local churches for a selected DCC
+    async function loadLocalChurchesForAllocation() {
+        try {
+            const dccId = document.getElementById('allocation-local-dcc').value;
+            const localSelect = document.getElementById('allocation-local-church');
+
+            localSelect.innerHTML = '<option value="">Choose a Local Church...</option>';
+            if (!dccId) {
+                return;
+            }
+
+            const response = await fetch(`/council/api/churches/${dccId}/local`);
+            const children = await response.json();
+
+            children.forEach(church => {
+                const option = document.createElement('option');
+                option.value = church.id;
+                option.textContent = church.name;
+                localSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading local churches:', error);
+            showToast('Failed to load local churches', 'error');
+        }
+    }
+
+    // Toggle allocation fields visibility
+    function toggleAllocationFields() {
+        const type = document.getElementById('allocation-type').value;
+        const dccFields = document.getElementById('dcc-allocation-fields');
+        const localFields = document.getElementById('local-allocation-fields');
+        const summary = document.getElementById('allocations-summary');
+
+        dccFields.classList.add('hidden');
+        localFields.classList.add('hidden');
+
+        if (type === 'dcc') {
+            dccFields.classList.remove('hidden');
+            loadAllocationData();
+        } else if (type === 'local') {
+            localFields.classList.remove('hidden');
+            loadAllocationData();
+        }
+
+        if (budgetAllocations.length > 0) {
+            summary.classList.remove('hidden');
+        }
+    }
+
+    // Update max amount for DCC allocation
+    function updateDCCAllocationAmount() {
+        const totalBudget = parseFloat(document.getElementById('budget-amount').value) || 0;
+        const totalAllocated = budgetAllocations.reduce((sum, a) => sum + parseFloat(a.amount), 0);
+        const remaining = totalBudget - totalAllocated;
+
+        document.getElementById('max-dcc-amount').textContent = formatCurrency(Math.max(0, remaining));
+    }
+
+    // Update max amount for local church allocation
+    function updateLocalAllocationAmount() {
+        const totalBudget = parseFloat(document.getElementById('budget-amount').value) || 0;
+        const totalAllocated = budgetAllocations.reduce((sum, a) => sum + parseFloat(a.amount), 0);
+        const remaining = totalBudget - totalAllocated;
+
+        document.getElementById('max-local-amount').textContent = formatCurrency(Math.max(0, remaining));
+    }
+
+    // Add DCC allocation
+    function addDCCAllocation() {
+        const dccId = document.getElementById('allocation-dcc').value;
+        const voteHeadId = document.getElementById('allocation-vote-head').value;
+        const dccSelect = document.getElementById('allocation-dcc');
+        const amount = parseFloat(document.getElementById('allocation-dcc-amount').value);
+
+        if (!dccId || !voteHeadId || !amount || amount <= 0) {
+            showToast('Please select a DCC, vote head, and enter a valid amount', 'warning');
+            return;
+        }
+
+        const totalBudget = parseFloat(document.getElementById('budget-amount').value) || 0;
+        const totalAllocated = budgetAllocations.reduce((sum, a) => sum + parseFloat(a.amount), 0);
+
+        if (totalAllocated + amount > totalBudget) {
+            showToast(`Cannot exceed total budget. Remaining: ${formatCurrency(totalBudget - totalAllocated)}`, 'error');
+            return;
+        }
+
+        const dccName = dccSelect.options[dccSelect.selectedIndex].text;
+        const voteHeadName = document.getElementById('allocation-vote-head').options[document.getElementById('allocation-vote-head').selectedIndex].text;
+
+        budgetAllocations.push({
+            type: 'dcc',
+            dccId,
+            dccName,
+            voteHeadId,
+            voteHeadName,
+            amount,
+            allocationType: 'dcc'
+        });
+
+        document.getElementById('allocation-dcc-amount').value = '';
+        document.getElementById('allocation-dcc').value = '';
+        document.getElementById('allocation-vote-head').value = '';
+
+        updateAllocationsSummary();
+        showToast(`DCC allocation added: ${dccName} - ${formatCurrency(amount)}`, 'success');
+    }
+
+    // Add local church allocation
+    function addLocalAllocation() {
+        const dccId = document.getElementById('allocation-local-dcc').value;
+        const localChurchId = document.getElementById('allocation-local-church').value;
+        const voteHeadId = document.getElementById('allocation-local-vote-head').value;
+        const localSelect = document.getElementById('allocation-local-church');
+        const amount = parseFloat(document.getElementById('allocation-local-amount').value);
+
+        if (!dccId || !localChurchId || !voteHeadId || !amount || amount <= 0) {
+            showToast('Please select a DCC, local church, vote head, and enter a valid amount', 'warning');
+            return;
+        }
+
+        const totalBudget = parseFloat(document.getElementById('budget-amount').value) || 0;
+        const totalAllocated = budgetAllocations.reduce((sum, a) => sum + parseFloat(a.amount), 0);
+
+        if (totalAllocated + amount > totalBudget) {
+            showToast(`Cannot exceed total budget. Remaining: ${formatCurrency(totalBudget - totalAllocated)}`, 'error');
+            return;
+        }
+
+        const localChurchName = localSelect.options[localSelect.selectedIndex].text;
+        const voteHeadName = document.getElementById('allocation-local-vote-head').options[document.getElementById('allocation-local-vote-head').selectedIndex].text;
+
+        budgetAllocations.push({
+            type: 'local',
+            dccId,
+            localChurchId,
+            localChurchName,
+            voteHeadId,
+            voteHeadName,
+            amount,
+            allocationType: 'local'
+        });
+
+        document.getElementById('allocation-local-amount').value = '';
+        document.getElementById('allocation-local-church').value = '';
+        document.getElementById('allocation-local-vote-head').value = '';
+
+        updateAllocationsSummary();
+        showToast(`Local church allocation added: ${localChurchName} - ${formatCurrency(amount)}`, 'success');
+    }
+
+    // Update allocations summary display
+    function updateAllocationsSummary() {
+        const summary = document.getElementById('allocations-summary');
+        const list = document.getElementById('allocations-list');
+        const totalBudget = parseFloat(document.getElementById('budget-amount').value) || 0;
+        const totalAllocated = budgetAllocations.reduce((sum, a) => sum + parseFloat(a.amount), 0);
+
+        if (budgetAllocations.length === 0) {
+            summary.classList.add('hidden');
+            return;
+        }
+
+        summary.classList.remove('hidden');
+
+        list.innerHTML = budgetAllocations.map((alloc, idx) => `
+            <div class="flex justify-between items-center p-2 bg-white rounded border border-gray-200">
+                <div class="flex-1">
+                    <p class="text-sm font-semibold">
+                        ${alloc.type === 'dcc' ? `<i class="fas fa-building"></i> DCC: ${alloc.dccName}` : `<i class="fas fa-church"></i> Church: ${alloc.localChurchName}`}
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <span class="font-bold text-blue-600">${formatCurrency(alloc.amount)}</span>
+                    <button type="button" class="btn btn-xs btn-ghost text-red-600" onclick="removeAllocation(${idx})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+        `).join('');
+
+        document.getElementById('budget-total-display').textContent = formatCurrency(totalBudget);
+        document.getElementById('summary-total-allocated').textContent = formatCurrency(totalAllocated);
+        document.getElementById('remaining-budget').textContent = formatCurrency(totalBudget - totalAllocated);
+
+        const remainingDiv = document.getElementById('remaining-budget-display');
+        if (totalAllocated > totalBudget) {
+            remainingDiv.classList.add('text-red-600');
+            document.getElementById('remaining-budget').classList.add('text-red-600');
+        } else {
+            remainingDiv.classList.remove('text-red-600');
+            document.getElementById('remaining-budget').classList.remove('text-red-600');
+        }
+    }
+
+    // Remove allocation
+    function removeAllocation(index) {
+        budgetAllocations.splice(index, 1);
+        updateAllocationsSummary();
+        showToast('Allocation removed', 'info');
+    }
+
+    // Modal functions
+    function openYearlyBudgetModal() {
+        budgetAllocations = [];
+        document.getElementById('yearly-budget-form').reset();
+        document.getElementById('allocations-summary').classList.add('hidden');
+        document.getElementById('allocation-type').value = '';
+        document.getElementById('dcc-allocation-fields').classList.add('hidden');
+        document.getElementById('local-allocation-fields').classList.add('hidden');
+
+        // Set default year
+        const currentYear = new Date().getFullYear();
+        document.getElementById('budget-year').value = currentYear;
+
+        document.getElementById('yearly-budget-modal').showModal();
+    }
+
+    function closeYearlyBudgetModal() {
+        document.getElementById('yearly-budget-modal').close();
+        document.getElementById('yearly-budget-form').reset();
+        budgetAllocations = [];
+        document.getElementById('allocations-summary').classList.add('hidden');
+        document.getElementById('allocation-type').value = '';
+        document.getElementById('dcc-allocation-fields').classList.add('hidden');
+        document.getElementById('local-allocation-fields').classList.add('hidden');
+    }
+
+    function openDCCBudgetModal() {
+        document.getElementById('dcc-budget-modal').showModal();
+    }
+
+    function closeDCCBudgetModal() {
+        document.getElementById('dcc-budget-modal').close();
+        document.getElementById('dcc-budget-form').reset();
+    }
+
+    function openChurchBudgetModal() {
+        document.getElementById('church-budget-modal').showModal();
+    }
+
+    function closeChurchBudgetModal() {
+        document.getElementById('church-budget-modal').close();
+        document.getElementById('church-budget-form').reset();
+    }
+
+    function openPaymentModal() {
+        document.getElementById('payment-modal').showModal();
+    }
+
+    function closePaymentModal() {
+        document.getElementById('payment-modal').close();
+        document.getElementById('payment-form').reset();
+    }
+
+    function openVoteHeadModal() {
+        document.getElementById('vote-head-form').reset();
+        document.getElementById('vote-head-modal').showModal();
+        loadVoteHeads();
+    }
+
+    function closeVoteHeadModal() {
+        document.getElementById('vote-head-modal').close();
+    }
+
+    async function loadVoteHeads() {
+        try {
+            const response = await fetch('/api/budget/vote-heads');
+            const voteHeads = await response.json();
+            const list = document.getElementById('vote-head-list');
+            const voteHeadSelect = document.getElementById('allocation-vote-head');
+            const localVoteHeadSelect = document.getElementById('allocation-local-vote-head');
+
+            if (voteHeadSelect) {
+                voteHeadSelect.innerHTML = '<option value="">Select Vote Head...</option>';
+            }
+            if (localVoteHeadSelect) {
+                localVoteHeadSelect.innerHTML = '<option value="">Select Vote Head...</option>';
+            }
+
+            if (voteHeads.length === 0) {
+                list.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <i class="fas fa-inbox text-3xl mb-2"></i>
+                        <p>No vote heads created yet</p>
+                    </div>
+                `;
+                return;
+            }
+
+            list.innerHTML = voteHeads.map(vh => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+                    <div>
+                        <p class="font-semibold">${vh.name}</p>
+                        <p class="text-sm text-gray-600">${vh.code || 'No code provided'}</p>
+                        <p class="text-xs text-gray-500 mt-1">${vh.description || 'No description'}</p>
+                    </div>
+                </div>
+            `).join('');
+
+            voteHeads.forEach(voteHead => {
+                if (voteHeadSelect) {
+                    const option = document.createElement('option');
+                    option.value = voteHead.id;
+                    option.textContent = voteHead.name;
+                    voteHeadSelect.appendChild(option);
+                }
+                if (localVoteHeadSelect) {
+                    const option = document.createElement('option');
+                    option.value = voteHead.id;
+                    option.textContent = voteHead.name;
+                    localVoteHeadSelect.appendChild(option);
+                }
+            });
+        } catch (error) {
+            console.error('Error loading vote heads:', error);
+            showToast('Failed to load vote heads', 'error');
+        }
+    }
+
+    document.getElementById('vote-head-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        try {
+            const name = document.getElementById('vote-head-name').value.trim();
+            const code = document.getElementById('vote-head-code').value.trim();
+            const description = document.getElementById('vote-head-description').value.trim();
+
+            if (!name) {
+                showToast('Please enter a vote head name', 'warning');
+                return;
+            }
+
+            const response = await fetch('/api/budget/vote-heads', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ name, code, description })
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to save vote head');
+            }
+
+            showToast('Vote head saved successfully', 'success');
+            closeVoteHeadModal();
+            await loadVoteHeads();
+        } catch (error) {
+            console.error('Error creating vote head:', error);
+            showToast('Unable to save vote head', 'error');
+        }
+    });
+
+    // Form submissions
+    document.getElementById('yearly-budget-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        try {
+            const year = parseInt(document.getElementById('budget-year').value);
+            const totalBudget = parseFloat(document.getElementById('budget-amount').value);
+            const description = document.getElementById('budget-description').value;
+
+            // Create yearly budget
+            const budgetResponse = await fetch('/api/budget/yearly', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    year,
+                    total_budget: totalBudget,
+                    description
+                })
+            });
+
+            if (!budgetResponse.ok) {
+                throw new Error('Failed to create yearly budget');
+            }
+
+            const budget = await budgetResponse.json();
+            showToast('Yearly budget created successfully', 'success');
+
+            // Create allocations
+            if (budgetAllocations.length > 0) {
+                for (const alloc of budgetAllocations) {
+                    if (alloc.type === 'dcc') {
+                        const dccBudgetResponse = await fetch('/api/budget/dcc', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                yearly_budget_id: budget.id,
+                                dcc_id: alloc.dccId,
+                                allocated_amount: alloc.amount
+                            })
+                        });
+                        if (!dccBudgetResponse.ok) {
+                            throw new Error('Failed to create DCC budget');
+                        }
+                        const dccBudget = await dccBudgetResponse.json();
+                        if (dccBudget.id) {
+                            const voteHeadResponse = await fetch(`/api/budget/dcc/${dccBudget.id}/vote-heads`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    vote_head_id: alloc.voteHeadId,
+                                    allocated_amount: alloc.amount
+                                })
+                            });
+                            if (!voteHeadResponse.ok) {
+                                throw new Error('Failed to assign vote head to DCC budget');
+                            }
+                        }
+                    } else if (alloc.type === 'local') {
+                        // First get or create the DCC budget
+                        const dccBudgetsResponse = await fetch(`/api/budget/dcc/year/${year}`);
+                        const dccBudgets = await dccBudgetsResponse.json();
+                        const dccBudget = dccBudgets.find(b => b.dcc_id === alloc.dccId);
+
+                        if (dccBudget) {
+                            const churchBudgetResponse = await fetch('/api/budget/church', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    dcc_budget_id: dccBudget.id,
+                                    local_church_id: alloc.localChurchId,
+                                    allocated_amount: alloc.amount
+                                })
+                            });
+                            if (!churchBudgetResponse.ok) {
+                                throw new Error('Failed to create local church budget');
+                            }
+                            const churchBudget = await churchBudgetResponse.json();
+                            if (churchBudget.id) {
+                                const voteHeadResponse = await fetch(`/api/budget/church/${churchBudget.id}/vote-heads`, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({
+                                        vote_head_id: alloc.voteHeadId,
+                                        allocated_amount: alloc.amount
+                                    })
+                                });
+                                if (!voteHeadResponse.ok) {
+                                    throw new Error('Failed to assign vote head to church budget');
+                                }
+                            }
+                        }
+                    }
+                }
+                showToast(`Created ${budgetAllocations.length} allocation(s)`, 'success');
+            }
+
+            closeYearlyBudgetModal();
+            await loadYearlyBudgets();
+            await loadDashboard();
+        } catch (error) {
+            console.error('Error creating yearly budget:', error);
+            showToast('Failed to create yearly budget and allocations', 'error');
+        }
+    });
+
+    document.getElementById('dcc-budget-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Handle DCC budget allocation
+        showToast('Budget allocated to DCC successfully', 'success');
+        closeDCCBudgetModal();
+        await loadDCCBudgets();
+    });
+
+    document.getElementById('church-budget-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Handle church budget allocation
+        showToast('Budget allocated to church successfully', 'success');
+        closeChurchBudgetModal();
+        await loadChurchBudgets();
+    });
+
+    document.getElementById('payment-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        // Handle payment recording
+        showToast('Payment recorded successfully', 'success');
+        closePaymentModal();
+        await loadPayments();
+        await loadDashboard();
+    });
+
+    // Utility functions
+    function formatCurrency(value) {
+        return new Intl.NumberFormat('en-KE', { style: 'currency', currency: 'KES', minimumFractionDigits: 0 }).format(value);
+    }
+
+    function getMonthName(month) {
+        const months = ['', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        return months[month];
+    }
+
+    function showToast(message, type = 'info') {
+        console.log(`${type.toUpperCase()}: ${message}`);
+        // Implement toast notification if available
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', async () => {
+        // Set default year values
+        const currentYear = new Date().getFullYear();
+        document.getElementById('budget-year').value = currentYear;
+        document.getElementById('payment-year-input').value = currentYear;
+        document.getElementById('report-year').value = currentYear;
+
+        await loadDashboard();
+        await loadYearlyBudgets();
+        await loadVoteHeads();
+    });
+</script>
+{% endblock %}

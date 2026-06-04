@@ -1,16 +1,42 @@
 import uuid
 from fastapi import APIRouter, Depends, Form, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
+from sqlmodel import Session, select
 from app.db.database import get_session
 from app.council.service import CouncilService
+from app.council.models import Church, District
 from fastapi.responses import RedirectResponse
 from fastapi.templating import Jinja2Templates
+from typing import List
 
 # Import the templates object from core/templates.py
 from app.core.templates import templates
 council_router = APIRouter()
 council_services = CouncilService()  # Instantiate the service
+
+
+# ==================== API Endpoints for Budget ====================
+
+@council_router.get("/api/churches", response_model=List[dict])
+async def get_all_churches_api(request: Request, session: AsyncSession = Depends(get_session)):
+    """Get all churches as JSON for budget allocation"""
+    statement = select(Church)
+    result = await session.exec(statement)
+    churches = result.all()
+    return [{"id": str(church.id), "name": church.name, "district_id": str(church.district_id)} for church in churches]
+
+
+@council_router.get("/api/churches/{district_id}/local", response_model=List[dict])
+async def get_local_churches_api(district_id: uuid.UUID, request: Request, session: AsyncSession = Depends(get_session)):
+    """Get all local churches for a specific district"""
+    statement = select(Church).where(Church.district_id == district_id)
+    result = await session.exec(statement)
+    churches = result.all()
+    return [{"id": str(church.id), "name": church.name} for church in churches]
+
+
+# ==================== HTML Routes ====================
 
 
 @council_router.get("/get-churches", response_class=HTMLResponse)
@@ -26,7 +52,7 @@ async def get_churches(request: Request, session: AsyncSession = Depends(get_ses
     selected_district = await council_services.get_churches_by_district(
         uuid.UUID(district_id), session)
 
-    options = '<option value="" disabled selected>-- Select Church --</option>'
+    options = '<option value="" disabled selected>-- Select your Church --</option>'
     if selected_district:
         for church in selected_district:
             options += f'<option value="{church.id}">AIC {church.name} Local Church</option>'
