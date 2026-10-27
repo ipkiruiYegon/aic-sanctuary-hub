@@ -112,6 +112,7 @@
                             All Events ({{ upcoming_events|length + past_events|length }} total)
                         </h3>
                         <div class="space-y-4" id="all-events-list">
+
                             {% for event in upcoming_events %}
                             <div class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200"
                                 data-event-type="upcoming">
@@ -195,6 +196,7 @@
                                 </div>
                             </div>
                             {% endfor %}
+
                             {% for event in past_events %}
                             <div class="card bg-white shadow-lg border border-gray-200 hover:shadow-xl transition-shadow duration-200 opacity-75"
                                 data-event-type="past">

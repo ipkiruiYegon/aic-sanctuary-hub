@@ -2,7 +2,7 @@ from datetime import datetime
 from email.utils import format_datetime
 
 from fastapi import FastAPI, Request, Depends, status
-from fastapi.responses import RedirectResponse, JSONResponse
+from fastapi.responses import RedirectResponse, JSONResponse, FileResponse
 from sqlmodel.ext.asyncio.session import AsyncSession
 from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
@@ -64,7 +64,7 @@ app.mount("/static", StaticFiles(directory="app/static"), name="static")
 @app.middleware("http")
 async def auth_middleware(request: Request, call_next):
     # Public routes that don't require authentication
-    public_paths = ["/login", "/auth/authenticate",
+    public_paths = ["/login", "/manifest.json", "/auth/authenticate",
                     "/register", "/auth/register/user", "/static", "/council/get-churches"]
 
     if any(request.url.path.startswith(path) for path in public_paths):
@@ -116,6 +116,11 @@ app.include_router(calendar_router, prefix="/calendar", tags=["calendar"])
 app.include_router(budget_router)
 
 
+@app.get("/manifest.json")
+async def manifest():
+    return FileResponse("./manifest.json")
+
+
 @app.get("/")
 async def root():
     return RedirectResponse(url="/dashboard", status_code=303)
@@ -133,7 +138,22 @@ async def dashboard(request: Request, session: AsyncSession = Depends(get_sessio
 @app.get("/budget")
 async def budget_page(request: Request, session: AsyncSession = Depends(get_session)):
     region = await council_services.get_region_with_hierarchy(session)
-    return templates.TemplateResponse("budget.html", {"request": request, "region": region})
+    current_user = request.state.user["user"]
+    user_role = (current_user.get("role") or "").lower()
+    user_tier = "rcc"
+    if current_user.get("lcc_role") or "church" in user_role:
+        user_tier = "church"
+    elif current_user.get("dcc_role") or "dcc" in user_role:
+        user_tier = "dcc"
+    elif current_user.get("rcc_role") or "rcc" in user_role:
+        user_tier = "rcc"
+
+    return templates.TemplateResponse("budget.html", {
+        "request": request,
+        "region": region,
+        "current_user": current_user,
+        "user_tier": user_tier
+    })
 
 
 @app.get("/login")

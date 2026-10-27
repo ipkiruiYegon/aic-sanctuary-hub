@@ -340,167 +340,271 @@
 
 <!-- Yearly Budget Modal -->
 <dialog id="yearly-budget-modal" class="modal modal-bottom sm:modal-middle">
-    <div class="modal-box max-w-3xl">
-        <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+    <div class="modal-box w-full max-w-full sm:max-w-4xl bg-base-100 p-4 sm:p-6 rounded-[32px] shadow-2xl">
+        <button type="button" class="btn btn-sm btn-circle btn-ghost absolute right-3 top-3"
             onclick="document.getElementById('yearly-budget-modal').close()">✕</button>
-        <h3 class="font-bold text-lg mb-4">
-            <i class="fas fa-coins mr-2"></i>
+        <h3 class="font-bold text-2xl mb-4 text-slate-900">
+            <i class="fas fa-coins mr-2 text-blue-600"></i>
             Create & Allocate Yearly Budget
         </h3>
-        <form id="yearly-budget-form" class="space-y-4">
+        <form id="yearly-budget-form" class="space-y-6">
             <!-- Budget Setup -->
             <div class="divider">Budget Setup</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Budget Type</span>
-                    </label>
-                    <select id="budget-type" class="select select-bordered" onchange="toggleBudgetScopeFields()"
-                        required>
-                        <option value="">Select Budget Type...</option>
-                        <option value="rcc">RCC Budget</option>
-                        <option value="dcc">DCC Budget</option>
-                        <option value="church">LCC Budget</option>
-                    </select>
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Region</span>
-                    </label>
-                    <select id="budget-region" class="select select-bordered" required>
-                        <option value="">Select Region...</option>
-                        <option value="{{ region.id }}">{{ region.name }}</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div id="budget-dcc-group" class="form-control hidden">
-                    <label class="label">
-                        <span class="label-text font-semibold">DCC</span>
-                    </label>
-                    <select id="budget_district" name="district_id" class="select select-bordered"
-                        hx-get="/council/get-churches" hx-target="#budget_lcc" hx-trigger="change">
-                        <option value="">Select DCC...</option>
-                        {% for district in region.districts %}
-                        <option value="{{ district.id }}">{{ district.name }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div id="budget-lcc-group" class="form-control hidden">
-                    <label class="label">
-                        <span class="label-text font-semibold">Local Church</span>
-                    </label>
-                    <select id="budget_lcc" class="select select-bordered">
-                        <option value="" disabled selected>-- Select Church --</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Fiscal Year</span>
-                    </label>
-                    <input type="number" id="budget-year" min="2020" required class="input input-bordered"
-                        placeholder="2026">
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Total Budget Amount</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="bg-gray-100">KES</span>
-                        <input type="number" id="budget-amount" step="0.01" min="0" required readonly
-                            class="input input-bordered flex-1" placeholder="0">
+            <div class="rounded-3xl border border-base-200 bg-white p-4 shadow-sm">
+                <div class="alert alert-info rounded-3xl border border-blue-100 bg-blue-50 shadow-sm">
+                    <div class="flex flex-col gap-2 text-slate-700">
+                        <p class="font-semibold text-slate-900">Workflow Guidance</p>
+                        {% if user_tier == 'rcc' %}
+                        <p>You can create RCC, DCC, or LCC budgets. Parent directives will be applied when allocating to
+                            DCCs or Local Churches.</p>
+                        {% elif user_tier == 'dcc' %}
+                        <p>You can create DCC or LCC budgets for your assigned DCC. All allocations should remain within
+                            your district.</p>
+                        {% else %}
+                        <p>You can create a Local Church budget for your assigned local church only. Your DCC and RCC
+                            budgets serve as the authorization parent.</p>
+                        {% endif %}
                     </div>
                 </div>
-            </div>
 
-            <div class="form-control">
-                <label class="label">
-                    <span class="label-text font-semibold">Description (Optional)</span>
-                </label>
-                <textarea id="budget-description" class="textarea textarea-bordered"
-                    placeholder="Budget description or notes..."></textarea>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Budget Type</span>
+                        </label>
+                        <select id="budget-type" class="select select-bordered w-full"
+                            onchange="toggleBudgetScopeFields()" required>
+                            <option value="">Select Budget Type...</option>
+                            <option value="rcc">RCC Budget</option>
+                            <option value="dcc">DCC Budget</option>
+                            <option value="church">LCC Budget</option>
+                        </select>
+                    </div>
+                    <div class="form-control w-full min-w-0" id="budget-region-group">
+                        <label class="label">
+                            <span class="label-text font-semibold">Region</span>
+                        </label>
+                        <select id="budget-region" class="select select-bordered w-full" required {% if user_tier
+                            !='rcc' %}disabled{% endif %}>
+                            <option value="">Select Region...</option>
+                            <option value="{{ region.id }}">{{ region.name }}</option>
+                        </select>
+                        {% if user_tier != 'rcc' %}
+                        <p class="text-xs text-slate-500 mt-1">Region is fixed based on your assigned council scope.</p>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
+                    <div id="budget-dcc-group" class="form-control hidden w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">DCC</span>
+                        </label>
+                        <select id="budget_district" name="district_id" class="select select-bordered w-full"
+                            hx-get="/council/get-churches" hx-target="#budget_lcc" hx-trigger="change">
+                            <option value="">Select DCC...</option>
+                            {% for district in region.districts %}
+                            {% if not current_user.district_id or current_user.district_id == district.id %}
+                            <option value="{{ district.id }}">{{ district.name }}</option>
+                            {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div id="budget-lcc-group" class="form-control hidden w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Local Church</span>
+                        </label>
+                        <select id="budget_lcc" class="select select-bordered w-full">
+                            <option value="" disabled selected>-- Select Church --</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2 mt-4">
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Fiscal Year</span>
+                        </label>
+                        <input type="number" id="budget-year" min="2020" required class="input input-bordered w-full"
+                            placeholder="2026">
+                    </div>
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Total Budget Amount-KES</span>
+                        </label>
+                        <div class="input-group">
+
+                            <input type="number" id="budget-amount" step="0.01" min="0" required readonly
+                                class="input input-bordered flex-1 w-full" placeholder="0">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-control mt-4">
+                    <label class="label">
+                        <span class="label-text font-semibold">Description (Optional)</span>
+                    </label>
+                    <textarea id="budget-description" class="textarea textarea-bordered w-full"
+                        placeholder="Budget description or notes..."></textarea>
+                </div>
             </div>
 
             <!-- Vote Head Breakdown -->
             <div class="divider">Vote Head Breakdown</div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Vote Head</span>
-                    </label>
-                    <select id="budget-vote-head" class="select select-bordered">
-                        <option value="">Select Vote Head...</option>
-                    </select>
-                </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Amount</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="bg-gray-100">KES</span>
-                        <input type="number" id="budget-vote-head-amount" step="0.01" min="0"
-                            class="input input-bordered flex-1" placeholder="150000">
+            <div class="rounded-3xl border border-base-200 bg-white p-4 shadow-sm">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Vote Head</span>
+                        </label>
+                        <select id="budget-vote-head" class="select select-bordered w-full">
+                            <option value="">Select Vote Head...</option>
+                        </select>
+                    </div>
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Amount</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="bg-base-200">KES</span>
+                            <input type="number" id="budget-vote-head-amount" step="0.01" min="0"
+                                class="input input-bordered flex-1 w-full" placeholder="150000">
+                        </div>
+                    </div>
+                    <div class="form-control mt-2 md:mt-0 w-full md:w-auto">
+                        <button type="button" class="btn btn-primary btn-block sm:btn-wide" onclick="addVoteHeadLine()">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add Vote Head
+                        </button>
                     </div>
                 </div>
-                <div class="form-control mt-2">
-                    <button type="button" class="btn btn-sm btn-outline w-full" onclick="addVoteHeadLine()">
-                        <i class="fas fa-plus mr-2"></i>
-                        Add Vote Head
-                    </button>
+                <div id="budget-vote-heads-list" class="space-y-3 mt-4"></div>
+                <div
+                    class="mt-4 rounded-3xl border border-blue-100 bg-blue-50 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <span class="font-semibold text-slate-700">Vote Head Total</span>
+                    <span id="vote-head-total" class="text-blue-600 font-bold text-lg">KES 0</span>
                 </div>
-            </div>
-            <div id="budget-vote-heads-list" class="space-y-3"></div>
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <span class="font-semibold">Vote Head Total</span>
-                <span id="vote-head-total" class="text-blue-600 font-bold">KES 0</span>
             </div>
 
-            <!-- Funding Sources -->
-            <div class="divider">Budget Funding Sources</div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Funding Source</span>
-                    </label>
-                    <select id="funding-source-type" class="select select-bordered">
-                        <option value="">Select a source...</option>
-                        <option value="dcc_allocation">DCC Allocation</option>
-                        <option value="local_church_allocation">LCC Allocation</option>
-                        <option value="other">Other</option>
-                    </select>
+            <!-- Budget Allocations -->
+            <div class="divider">Budget Allocations</div>
+
+            <!-- Allocate to DCCs -->
+            <div class="rounded-3xl border border-base-200 bg-white p-4 shadow-sm">
+                <div class="flex items-center justify-between mb-4 gap-3">
+                    <div>
+                        <p class="text-lg font-semibold">Allocate to DCCs</p>
+                        <p class="text-sm text-slate-500">Distribute budget amounts across multiple DCCs.</p>
+                    </div>
+                    <span class="badge badge-primary badge-outline">Multi-target</span>
                 </div>
-                <div class="form-control">
-                    <label class="label">
-                        <span class="label-text font-semibold">Amount</span>
-                    </label>
-                    <div class="input-group">
-                        <span class="bg-gray-100">KES</span>
-                        <input type="number" id="funding-source-amount" step="0.01" min="0"
-                            class="input input-bordered flex-1" placeholder="200000">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-3 items-end">
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">DCC</span>
+                        </label>
+                        <select id="dcc-allocation-select" class="select select-bordered w-full">
+                            <option value="">Select DCC...</option>
+                        </select>
+                    </div>
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Amount</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="bg-base-200">KES</span>
+                            <input type="number" id="dcc-allocation-amount" step="0.01" min="0"
+                                class="input input-bordered flex-1 w-full" placeholder="50000">
+                        </div>
+                    </div>
+                    <div class="form-control mt-2 md:mt-0 w-full md:w-auto">
+                        <button type="button" class="btn btn-secondary btn-block sm:btn-wide"
+                            onclick="addDCCAllocationRow()">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add DCC
+                        </button>
                     </div>
                 </div>
-                <div class="form-control mt-2">
-                    <button type="button" class="btn btn-sm btn-outline w-full" onclick="addFundingSource()">
-                        <i class="fas fa-plus mr-2"></i>
-                        Add Funding Source
-                    </button>
+                <div id="dcc-allocations-table" class="space-y-3 mt-4"></div>
+                <div
+                    class="mt-4 rounded-3xl border border-blue-100 bg-blue-50 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <span class="font-semibold text-slate-700">DCC Allocations Total</span>
+                    <span id="dcc-allocations-total" class="text-blue-600 font-bold text-lg">KES 0</span>
                 </div>
             </div>
-            <div id="funding-sources-list" class="space-y-3"></div>
-            <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg border border-gray-200">
-                <span class="font-semibold">Funding Total</span>
-                <span id="funding-total" class="text-blue-600 font-bold">KES 0</span>
+
+            <!-- Allocate to Local Churches -->
+            <div class="rounded-3xl border border-base-200 bg-white p-4 shadow-sm mt-6">
+                <div class="flex items-center justify-between mb-4 gap-3">
+                    <div>
+                        <p class="text-lg font-semibold">Allocate to Local Churches</p>
+                        <p class="text-sm text-slate-500">Assign funding to multiple local churches under each DCC.</p>
+                    </div>
+                    <span class="badge badge-success badge-outline">LCC Distribution</span>
+                </div>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-4 items-end">
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Parent DCC</span>
+                        </label>
+                        <select id="lcc-parent-dcc-select" class="select select-bordered w-full"
+                            onchange="loadLCCsForAllocationDCC()">
+                            <option value="">Select DCC...</option>
+                        </select>
+                    </div>
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Local Church</span>
+                        </label>
+                        <select id="lcc-allocation-select" class="select select-bordered w-full">
+                            <option value="">Select LCC...</option>
+                        </select>
+                    </div>
+                    <div class="form-control w-full min-w-0">
+                        <label class="label">
+                            <span class="label-text font-semibold">Amount</span>
+                        </label>
+                        <div class="input-group">
+                            <span class="bg-base-200">KES</span>
+                            <input type="number" id="lcc-allocation-amount" step="0.01" min="0"
+                                class="input input-bordered flex-1 w-full" placeholder="25000">
+                        </div>
+                    </div>
+                    <div class="form-control mt-2 md:mt-0 w-full md:w-auto">
+                        <button type="button" class="btn btn-secondary btn-block sm:btn-wide"
+                            onclick="addLCCAllocationRow()">
+                            <i class="fas fa-plus mr-2"></i>
+                            Add LCC
+                        </button>
+                    </div>
+                </div>
+                <div id="lcc-allocations-table" class="space-y-3 mt-4"></div>
+                <div
+                    class="mt-4 rounded-3xl border border-green-100 bg-green-50 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                    <span class="font-semibold text-slate-700">LCC Allocations Total</span>
+                    <span id="lcc-allocations-total" class="text-green-600 font-bold text-lg">KES 0</span>
+                </div>
             </div>
-            <div class="flex justify-between items-center p-3 rounded-lg">
-                <span class="text-sm font-semibold">Balance</span>
-                <span id="funding-gap" class="text-sm font-semibold text-gray-600">KES 0</span>
+
+            <!-- Combined Allocation Summary -->
+            <div class="rounded-3xl border border-base-200 bg-base-100 p-4 shadow-sm mt-6">
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-sm">
+                        <p class="text-xs text-slate-500">Vote Head Total</p>
+                        <p class="text-xl font-semibold text-blue-600" id="allocation-vote-head-total">KES 0</p>
+                    </div>
+                    <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-sm">
+                        <p class="text-xs text-slate-500">Total Allocated</p>
+                        <p class="text-xl font-semibold text-green-600" id="allocation-total-allocated">KES 0</p>
+                    </div>
+                    <div class="rounded-3xl bg-white p-4 border border-slate-200 shadow-sm">
+                        <p class="text-xs text-slate-500">Remaining</p>
+                        <p class="text-xl font-semibold" id="allocation-remaining">KES 0</p>
+                    </div>
+                </div>
             </div>
-            <p id="funding-balance-warning" class="text-sm text-red-600 hidden">
-                Funding total should match the vote head total before saving.
+            <p id="allocation-balance-warning" class="text-sm text-red-600 mt-3 hidden">
+                Total allocations must equal the vote head total before saving.
             </p>
 
             <div class="modal-action">
@@ -856,6 +960,53 @@
 
 <!-- ==================== SCRIPTS ==================== -->
 <script>
+    // Budget page context from server
+    const BudgetContext = {
+        currentUser: {
+            userId: "{{ current_user.user_id }}",
+            role: "{{ current_user.role or '' }}",
+            rccRole: "{{ current_user.rcc_role or '' }}",
+            dccRole: "{{ current_user.dcc_role or '' }}",
+            lccRole: "{{ current_user.lcc_role or '' }}",
+            regionId: "{{ current_user.region_id or '' }}",
+            districtId: "{{ current_user.district_id or '' }}",
+            localChurchId: "{{ current_user.local_church_id or '' }}"
+        },
+        userTier: "{{ user_tier }}"
+    };
+
+    function prepareBudgetModalForUser() {
+        const budgetType = document.getElementById('budget-type');
+        budgetType.innerHTML = '<option value="">Select Budget Type...</option>';
+
+        if (BudgetContext.userTier === 'rcc') {
+            budgetType.innerHTML += '<option value="rcc">RCC Budget</option>';
+            budgetType.innerHTML += '<option value="dcc">DCC Budget</option>';
+            budgetType.innerHTML += '<option value="church">LCC Budget</option>';
+        } else if (BudgetContext.userTier === 'dcc') {
+            budgetType.innerHTML += '<option value="dcc">DCC Budget</option>';
+            budgetType.innerHTML += '<option value="church">LCC Budget</option>';
+        } else {
+            budgetType.innerHTML += '<option value="church">LCC Budget</option>';
+        }
+
+        const regionSelect = document.getElementById('budget-region');
+        if (BudgetContext.currentUser.regionId) {
+            regionSelect.value = BudgetContext.currentUser.regionId;
+        }
+
+        if (BudgetContext.userTier !== 'rcc') {
+            regionSelect.disabled = true;
+        }
+
+        if (BudgetContext.userTier === 'church' && BudgetContext.currentUser.localChurchId) {
+            document.getElementById('budget_district').value = BudgetContext.currentUser.districtId || '';
+            document.getElementById('budget-lcc-group').classList.remove('hidden');
+            document.getElementById('budget_lcc').innerHTML = `<option value="${BudgetContext.currentUser.localChurchId}">Assigned Church</option>`;
+            document.getElementById('budget_lcc').value = BudgetContext.currentUser.localChurchId;
+        }
+    }
+
     // Tab switching
     function showBudgetTab(tabName) {
         const tabs = ['budgets', 'allocations', 'payments', 'reports'];
@@ -1425,9 +1576,10 @@
     function openYearlyBudgetModal() {
         document.getElementById('yearly-budget-form').reset();
         resetYearlyBudgetWorkflow();
-        document.getElementById('budget-type').value = '';
         document.getElementById('budget-dcc-group').classList.add('hidden');
         document.getElementById('budget-lcc-group').classList.add('hidden');
+
+        prepareBudgetModalForUser();
 
         // Set default year
         const currentYear = new Date().getFullYear();
@@ -1447,8 +1599,10 @@
 
     async function loadBudgetModalData() {
         try {
-            await loadVoteHeads();
             resetYearlyBudgetWorkflow();
+            prepareBudgetModalForUser();
+            await loadVoteHeads();
+            await loadAllocationDCCTargets();
         } catch (error) {
             console.error('Error loading budget modal data:', error);
             showToast('Failed to load budget setup data', 'error');
@@ -1467,11 +1621,66 @@
         document.getElementById('budget-amount').value = '0';
         document.getElementById('budget-description').value = '';
         document.getElementById('budget-vote-heads-list').innerHTML = '';
-        document.getElementById('funding-sources-list').innerHTML = '';
+        document.getElementById('dcc-allocation-amount').value = '';
+        document.getElementById('lcc-allocation-amount').value = '';
+        document.getElementById('dcc-allocation-select').value = '';
+        document.getElementById('lcc-parent-dcc-select').value = '';
+        document.getElementById('lcc-allocation-select').innerHTML = '<option value="">Select LCC...</option>';
         document.getElementById('vote-head-total').textContent = 'KES 0';
-        document.getElementById('funding-total').textContent = 'KES 0';
-        document.getElementById('funding-gap').textContent = 'KES 0';
-        document.getElementById('funding-balance-warning').classList.add('hidden');
+        document.getElementById('dcc-allocations-total').textContent = 'KES 0';
+        document.getElementById('lcc-allocations-total').textContent = 'KES 0';
+        document.getElementById('allocation-vote-head-total').textContent = 'KES 0';
+        document.getElementById('allocation-total-allocated').textContent = 'KES 0';
+        document.getElementById('allocation-remaining').textContent = 'KES 0';
+        document.getElementById('allocation-balance-warning').classList.add('hidden');
+        dccAllocations.length = 0;
+        lccAllocations.length = 0;
+    }
+
+    async function loadAllocationDCCTargets() {
+        try {
+            const response = await fetch('/council/api/churches');
+            const churches = response.ok ? await response.json() : [];
+            const dccSelect = document.getElementById('dcc-allocation-select');
+            const parentDccSelect = document.getElementById('lcc-parent-dcc-select');
+
+            dccSelect.innerHTML = '<option value="">Select DCC...</option>';
+            parentDccSelect.innerHTML = '<option value="">Select DCC...</option>';
+
+            churches.forEach(church => {
+                const option = document.createElement('option');
+                option.value = church.id;
+                option.textContent = church.name;
+                dccSelect.appendChild(option);
+
+                const option2 = option.cloneNode(true);
+                parentDccSelect.appendChild(option2);
+            });
+        } catch (error) {
+            console.error('Error loading DCC targets for allocations:', error);
+            showToast('Failed to load DCC list', 'error');
+        }
+    }
+
+    async function loadLCCsForAllocationDCC() {
+        try {
+            const dccId = document.getElementById('lcc-parent-dcc-select').value;
+            const lccSelect = document.getElementById('lcc-allocation-select');
+            lccSelect.innerHTML = '<option value="">Select LCC...</option>';
+            if (!dccId) return;
+
+            const response = await fetch(`/council/api/churches/${dccId}/local`);
+            const churches = response.ok ? await response.json() : [];
+            churches.forEach(church => {
+                const option = document.createElement('option');
+                option.value = church.id;
+                option.textContent = church.name;
+                lccSelect.appendChild(option);
+            });
+        } catch (error) {
+            console.error('Error loading local churches for allocation:', error);
+            showToast('Failed to load local churches', 'error');
+        }
     }
 
     function getCurrencyValue(elementId) {
@@ -1479,7 +1688,8 @@
     }
 
     const budgetVoteLines = [];
-    const budgetFundingSources = [];
+    const dccAllocations = [];
+    const lccAllocations = [];
 
     function addVoteHeadLine() {
         const voteHeadSelect = document.getElementById('budget-vote-head');
@@ -1530,63 +1740,132 @@
         updateFundingSummary();
     }
 
-    function addFundingSource() {
-        const sourceType = document.getElementById('funding-source-type').value;
-        const amount = getCurrencyValue('funding-source-amount');
+    function addDCCAllocationRow() {
+        const dccId = document.getElementById('dcc-allocation-select').value;
+        const dccName = document.getElementById('dcc-allocation-select').selectedOptions[0]?.text || '';
+        const amount = getCurrencyValue('dcc-allocation-amount');
 
-        if (!sourceType || amount <= 0) {
-            showToast('Select a funding source and enter a positive amount', 'warning');
+        if (!dccId) {
+            showToast('Select a DCC for allocation', 'warning');
             return;
         }
 
-        budgetFundingSources.push({ sourceType, amount });
-        document.getElementById('funding-source-type').value = '';
-        document.getElementById('funding-source-amount').value = '';
-        renderFundingSources();
+        if (amount <= 0) {
+            showToast('Enter a positive allocation amount', 'warning');
+            return;
+        }
+
+        const existingIndex = dccAllocations.findIndex(a => a.dccId === dccId);
+        if (existingIndex >= 0) {
+            dccAllocations[existingIndex].amount += amount;
+        } else {
+            dccAllocations.push({ dccId, dccName, amount });
+        }
+
+        document.getElementById('dcc-allocation-select').value = '';
+        document.getElementById('dcc-allocation-amount').value = '';
+        renderDCCAllocations();
     }
 
-    function renderFundingSources() {
-        const list = document.getElementById('funding-sources-list');
-        if (budgetFundingSources.length === 0) {
-            list.innerHTML = '<p class="text-sm text-gray-500">No funding sources added yet.</p>';
+    function renderDCCAllocations() {
+        const list = document.getElementById('dcc-allocations-table');
+        if (dccAllocations.length === 0) {
+            list.innerHTML = '<p class="text-sm text-gray-500">No DCC allocations added yet.</p>';
         } else {
-            list.innerHTML = budgetFundingSources.map((item, index) => `
-                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg border border-gray-200">
+            list.innerHTML = dccAllocations.map((item, index) => `
+                <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                     <div>
-                        <p class="font-semibold">${formatFundingSource(item.sourceType)}</p>
+                        <p class="font-semibold">${item.dccName}</p>
                         <p class="text-sm text-gray-600">${formatCurrency(item.amount)}</p>
                     </div>
-                    <button type="button" class="btn btn-xs btn-outline" onclick="removeFundingSource(${index})">
+                    <button type="button" class="btn btn-xs btn-outline" onclick="removeDCCAllocationRow(${index})">
                         Remove
                     </button>
                 </div>
             `).join('');
         }
-        updateFundingSummary();
+        updateAllocationSummary();
     }
 
-    function removeFundingSource(index) {
-        budgetFundingSources.splice(index, 1);
-        renderFundingSources();
+    function removeDCCAllocationRow(index) {
+        dccAllocations.splice(index, 1);
+        renderDCCAllocations();
     }
 
-    function updateFundingSummary() {
-        const fundingTotal = budgetFundingSources.reduce((sum, source) => sum + source.amount, 0);
-        const voteHeadTotal = budgetVoteLines.reduce((sum, line) => sum + line.amount, 0);
-        const remaining = voteHeadTotal - fundingTotal;
+    function addLCCAllocationRow() {
+        const parentDccId = document.getElementById('lcc-parent-dcc-select').value;
+        const lccId = document.getElementById('lcc-allocation-select').value;
+        const lccName = document.getElementById('lcc-allocation-select').selectedOptions[0]?.text || '';
+        const amount = getCurrencyValue('lcc-allocation-amount');
 
-        document.getElementById('funding-total').textContent = formatCurrency(fundingTotal);
-        document.getElementById('funding-gap').textContent = formatCurrency(remaining);
-        document.getElementById('funding-balance-warning').classList.toggle('hidden', remaining === 0);
-    }
-
-    function formatFundingSource(type) {
-        switch (type) {
-            case 'dcc_allocation': return 'DCC Allocation';
-            case 'local_church_allocation': return 'LCC Allocation';
-            case 'other': return 'Other';
-            default: return 'Unknown Source';
+        if (!parentDccId) {
+            showToast('Select a parent DCC for LCC allocation', 'warning');
+            return;
         }
+
+        if (!lccId) {
+            showToast('Select a local church for allocation', 'warning');
+            return;
+        }
+
+        if (amount <= 0) {
+            showToast('Enter a positive allocation amount', 'warning');
+            return;
+        }
+
+        const existingIndex = lccAllocations.findIndex(a => a.lccId === lccId && a.parentDccId === parentDccId);
+        if (existingIndex >= 0) {
+            lccAllocations[existingIndex].amount += amount;
+        } else {
+            lccAllocations.push({ parentDccId, lccId, lccName, amount });
+        }
+
+        document.getElementById('lcc-parent-dcc-select').value = '';
+        document.getElementById('lcc-allocation-select').innerHTML = '<option value="">Select LCC...</option>';
+        document.getElementById('lcc-allocation-amount').value = '';
+        renderLCCAllocations();
+    }
+
+    function renderLCCAllocations() {
+        const list = document.getElementById('lcc-allocations-table');
+        if (lccAllocations.length === 0) {
+            list.innerHTML = '<p class="text-sm text-gray-500">No LCC allocations added yet.</p>';
+        } else {
+            list.innerHTML = lccAllocations.map((item, index) => `
+                <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
+                    <div>
+                        <p class="font-semibold">${item.lccName}</p>
+                        <p class="text-sm text-gray-600">${formatCurrency(item.amount)}</p>
+                    </div>
+                    <button type="button" class="btn btn-xs btn-outline" onclick="removeLCCAllocationRow(${index})">
+                        Remove
+                    </button>
+                </div>
+            `).join('');
+        }
+        updateAllocationSummary();
+    }
+
+    function removeLCCAllocationRow(index) {
+        lccAllocations.splice(index, 1);
+        renderLCCAllocations();
+    }
+
+    function updateAllocationSummary() {
+        const dccTotal = dccAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+        const lccTotal = lccAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+        const voteHeadTotal = budgetVoteLines.reduce((sum, line) => sum + line.amount, 0);
+        const totalAllocated = dccTotal + lccTotal;
+        const remaining = voteHeadTotal - totalAllocated;
+
+        document.getElementById('dcc-allocations-total').textContent = formatCurrency(dccTotal);
+        document.getElementById('lcc-allocations-total').textContent = formatCurrency(lccTotal);
+        document.getElementById('allocation-vote-head-total').textContent = formatCurrency(voteHeadTotal);
+        document.getElementById('allocation-total-allocated').textContent = formatCurrency(totalAllocated);
+        document.getElementById('allocation-remaining').textContent = formatCurrency(remaining);
+        document.getElementById('allocation-remaining').classList.toggle('text-red-600', remaining > 0);
+        document.getElementById('allocation-remaining').classList.toggle('text-green-600', remaining === 0);
+        document.getElementById('allocation-balance-warning').classList.toggle('hidden', remaining === 0);
     }
 
     function openDCCBudgetModal() {
@@ -1796,13 +2075,14 @@
                 showToast('Add at least one vote head line', 'warning');
                 return;
             }
-            if (budgetFundingSources.length === 0) {
-                showToast('Add at least one funding source', 'warning');
+            if (dccAllocations.length === 0 && lccAllocations.length === 0) {
+                showToast('Add at least one allocation (DCC or LCC)', 'warning');
                 return;
             }
-            const fundingTotal = budgetFundingSources.reduce((sum, source) => sum + source.amount, 0);
-            if (fundingTotal !== totalBudget) {
-                showToast('Funding total must equal the vote head total', 'warning');
+            const totalAllocated = dccAllocations.reduce((sum, alloc) => sum + alloc.amount, 0) +
+                lccAllocations.reduce((sum, alloc) => sum + alloc.amount, 0);
+            if (totalAllocated !== totalBudget) {
+                showToast('Total allocations must equal the vote head total', 'warning');
                 return;
             }
 
@@ -1821,6 +2101,7 @@
             const yearlyBudget = await budgetResponse.json();
 
             let parentBudgetId = null;
+            let parentDccBudgetId = null;
             let parentType = null;
 
             if (budgetType === 'dcc') {
@@ -1842,6 +2123,7 @@
                 }
                 const dccBudget = await dccBudgetResponse.json();
                 parentBudgetId = dccBudget.id;
+                parentDccBudgetId = dccBudget.id;
                 parentType = 'dcc';
             } else if (budgetType === 'church') {
                 if (!dccId || !localChurchId) {
@@ -1861,6 +2143,7 @@
                     throw new Error('Failed to create parent DCC budget');
                 }
                 const dccBudget = await dccBudgetResponse.json();
+                parentDccBudgetId = dccBudget.id;
 
                 const churchBudgetResponse = await fetch('/api/budget/church', {
                     method: 'POST',
@@ -1899,19 +2182,47 @@
                 }
             }
 
-            for (const source of budgetFundingSources) {
-                const incomeResponse = await fetch('/api/budget/income/yearly', {
+            const dccBudgetMap = {};
+            const localChurchBudgetMap = {};
+
+            // Process DCC Allocations
+            for (const dccAlloc of dccAllocations) {
+                const dccBudgetResponse = await fetch('/api/budget/dcc', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         yearly_budget_id: yearlyBudget.id,
-                        source_type: source.sourceType,
-                        amount: source.amount
+                        dcc_id: dccAlloc.dccId,
+                        allocated_amount: dccAlloc.amount
                     })
                 });
-                if (!incomeResponse.ok) {
-                    throw new Error('Failed to save funding source');
+                if (!dccBudgetResponse.ok) {
+                    throw new Error('Failed to create DCC budget for ' + dccAlloc.dccName);
                 }
+                const dccBudget = await dccBudgetResponse.json();
+                dccBudgetMap[dccAlloc.dccId] = dccBudget.id;
+            }
+
+            // Process LCC Allocations
+            for (const lccAlloc of lccAllocations) {
+                const dccBudgetId = dccBudgetMap[lccAlloc.parentDccId];
+                if (!dccBudgetId) {
+                    throw new Error('Missing parent DCC budget for LCC ' + lccAlloc.lccName);
+                }
+                const churchBudgetResponse = await fetch('/api/budget/church', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        dcc_budget_id: dccBudgetId,
+                        local_church_id: lccAlloc.lccId,
+                        allocated_amount: lccAlloc.amount
+                    })
+                });
+                if (!churchBudgetResponse.ok) {
+                    throw new Error('Failed to create local church budget for ' + lccAlloc.lccName);
+                }
+                const churchBudget = await churchBudgetResponse.json();
+                localChurchBudgetMap[lccAlloc.lccId] = churchBudget.id;
             }
 
             showToast('Yearly budget created successfully', 'success');
@@ -1923,6 +2234,7 @@
             showToast('Failed to create yearly budget and allocations', 'error');
         }
     });
+
 
     document.getElementById('dcc-budget-form').addEventListener('submit', async (e) => {
         e.preventDefault();

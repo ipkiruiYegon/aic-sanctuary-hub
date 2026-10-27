@@ -10,6 +10,7 @@
         "lccrole",
         "rccrole",
         "redoc",
+        "selectin",
         "selectinload"
     ],
     "python-envs.defaultEnvManager": "ms-python.python:poetry",

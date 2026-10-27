@@ -4,7 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AIC Sanctuary Hub">
+    <meta name="mobile-web-app-capable" content="yes">
     <title>AIC Sanctuary Hub</title>
+    <link rel="manifest" href="/manifest.json">
+    <link rel="icon" href="/static/images/aic-logo.png" type="image/png">
+    <link rel="apple-touch-icon" href="/static/images/aic-logo.png">
     <link rel="stylesheet" href="{{ url_for('static', path='css/app.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='css/custom.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', path='fontawesome/css/all.css')}}">
@@ -152,6 +160,15 @@
     <script src="/static/js/htmx.min.js"></script>
     <script src="/static/js/script.js"></script>
     <script src="/static/js/toast.js"></script>
+    <script>
+        if ("serviceWorker" in navigator) {
+            window.addEventListener("load", () => {
+                navigator.serviceWorker.register("/static/sw.js").catch((error) => {
+                    console.error("Service worker registration failed:", error);
+                });
+            });
+        }
+    </script>
     <script>
         const setupInactivityLogout = () => {
             let timer, debounceTimer;

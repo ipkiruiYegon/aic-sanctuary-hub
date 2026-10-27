@@ -128,6 +128,10 @@ class EventService:
             Event.approved == True,
             Event.date_to < current_time,
             Event.status != "Cancelled"
+        ).options(
+            # This pre-loads the relationships so they are available in the Jinja template
+            selectinload(Event.venue_region),
+            selectinload(Event.venue_district)
         ).order_by(Event.date_to.desc()).limit(limit)
         results = await session.exec(sql)
         events = results.all()
